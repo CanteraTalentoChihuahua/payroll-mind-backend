@@ -10,7 +10,12 @@ function createSessionJWT(payload) {
 
 function verifySessionJWT(token) {
     try {
-        return { isValid: true, payload: jwt.verify(token, process.env.JWT_SECRET) }
+        return {
+            isValid: true, payload: jwt.verify(token, process.env.JWT_SECRET, {
+                audience: loginAudience,
+                algorithms: ["HS256"]
+            })
+        }
     } catch {
         return { isValid: false, payload: undefined }
     }
