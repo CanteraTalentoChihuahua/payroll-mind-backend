@@ -1,4 +1,5 @@
 const trialRouter = require('./routes/trial_routes');
+const authRouter = require("./routes/auth")
 const express = require('express');
 const app = express();
 
@@ -13,5 +14,6 @@ app.get('/', (req, res) => {
 })
 
 app.use('/trial', trialRouter);
+app.use("/api", authRouter)
 
 module.exports = app;
