@@ -8,4 +8,12 @@ function createSessionJWT(payload) {
     })
 }
 
-module.exports = { createSessionJWT }
+function verifySessionJWT(token) {
+    try {
+        return { isValid: true, payload: jwt.verify(token, process.env.JWT_SECRET) }
+    } catch {
+        return { isValid: false, payload: undefined }
+    }
+}
+
+module.exports = { createSessionJWT, verifySessionJWT }
