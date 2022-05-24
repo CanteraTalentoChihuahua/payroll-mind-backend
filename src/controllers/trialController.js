@@ -1,6 +1,6 @@
 // Functions
 const trialFunction = () => {
-    return 'Something';
+    return "Something";
 };
 
-module.exports = { trialFunction }
+module.exports = { trialFunction };
