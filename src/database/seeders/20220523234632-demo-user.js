@@ -11,6 +11,9 @@ module.exports = {
       email: 'johnwayne@gmail.com',
       password: 'secret_password',
       role: 'employee',
+      privileges: {
+        privileges: [123, 456]
+      },
       payment_period_id: 1,
       business_unit_string: 'Michelada',
       on_leave: false,
