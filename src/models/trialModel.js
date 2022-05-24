@@ -1,6 +1,5 @@
-
 const trialModel = () => {
-    return 'Something';
-}
+    return "Something";
+};
 
 module.exports = { trialModel };

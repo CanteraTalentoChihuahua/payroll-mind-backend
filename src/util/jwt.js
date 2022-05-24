@@ -1,11 +1,11 @@
-const jwt = require("jsonwebtoken")
-const loginAudience = "session"
+const jwt = require("jsonwebtoken");
+const loginAudience = "session";
 
 function createSessionJWT(payload) {
     return jwt.sign(payload, process.env.JWT_SECRET, {
         expiresIn: "1h",
         audience: loginAudience
-    })
+    });
 }
 
 function verifySessionJWT(token) {
@@ -15,10 +15,10 @@ function verifySessionJWT(token) {
                 audience: loginAudience,
                 algorithms: ["HS256"]
             })
-        }
+        };
     } catch {
-        return { isValid: false, payload: undefined }
+        return { isValid: false, payload: undefined };
     }
 }
 
-module.exports = { createSessionJWT, verifySessionJWT }
+module.exports = { createSessionJWT, verifySessionJWT };
