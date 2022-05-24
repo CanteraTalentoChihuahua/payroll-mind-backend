@@ -12,7 +12,7 @@ module.exports = {
             password: "secret_password",
             role: "employee",
             privileges: {
-                "privileges": [123, 456]
+                "privileges": 123
             },
             payment_period_id: 1,
             business_unit_string: "Michelada",
