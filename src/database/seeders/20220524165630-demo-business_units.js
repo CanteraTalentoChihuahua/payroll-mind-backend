@@ -3,8 +3,10 @@
 module.exports = {
     async up (queryInterface, Sequelize) {
         await queryInterface.bulkInsert("business_units", [{
-            id: 1,
             name: "Michelada",
+        },
+        {
+            name: "Arkus Nexus",
         }]);
     },
 

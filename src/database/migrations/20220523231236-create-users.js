@@ -45,8 +45,8 @@ module.exports = {
                 type: Sequelize.INTEGER,
                 allowNull: false
             },
-            business_unit_string: {
-                type: Sequelize.STRING,
+            business_unit: {
+                type: Sequelize.JSONB,
                 allowNull: false
             },
             on_leave: {
@@ -56,6 +56,18 @@ module.exports = {
             active: {
                 type: Sequelize.BOOLEAN,
                 allowNull: false
+            },
+            salary: {
+                type: Sequelize.DECIMAL,
+                allowNull: false
+            },
+            createdAt: {
+                allowNull: false,
+                type: Sequelize.DATE
+            },
+            updatedAt: {
+                allowNull: false,
+                type: Sequelize.DATE
             }
         });
     },

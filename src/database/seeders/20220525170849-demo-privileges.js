@@ -3,12 +3,14 @@
 module.exports = {
     async up (queryInterface, Sequelize) {
         await queryInterface.bulkInsert("privileges", [{
-            id: 1,
-            description: "Editar",
+            description: "Crear administradores",
+        },
+        {
+            description: "Crear unidades de negocio",
         }]);
     },
 
     async down (queryInterface, Sequelize) {
-        await queryInterface.bulkDelete("business_units", null, {});
+        await queryInterface.bulkDelete("privileges", null, {});
     }
 };
