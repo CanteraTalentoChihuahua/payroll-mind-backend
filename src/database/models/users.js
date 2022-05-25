@@ -22,6 +22,7 @@ module.exports = (sequelize) => {
     }, {
         sequelize,
         modelName: "user",
+        timestamps: false
     });
     return users;
 };
