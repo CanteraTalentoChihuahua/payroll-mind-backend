@@ -3,8 +3,10 @@
 module.exports = {
     async up (queryInterface, Sequelize) {
         await queryInterface.bulkInsert("privileges", [{
-            id: 1,
-            description: "Editar",
+            description: "Crear administradores",
+        },
+        {
+            description: "Crear unidades de negocio",
         }]);
     },
 

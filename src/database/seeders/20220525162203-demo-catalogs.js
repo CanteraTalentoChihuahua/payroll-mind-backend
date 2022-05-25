@@ -3,7 +3,6 @@
 module.exports = {
     async up (queryInterface, Sequelize) {
         await queryInterface.bulkInsert("catalogs", [{
-            id: 1,
             name: "Edición",
             description: "Puede editar",
             privileges: {privileges:[123,456]} , 

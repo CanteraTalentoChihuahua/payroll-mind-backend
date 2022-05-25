@@ -3,8 +3,10 @@
 module.exports = {
     async up (queryInterface, Sequelize) {
         await queryInterface.bulkInsert("payments_periods", [{
-            id: 1,
-            name: "Semanal",
+            name: "Quincenal",
+        },
+        {
+            name: "Mensual",
         }]);
     },
 
