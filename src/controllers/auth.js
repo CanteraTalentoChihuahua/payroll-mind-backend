@@ -6,6 +6,7 @@ async function logIn(email, password) {
     const userData = (await users.findOne({
         where: {email}
     })).dataValues;
+    console.dir(userData);
 
     if (userData === null || userData.password !== password) {
         return {loggedIn: false, token: null};
