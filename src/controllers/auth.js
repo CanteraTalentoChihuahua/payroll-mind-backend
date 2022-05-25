@@ -1,5 +1,5 @@
-const db = require("../database/database");
-const users = require("../database/models/users")(db, db.DataTypes);
+const db = require("../database/models/index");
+const users = require("../database/models/users")(db);
 const jwt = require("../util/jwt");
 
 async function logIn(email, password) {
