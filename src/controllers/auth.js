@@ -15,7 +15,7 @@ async function logIn(email, password) {
         id: userData.id,
         role: userData.role
     });
-    console.dir(token);
+    console.dir(Boolean(token));
 
     return {loggedIn: Boolean(token), token };
 }
