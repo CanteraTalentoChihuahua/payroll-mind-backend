@@ -1,5 +1,5 @@
-const sqlz = require("sequelize");
-const users = require("../database/models/users")(new sqlz(), sqlz.DataTypes);
+const {db, data} = require("../database/database");
+const users = require("../database/models/users")(db, data);
 const jwt = require("../util/jwt");
 
 async function logIn(email, password) {
