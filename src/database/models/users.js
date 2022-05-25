@@ -18,7 +18,8 @@ module.exports = (sequelize) => {
             type: Sequelize.INTEGER,
             primaryKey: true
         },
-        role: Sequelize.STRING
+        role: Sequelize.STRING,
+        password: Sequelize.STRING
     }, {
         sequelize,
         modelName: "user",
