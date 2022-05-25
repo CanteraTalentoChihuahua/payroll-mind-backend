@@ -1,4 +1,4 @@
-const db = require("../database/models/index");
+const db = require("../database/database");
 const users = require("../database/models/users")(db);
 const jwt = require("../util/jwt");
 
