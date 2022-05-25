@@ -14,7 +14,10 @@ module.exports = (sequelize) => {
         }
     }
     users.init({
-        id: Sequelize.INTEGER,
+        id: {
+            type: Sequelize.INTEGER,
+            primaryKey: true
+        },
         role: Sequelize.STRING
     }, {
         sequelize,
