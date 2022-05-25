@@ -1,4 +1,5 @@
-const users = require("../database/models/users");
+const db = require("../database/database");
+const users = require("../database/models/users")(db);
 const jwt = require("../util/jwt");
 
 async function logIn(email, password) {
@@ -6,13 +7,13 @@ async function logIn(email, password) {
         where: {email}
     });
 
-    if (userData === null || userData.password !== password) {
+    if (userData === null || userData.dataValues.password !== password) {
         return {loggedIn: false, token: null};
     }
 
     const token = jwt.createSessionJWT({
-        id: userData.id,
-        role: userData.role
+        id: userData.dataValues.id,
+        role: userData.dataValues.role
     });
 
     return {loggedIn: Boolean(token), token };

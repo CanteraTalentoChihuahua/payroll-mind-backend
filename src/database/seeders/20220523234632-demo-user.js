@@ -18,6 +18,8 @@ module.exports = {
             on_leave: false,
             active: true,
             salary: 20000.12
+            // Currently, bulk inserting JSON is bugged and this is a workaround
+            // https://github.com/sequelize/sequelize/issues/8310
         }], {}, {privileges:{type:new Sequelize.JSON()}});
     },
 

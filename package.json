@@ -15,6 +15,7 @@
     "migrate": "npx sequelize-cli db:migrate",
     "undo-migrate": "npx sequelize-cli db:migrate:undo",
     "seed": "npx sequelize-cli db:seed:all",
-    "undo-seed": "npx sequelize-cli db:seed:undo"
+    "undo-seed": "npx sequelize-cli db:seed:undo",
+    "start": "node src/server.js"
   }
 }
