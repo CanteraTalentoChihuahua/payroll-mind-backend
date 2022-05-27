@@ -1,5 +1,6 @@
 const trialRouter = require("./routes/trial_routes");
 const authRouter = require("./routes/auth");
+const docsRouter = require("./routes/docs");
 const express = require("express");
 const cors = require("cors");
 const app = express();
@@ -15,5 +16,6 @@ app.get("/", (req, res) => {
 
 app.use("/trial", trialRouter);
 app.use("/api", authRouter);
+app.use("/", docsRouter);
 
 module.exports = app;
