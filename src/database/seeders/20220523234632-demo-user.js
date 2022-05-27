@@ -14,13 +14,19 @@ module.exports = {
                 privileges: [123, 456]
             },
             payment_period_id: 1,
-            business_unit_string: "Michelada",
+            business_unit: {
+                business_unit_ids: [123, 456]
+            },
             on_leave: false,
             active: true,
-            salary: 20000.12
+            salary: 20000.12,
             // Currently, bulk inserting JSON is bugged and this is a workaround
             // https://github.com/sequelize/sequelize/issues/8310
-        }], {}, {privileges:{type:new Sequelize.JSON()}});
+        }], {timestamps:true}, 
+        {
+            privileges:{type:new Sequelize.JSON()},
+            business_unit:{type:new Sequelize.JSON()}
+        });
     },
 
     async down(queryInterface, Sequelize) {
