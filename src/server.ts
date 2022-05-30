@@ -1,7 +1,11 @@
+// @ts-ignore
+import db from "./database/models/index"
 import app from "./app"
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-    console.log(`Listening in port ${PORT}...`);
-});
+db.sequelize.sync().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Listening in port ${PORT}...`);
+    });
+})
