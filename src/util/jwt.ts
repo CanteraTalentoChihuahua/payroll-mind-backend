@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 const loginAudience = "session";
 
 function createSessionJWT(payload: object) {
-    return jwt.sign(payload, process.env.JWT_SECRET, {
+    return jwt.sign(payload, process.env.JWT_SECRET!, {
         expiresIn: "1h",
         audience: loginAudience
     });
@@ -11,7 +11,7 @@ function createSessionJWT(payload: object) {
 function verifySessionJWT(token: string) {
     try {
         return {
-            isValid: true, payload: jwt.verify(token, process.env.JWT_SECRET, {
+            isValid: true, payload: jwt.verify(token, process.env.JWT_SECRET!, {
                 audience: loginAudience,
                 algorithms: ["HS256"]
             })
