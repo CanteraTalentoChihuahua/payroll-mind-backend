@@ -14,7 +14,10 @@ module.exports = (sequelize, DataTypes) => {
         }
     }
     privileges.init({
-        id: DataTypes.INTEGER,
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true
+        },
         description: DataTypes.STRING
     }, {
         sequelize,
