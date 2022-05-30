@@ -1,4 +1,5 @@
-import db from "../database/database";
+// @ts-ignore
+import db from "../database/models/index";
 const users = require("../database/models/users")(db);
 import jwt from "../util/jwt";
 
