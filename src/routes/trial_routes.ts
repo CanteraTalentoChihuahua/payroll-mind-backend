@@ -1,8 +1,8 @@
-const express = require("express");
+import express from "express";
 const trialRouter = express.Router();
 
 trialRouter.get("/", (req, res) => {
     res.send("Works too!");
 });
 
-module.exports = trialRouter;
+export default trialRouter;

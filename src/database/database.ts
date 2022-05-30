@@ -1,8 +1,8 @@
-const sqlz = require("sequelize");
+import { Sequelize } from "sequelize";
 const config = require("../database/config/config.json")[process.env.NODE_ENV || "localhost"];
-const env = require("dotenv");
+import env from "dotenv";
 
 env.config();
 
-const db = new sqlz(process.env.DATABASE_URL, config);
-module.exports = db;
+const db = new Sequelize(process.env.DATABASE_URL!, config);
+export default db;
