@@ -98,6 +98,8 @@
     "dist"
   ],
   "include": [
-    "src/**/*.json"
+    "src/**/*.json",
+    "src/**/*.ts",
+    "src/**/*.js"
   ]
 }
