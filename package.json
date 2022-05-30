@@ -24,6 +24,8 @@
     "undo-migrate": "npx sequelize-cli db:migrate:undo",
     "seed": "npx sequelize-cli db:seed:all",
     "undo-seed": "npx sequelize-cli db:seed:undo",
-    "start": "node src/server.js"
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsc && node -r dotenv/config dist/server.js"
   }
 }
