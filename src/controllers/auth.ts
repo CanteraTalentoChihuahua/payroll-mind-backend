@@ -1,14 +1,14 @@
-const db = require("../database/database");
+import db from "../database/database";
 const users = require("../database/models/users")(db);
-const jwt = require("../util/jwt");
+import jwt from "../util/jwt";
 
-async function logIn(email, password) {
+async function logIn(email: string, password: string) {
     const userData = await users.findOne({
-        where: {email}
+        where: { email }
     });
 
     if (userData === null || userData.dataValues.password !== password) {
-        return {loggedIn: false, token: null};
+        return { loggedIn: false, token: null };
     }
 
     const token = jwt.createSessionJWT({
@@ -16,7 +16,7 @@ async function logIn(email, password) {
         role: userData.dataValues.role
     });
 
-    return {loggedIn: Boolean(token), token };
+    return { loggedIn: Boolean(token), token };
 }
 
-module.exports = {logIn};
+export default { logIn };

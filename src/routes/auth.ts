@@ -1,5 +1,5 @@
-const express = require("express");
-const controller = require("../controllers/auth");
+import express from "express";
+import controller from "../controllers/auth";
 const router = express.Router();
 
 router.post("/login", async (req, res) => {
@@ -21,4 +21,4 @@ router.post("/login", async (req, res) => {
     res.json({ token: tokenData.token });
 });
 
-module.exports = router;
+export default router;
