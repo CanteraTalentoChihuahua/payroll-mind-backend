@@ -14,10 +14,7 @@ module.exports = (sequelize, DataTypes) => {
         }
     }
     payrolls.init({
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true
-        },
+        id: DataTypes.INTEGER,
         payment_date: DataTypes.DATE,
         payment_period_id: DataTypes.INTEGER,
         business_unit_id: DataTypes.INTEGER,
