@@ -11,16 +11,8 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/src/server.ts",
-            "preLaunchTask": "tsc: build - tsconfig.dev.json",
-            "envFile": "${workspaceFolder}/.env",
-            "sourceMaps": true,
-            "smartStep": true,
-            "internalConsoleOptions": "openOnSessionStart",
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js",
-                "!**/node_modules/**"
-            ]
+            "program": "${workspaceFolder}/src/server.js",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }
