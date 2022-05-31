@@ -14,7 +14,10 @@ module.exports = (sequelize, DataTypes) => {
         }
     }
     catalogs.init({
-        id: DataTypes.INTEGER,
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true
+        },
         name: DataTypes.STRING,
         description: DataTypes.STRING,
         privileges: DataTypes.JSONB

@@ -14,7 +14,10 @@ module.exports = (sequelize, DataTypes) => {
         }
     }
     payments.init({
-        id: DataTypes.INTEGER,
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true
+        },
         userid: DataTypes.INTEGER,
         total_amount: DataTypes.DECIMAL,
         automated_bonuses: DataTypes.JSONB,

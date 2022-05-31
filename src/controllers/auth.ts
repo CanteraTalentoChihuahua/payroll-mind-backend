@@ -1,5 +1,4 @@
-import db from "../database/database";
-const users = require("../database/models/users")(db);
+const users = require("../database/models/users");
 import jwt from "../util/jwt";
 
 async function logIn(email: string, password: string) {
