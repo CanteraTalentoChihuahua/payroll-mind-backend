@@ -1,11 +1,15 @@
 import express from "express";
-import {save} from "../controllers/businessUnits" ;
+import {find, save} from "../controllers/businessUnits" ;
 
 const businessUnitRouter = express.Router();
 
 
 businessUnitRouter.post("/save", async (req, res) => {
     const { name } = req.body;
+
+    const BusinessUnitName = await find(name);
+    if(BusinessUnitName)  return res.status(409).json({ message: "La unidad de negocio ya existe."});
+
     try {
         await save(name);
         return res.status(200).json({
