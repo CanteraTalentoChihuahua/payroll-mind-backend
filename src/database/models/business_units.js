@@ -14,10 +14,7 @@ module.exports = (sequelize, DataTypes) => {
         }
     }
     business_units.init({
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true
-        },
+        id: DataTypes.INTEGER,
         name: DataTypes.STRING
     }, {
         sequelize,
