@@ -81,6 +81,37 @@ async function invalidateToken(userId:string) {
     }
 }
 
+// Data contains token and new_password
+async function restorePassword(data:{token:string, new_password:string}) {
+    console.log(data)
+    const payload = verify(data.token, process.env.JWT_SECRET!) as JwtPayload;
 
+    if (!payload.purpose || payload.purpose !== "forgot") {
+        throw new JsonWebTokenError("Token not valid");
+    }
 
-export { logIn, sendPasswordEmail };
+    const user = await users.findAll({
+        where: { id: payload.userId }
+    });
+
+    if (data.token !== user[0].dataValues.token) {
+        return { isSuccessful: true, result: false };
+    }
+
+    const hash = await bcrypt.hash(data.new_password, 10);
+
+    await users.update({ password: hash }, {
+        where: { id: payload.userId }
+    });
+
+    const invalidateStatus = await invalidateToken(payload.userId);
+
+    if (invalidateStatus === true) {
+        return { isSuccessful: true, result: true };
+
+    } else {
+        return { isSuccessful: true, result: false };
+    }
+}
+
+export { logIn, sendPasswordEmail, restorePassword };
