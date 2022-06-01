@@ -9,14 +9,17 @@ module.exports = (sequelize) => {
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-        static associate(models) {
-            // define association here
+        static associate(users) {
+            users.belongsTo(users.business_units, { foreignKey: "business_unit_id" });
+            users.belongsTo(users.payments_periods, { foreignKey: "payment_period_id" });
         }
+        
     }
     users.init({
         id: {
             type: Sequelize.INTEGER,
-            primaryKey: true
+            primaryKey: true,
+            autoIncrement: true
         },
         role: Sequelize.STRING,
         password: Sequelize.STRING

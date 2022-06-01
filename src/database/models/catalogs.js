@@ -1,6 +1,6 @@
 "use strict";
 const {
-    Model
+    Model, Sequelize
 } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
     class catalogs extends Model {
@@ -14,10 +14,10 @@ module.exports = (sequelize, DataTypes) => {
         }
     }
     catalogs.init({
-        id: DataTypes.INTEGER,
-        name: DataTypes.STRING,
-        description: DataTypes.STRING,
-        privileges: DataTypes.JSONB
+        id: {type:Sequelize.INTEGER,primaryKey:true,autoIncrement: true},
+        name: Sequelize.STRING,
+        description: Sequelize.STRING,
+        privileges: Sequelize.JSONB
     }, {
         sequelize,
         modelName: "catalogs",

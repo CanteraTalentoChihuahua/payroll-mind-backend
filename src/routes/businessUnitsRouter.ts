@@ -1,5 +1,5 @@
 import express from "express";
-const businessUnits = require("../controllers/businessUnits") ;
+import {save} from "../controllers/businessUnits" ;
 
 const businessUnitRouter = express.Router();
 
@@ -7,11 +7,12 @@ const businessUnitRouter = express.Router();
 businessUnitRouter.post("/save", async (req, res) => {
     const { name } = req.body;
     try {
-        await businessUnits.save(name);
+        await save(name);
         return res.status(200).json({
             message: "Unidad de negocio guardada con éxito."
         });
     } catch (error) {
+        console.log(error) 
         return res.status(500).json({
             message: "Algo salió mal."
         });
