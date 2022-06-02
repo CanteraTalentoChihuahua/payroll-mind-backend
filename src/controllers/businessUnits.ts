@@ -4,17 +4,19 @@ const business_units = require("../database/models/business_units")(db);
 
 
 async function save(name: string) {
-    const nameBusinessUnit = await business_units.create({
+    await business_units.create({
         name:name
     });    
     };
 
-    async function edit(name: string) {
-        const nameBusinessUnit = await business_units.edit({
-            name:name
+    async function find(name: string) {
+        const BusinessUnitName = await business_units.findOne({
+            where: {name}
+        
         });    
-        };
+        return BusinessUnitName;
+    };
 
     
 
-    export  {save, edit};
+    export  {save, find};
