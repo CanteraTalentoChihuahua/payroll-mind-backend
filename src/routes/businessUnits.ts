@@ -28,6 +28,44 @@ businessUnitRouter.get("/list/:id", async (req, res) => {
     }
 });
 
+businessUnitRouter.put("/edit/:id", async (req, res) => {
+    const { id } = req.params;
+    const { newName } = req.body;
+
+    const businessUnitsData = await businessUnits.findOne({
+        where: { id }
+    });
+
+    if (businessUnitsData === null) {
+        res.status(204).send("No business unit found.");
+
+    } else {
+        try {
+            const prevName = businessUnitsData.name;
+            await businessUnits.update({ name: newName }, {
+                where: { id }
+            });
+
+            return res.status(200).json({
+                message: `Successs. Updated "${prevName}" business unit name to "${newName}".`
+            });
+
+        } catch (error) {
+            return res.status(500).json({
+                message: "Something went wrong. Unable to cast changes."
+            });
+        }
+    }
+});
+
+businessUnitRouter.put("/delete/:id", async (req, res) => {
+    const { id } = req.params;
+
+    const businessUnitsData = await businessUnits.findOne({
+        where: { id }
+    });
+
+});
 
 businessUnitRouter.post("/save", async (req, res) => {
     const { name } = req.body;
