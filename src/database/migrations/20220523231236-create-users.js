@@ -73,8 +73,8 @@ module.exports = {
             updatedAt: {
                 allowNull: true,
                 type: Sequelize.DATE
-            }
-        }, {});
+            }      
+        },{});
     },
     async down(queryInterface, Sequelize) {
         await queryInterface.dropTable("users");
