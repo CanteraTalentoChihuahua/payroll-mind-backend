@@ -1,6 +1,6 @@
 import db from "../database/database";
 const users = require("../database/models/users")(db);
-import jwt from "../util/jwt";
+import { createSessionJWT } from "../util/jwt";
 
 async function logIn(email: string, password: string) {
     const userData = await users.findOne({
@@ -11,7 +11,7 @@ async function logIn(email: string, password: string) {
         return { loggedIn: false, token: null };
     }
 
-    const token = jwt.createSessionJWT({
+    const token = createSessionJWT({
         id: userData.dataValues.id,
         role: userData.dataValues.role
     });
