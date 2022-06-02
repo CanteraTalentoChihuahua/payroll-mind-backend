@@ -20,13 +20,14 @@ module.exports = {
             on_leave: false,
             active: true,
             salary: 20000.12,
+            token: null,
             // Currently, bulk inserting JSON is bugged and this is a workaround
             // https://github.com/sequelize/sequelize/issues/8310
-        }], {timestamps:true}, 
-        {
-            privileges:{type:new Sequelize.JSON()},
-            business_unit:{type:new Sequelize.JSON()}
-        });
+        }], { timestamps: true },
+            {
+                privileges: { type: new Sequelize.JSON() },
+                business_unit: { type: new Sequelize.JSON() }
+            });
     },
 
     async down(queryInterface, Sequelize) {
