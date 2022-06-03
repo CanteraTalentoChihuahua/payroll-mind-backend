@@ -17,7 +17,7 @@ async function findBusinessUnitByName(name: string) {
 
 async function findBusinessUnitById(id: string) {
     const businessUnit = await businessUnits.findOne({
-        where: { id }
+        where: { id: parseInt(id) }
     });
     return businessUnit;
 };

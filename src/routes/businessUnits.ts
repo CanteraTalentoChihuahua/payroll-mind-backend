@@ -5,12 +5,14 @@ import { saveBusinessUnit,
          findBusinessUnitById,
          findBusinessUnitByName } from "../controllers/businessUnits";
 const businessUnits = require("../database/models/business_units")(db);
+import privileges from "../middleware/privileges";
+import { Privileges } from "../util/objects";
 
 // MISSING CREDENTIALS --Auth middleware
 
 const businessUnitRouter = express.Router();
 
-businessUnitRouter.get("/list", async (req, res) => {
+businessUnitRouter.get("/list", privileges(Privileges.READ_BUSINESS_UNITS), async (req, res) => {
     const businessUnitsData = await findAllBusinessUnits();
 
     return (businessUnitsData === null) ? 
@@ -18,7 +20,7 @@ businessUnitRouter.get("/list", async (req, res) => {
     res.status(200).send(businessUnitsData);
 });
 
-businessUnitRouter.get("/list/:id", async (req, res) => {
+businessUnitRouter.get("/list/:id", privileges(Privileges.READ_BUSINESS_UNITS), async (req, res) => {
     const { id } = req.params;
     const businessUnitsData = await findBusinessUnitById(id);
 
@@ -27,7 +29,7 @@ businessUnitRouter.get("/list/:id", async (req, res) => {
     res.status(200).send(businessUnitsData);
 });
 
-businessUnitRouter.put("/edit/:id", async (req, res) => {
+businessUnitRouter.put("/edit/:id", privileges(Privileges.EDIT_BUSINESS_UNITS), async (req, res) => {
     const { id } = req.params;
     const { new_name } = req.body;
 
@@ -56,7 +58,7 @@ businessUnitRouter.put("/edit/:id", async (req, res) => {
     }
 });
 
-businessUnitRouter.post("/save", async (req, res) => {
+businessUnitRouter.post("/save", privileges(Privileges.CREATE_BUSINESS_UNITS), async (req, res) => {
     const { name } = req.body;
 
     const BusinessUnitName = await findBusinessUnitByName(name);
@@ -76,12 +78,12 @@ businessUnitRouter.post("/save", async (req, res) => {
     }
 });
 
-businessUnitRouter.delete("/delete/:id", async (req, res) => {
+businessUnitRouter.delete("/delete/:id", privileges(Privileges.DELETE_BUSINESS_UNITS), async (req, res) => {
     const { id } = req.params;
     const businessUnitsData = await findBusinessUnitById(id);
 
     if (businessUnitsData === null) {
-        return res.status(204).json({
+        return res.status(404).json({
             message: "No business unit found."
         });
     }
