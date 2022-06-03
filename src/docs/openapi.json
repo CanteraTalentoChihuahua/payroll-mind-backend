@@ -7,6 +7,9 @@
   "tags": [
     {
       "name": "Authentication"
+    },
+    {
+      "name": "User management"
     }
   ],
   "components": {
@@ -14,19 +17,19 @@
       "LoginRequest": {
         "type": "object",
         "properties": {
-          "email": {
-            "type": "email"
+          "username": {
+            "type": "string"
           },
           "password": {
             "type": "string"
           }
         },
         "required": [
-          "email",
+          "username",
           "password"
         ],
         "example": {
-          "email": "testuser@example.net",
+          "username": "testuser",
           "password": "testpass"
         }
       },
@@ -48,6 +51,167 @@
             "type": "string"
           }
         }
+      },
+      "CreateUserRequest": {
+        "type": "object",
+        "properties": {
+          "first_name": {
+            "type": "string"
+          },
+          "second_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "second_last_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "payment_period": {
+            "type": "integer",
+            "enum": [
+              1,
+              2
+            ]
+          },
+          "business_unit": {
+            "type": "integer",
+            "enum": [
+              1,
+              2
+            ]
+          },
+          "salary": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "first_name",
+          "last_name",
+          "email",
+          "payment_period",
+          "business_unit",
+          "salary"
+        ]
+      },
+      "UserInformationResponse": {
+        "type": "object",
+        "properties": {
+          "first_name": {
+            "type": "string"
+          },
+          "second_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "second_last_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "payment_period": {
+            "type": "string"
+          },
+          "business_unit": {
+            "type": "string"
+          },
+          "on_leave": {
+            "type": "boolean"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "salary": {
+            "type": "number"
+          }
+        }
+      },
+      "BasicUserInformationResponse": {
+        "type": "object",
+        "properties": {
+          "first_name": {
+            "type": "string"
+          },
+          "second_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "second_last_name": {
+            "type": "string"
+          },
+          "payment_period": {
+            "type": "string"
+          },
+          "business_unit": {
+            "type": "string"
+          },
+          "on_leave": {
+            "type": "boolean"
+          },
+          "salary": {
+            "type": "number"
+          }
+        }
+      },
+      "UpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "second_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "second_last_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "payment_period": {
+            "type": "integer",
+            "enum": [
+              1,
+              2
+            ]
+          },
+          "business_unit": {
+            "type": "integer",
+            "enum": [
+              1,
+              2
+            ]
+          },
+          "salary": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "scheme": "Bearer",
+        "type": "http"
       }
     }
   },
@@ -92,6 +256,236 @@
             }
           }
         }
+      }
+    },
+    "/api/users": {
+      "get": {
+        "summary": "Get a list of users",
+        "tags": [
+          "User management"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "by",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "name",
+                "salary"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BasicUserInformationResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "first_name": "John",
+                    "second_name": null,
+                    "last_name": "Doe",
+                    "second_last_name": null,
+                    "payment_method": "Quincenal",
+                    "business_unit": "Michelada",
+                    "on_leave": false,
+                    "salary": 5000.45
+                  },
+                  {
+                    "first_name": "Jane",
+                    "second_name": "Dill",
+                    "last_name": "Don",
+                    "second_last_name": "S",
+                    "payment_method": "Mensual",
+                    "business_unit": "Arkus Nexus",
+                    "on_leave": false,
+                    "salary": 150000
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user": {
+      "get": {
+        "tags": [
+          "User management"
+        ],
+        "summary": "Get the information of a specific user",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Retuns requested user's information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserInformationResponse"
+                },
+                "example": {
+                  "first_name": "John",
+                  "second_name": null,
+                  "last_name": "Doe",
+                  "second_last_name": null,
+                  "email": "jdoe@example.net",
+                  "role": "User",
+                  "payment_period": "Quincenal",
+                  "business_unit": "Michelada",
+                  "on_leave": false,
+                  "active": false,
+                  "salary": 5000.45
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "403": {
+            "description": "User is missing the \"Read User Information\" privilege"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "User management"
+        ],
+        "summary": "Add a user to the payroll",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserRequest"
+              },
+              "example": {
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "jdoe@example.net",
+                "payment_period": 1,
+                "business_unit": 1,
+                "salary": 5000.45
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User was created successfully"
+          },
+          "400": {
+            "description": "Missing required field"
+          },
+          "403": {
+            "description": "User is missing the \"Create User\" privilege"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "User management"
+        ],
+        "summary": "Edit a user information",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              },
+              "example": {
+                "id": 1,
+                "salary": 10000.85,
+                "payment_period": 2
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "User information was edited successfully"
+          },
+          "400": {
+            "description": "Missing required files"
+          },
+          "403": {
+            "description": "User is missing the \"Edit User Information\" privilege"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "User management"
+        ],
+        "summary": "Mark a user as inactive",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "User was marked as inactive successfully"
+          },
+          "400": {
+            "description": "Missing required files"
+          },
+          "403": {
+            "description": "User is missing the \"Delete User\" privilege"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
       }
     }
   }
