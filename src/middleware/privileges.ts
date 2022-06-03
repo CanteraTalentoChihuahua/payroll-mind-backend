@@ -26,8 +26,8 @@ export default (...privileges: string[]) => {
         }
 
         let hasPrivileges = true
-        privileges.forEach((privilege) => {
-            hasPrivileges = hasPrivileges && (userInfo.privileges.privileges as string[]).find((val) => val === privilege) !== undefined
+        privileges.forEach((_, index) => {
+            hasPrivileges = hasPrivileges && (userInfo.privileges.privileges as number[]).find((val) => val === index) !== undefined
         })
 
         if (!hasPrivileges) {
