@@ -3,7 +3,7 @@ const privileges = require("../../util/enums").Privileges;
 
 module.exports = {
     async up (queryInterface, Sequelize) {
-        await queryInterface.bulkInsert("privileges", Object.values(privileges).map((privilege) => { return { description: privilege }; }));
+        await queryInterface.bulkInsert("privileges", Object.values(privileges).map((privilege, index) => { return { id: index,description: privilege }; }));
     },
 
     async down (queryInterface, Sequelize) {
