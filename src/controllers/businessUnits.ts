@@ -29,5 +29,4 @@ async function findAllBusinessUnits() {
 
 
 export { saveBusinessUnit, findBusinessUnitByName,
-         findBusinessUnitById, findAllBusinessUnits,
-         };
+         findBusinessUnitById, findAllBusinessUnits };
