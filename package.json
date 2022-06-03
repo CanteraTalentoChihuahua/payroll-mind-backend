@@ -27,7 +27,8 @@
     "undo-migrate": "npx sequelize-cli db:migrate:undo",
     "seed": "npx sequelize-cli db:seed:all",
     "undo-seed": "npx sequelize-cli db:seed:undo",
-    "build": "tsc",
+    "build": "tsc && npm run undo-migrate && npm run undo-seed && npm run migrate && npm run seed",
+    "heroku-cleanup": "rm -rf ./src",
     "start": "node dist/server.js",
     "dev": "tsc && node -r dotenv/config dist/server.js"
   }
