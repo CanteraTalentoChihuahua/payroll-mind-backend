@@ -1,6 +1,6 @@
-import express, { query } from "express";
-import { find, save } from "../controllers/businessUnits";
 import db from "../database/database";
+import express, { query, response } from "express";
+import { find, save } from "../controllers/businessUnits";
 const businessUnits = require("../database/models/business_units")(db);
 
 // MISSING CREDENTIALS --Auth middleware
@@ -19,7 +19,9 @@ businessUnitRouter.get("/list", async (req, res) => {
 
 businessUnitRouter.get("/list/:id", async (req, res) => {
     const { id } = req.params;
-    const businessUnitsData = await businessUnits.find(id);
+    const businessUnitsData = await businessUnits.findOne({
+        where: { id }
+    });
 
     if (businessUnitsData === null) {
         res.status(204).send("No business unit found.");
@@ -58,15 +60,6 @@ businessUnitRouter.put("/edit/:id", async (req, res) => {
     }
 });
 
-businessUnitRouter.put("/delete/:id", async (req, res) => {
-    const { id } = req.params;
-
-    const businessUnitsData = await businessUnits.findOne({
-        where: { id }
-    });
-
-});
-
 businessUnitRouter.post("/save", async (req, res) => {
     const { name } = req.body;
 
@@ -84,6 +77,36 @@ businessUnitRouter.post("/save", async (req, res) => {
         return res.status(500).json({
             message: `Something went wrong. Unable to create business unit "${name}".`
         });
+    }
+});
+
+businessUnitRouter.delete("/delete/:id", async (req, res) => {
+    const { id } = req.params;
+
+    const businessUnitsData = await businessUnits.findOne({
+        where: { id }
+    });
+
+    if (businessUnitsData === null) {
+        return res.status(204).json({
+            message: "No business unit found."
+        });
+
+    } else {
+        try {
+            await businessUnits.destroy({
+                where: { id }
+            });
+
+            return res.status(200).json({
+                message: "Business unit was deleted successfully."
+            });
+
+        } catch (error) {
+            return res.status(500).json({
+                message: "Unable to delete business unit."
+            });
+        }
     }
 });
 

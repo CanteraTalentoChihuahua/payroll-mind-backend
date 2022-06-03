@@ -21,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         name: Sequelize.STRING
     }, {
         sequelize,
+        paranoid: true,
         modelName: "business_units",
     });
     return business_units;
