@@ -25,10 +25,10 @@
   "scripts": {
     "migrate": "sequelize-cli db:migrate",
     "undo-migrate": "sequelize-cli db:migrate:undo:all",
-    "seed": "sequelize-cli db:seed:all",
-    "undo-seed": "sequelize-cli db:seed:undo",
     "build": "tsc && npm run undo-migrate && npm run undo-seed && npm run migrate && npm run seed",
     "heroku-cleanup": "rm -rf ./src",
+    "seed": "sequelize-cli db:seed:all",
+    "undo-seed": "sequelize-cli db:seed:undo:all",
     "start": "node dist/server.js",
     "dev": "tsc && node -r dotenv/config dist/server.js"
   },
