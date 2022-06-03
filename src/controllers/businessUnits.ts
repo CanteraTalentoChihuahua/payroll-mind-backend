@@ -1,19 +1,33 @@
 import db from "../database/database";
-const business_units = require("../database/models/business_units")(db);
+const businessUnits = require("../database/models/business_units")(db);
 //Se necesita una token para jwt
 
-async function save(name: string) {
-    await business_units.create({
+async function saveBusinessUnit(name: string) {
+    await businessUnits.create({
         name: name
     });
 };
 
-async function find(name: string) {
-    const businessUnitName = await business_units.findOne({
+async function findBusinessUnitByName(name: string) {
+    const businessUnit = await businessUnits.findOne({
         where: { name }
     });
-    return businessUnitName;
+    return businessUnit;
 };
 
+async function findBusinessUnitById(id: string) {
+    const businessUnit = await businessUnits.findOne({
+        where: { id }
+    });
+    return businessUnit;
+};
 
-export { save, find };
+async function findAllBusinessUnits() {
+    const businessUnitsData = await businessUnits.findAll();
+    return businessUnitsData;
+} 
+
+
+export { saveBusinessUnit, findBusinessUnitByName,
+         findBusinessUnitById, findAllBusinessUnits,
+         };

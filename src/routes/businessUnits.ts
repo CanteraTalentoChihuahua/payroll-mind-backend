@@ -1,6 +1,9 @@
 import db from "../database/database";
 import express, { query, response } from "express";
-import { find, save } from "../controllers/businessUnits";
+import { saveBusinessUnit,
+         findAllBusinessUnits,
+         findBusinessUnitById,
+         findBusinessUnitByName } from "../controllers/businessUnits";
 const businessUnits = require("../database/models/business_units")(db);
 
 // MISSING CREDENTIALS --Auth middleware
@@ -8,26 +11,20 @@ const businessUnits = require("../database/models/business_units")(db);
 const businessUnitRouter = express.Router();
 
 businessUnitRouter.get("/list", async (req, res) => {
-    const businessUnitsData = await businessUnits.findAll()
+    const businessUnitsData = await findAllBusinessUnits();
 
-    if (businessUnitsData === null) {
-        res.status(204).send("No business unit found.");
-    } else {
-        res.status(200).send(businessUnitsData);
-    }
+    return (businessUnitsData === null) ? 
+    res.status(204).send("No business unit found.") : 
+    res.status(200).send(businessUnitsData);
 });
 
 businessUnitRouter.get("/list/:id", async (req, res) => {
     const { id } = req.params;
-    const businessUnitsData = await businessUnits.findOne({
-        where: { id }
-    });
+    const businessUnitsData = await findBusinessUnitById(id);
 
-    if (businessUnitsData === null) {
-        res.status(204).send("No business unit found.");
-    } else {
-        res.status(200).send(businessUnitsData);
-    }
+    return (businessUnitsData === null) ? 
+    res.status(204).send("No business unit found.") : 
+    res.status(200).send(businessUnitsData);
 });
 
 businessUnitRouter.put("/edit/:id", async (req, res) => {
@@ -63,11 +60,11 @@ businessUnitRouter.put("/edit/:id", async (req, res) => {
 businessUnitRouter.post("/save", async (req, res) => {
     const { name } = req.body;
 
-    const BusinessUnitName = await find(name);
+    const BusinessUnitName = await findBusinessUnitByName(name);
     if (BusinessUnitName) return res.status(409).json({ message: `Business unit "${name}" already exists.` });
 
     try {
-        await save(name);
+        await saveBusinessUnit(name);
         return res.status(200).json({
             message: `Business unit "${name}" was created successfully.`
         });
