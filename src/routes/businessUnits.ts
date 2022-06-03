@@ -16,7 +16,7 @@ businessUnitRouter.get("/list", privileges(Privileges.READ_BUSINESS_UNITS), asyn
     const businessUnitsData = await findAllBusinessUnits();
 
     return (businessUnitsData === null) ? 
-    res.status(204).send("No business unit found.") : 
+    res.status(404).send("No business unit found.") : 
     res.status(200).send(businessUnitsData);
 });
 
@@ -25,7 +25,7 @@ businessUnitRouter.get("/list/:id", privileges(Privileges.READ_BUSINESS_UNITS), 
     const businessUnitsData = await findBusinessUnitById(id);
 
     return (businessUnitsData === null) ? 
-    res.status(204).send("No business unit found.") : 
+    res.status(404).send("No business unit found.") : 
     res.status(200).send(businessUnitsData);
 });
 
@@ -36,7 +36,7 @@ businessUnitRouter.put("/edit/:id", privileges(Privileges.EDIT_BUSINESS_UNITS), 
     const businessUnitsData = await findBusinessUnitById(id);
 
     if (businessUnitsData === null) {
-        return res.status(204).json({
+        return res.status(404).json({
             message: "No business unit found."
         });
     }
