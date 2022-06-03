@@ -19,7 +19,9 @@ module.exports = (sequelize) => {
             primaryKey: true
         },
         role: Sequelize.STRING,
-        password: Sequelize.STRING
+        password: Sequelize.STRING,
+        email: Sequelize.STRING,
+        token: Sequelize.STRING
     }, {
         sequelize,
         modelName: "user",
