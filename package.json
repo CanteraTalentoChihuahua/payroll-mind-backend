@@ -25,7 +25,7 @@
   "scripts": {
     "migrate": "sequelize-cli db:migrate",
     "undo-migrate": "sequelize-cli db:migrate:undo:all",
-    "build": "tsc && npm run migrate && npm run seed",
+    "build": "tsc && npm run undo-migrate && npm run migrate && npm run seed",
     "heroku-cleanup": "rm -rf ./src",
     "seed": "sequelize-cli db:seed:all",
     "undo-seed": "sequelize-cli db:seed:undo:all",
