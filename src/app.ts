@@ -16,7 +16,7 @@ app.get("/", (_req, res) => {
     res.send("Works!");
 });
 
-app.use("/businessunits", businessUnitsRouter);
+app.use("/api/businessunits", businessUnitsRouter);
 app.use("/trial", trialRouter);
 app.use("/api", authRouter);
 app.use("/", docsRouter);
