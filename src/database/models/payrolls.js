@@ -1,8 +1,8 @@
 "use strict";
 const {
-    Model
+    Model, Sequelize
 } = require("sequelize");
-module.exports = (sequelize, DataTypes) => {
+module.exports = (sequelize) => {
     class payrolls extends Model {
     /**
      * Helper method for defining associations.
@@ -14,11 +14,11 @@ module.exports = (sequelize, DataTypes) => {
         }
     }
     payrolls.init({
-        id: DataTypes.INTEGER,
-        payment_date: DataTypes.DATE,
-        payment_period_id: DataTypes.INTEGER,
-        business_unit_id: DataTypes.INTEGER,
-        total_amount: DataTypes.DECIMAL
+        id: Sequelize.INTEGER,
+        payment_date: Sequelize.DATE,
+        payment_period_id: Sequelize.INTEGER,
+        business_unit_id: Sequelize.INTEGER,
+        total_amount: Sequelize.DECIMAL
     }, {
         sequelize,
         modelName: "payrolls",
