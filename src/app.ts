@@ -3,7 +3,7 @@ import authRouter from "./routes/auth";
 import docsRouter from "./routes/docs";
 import express from "express";
 import cors from "cors"
-import businessUnitsRouter from "./routes/businessUnitsRouter";
+import businessUnitsRouter from "./routes/businessUnits";
 
 const app = express();
 
@@ -16,9 +16,9 @@ app.get("/", (_req, res) => {
     res.send("Works!");
 });
 
+app.use("/api/businessunits", businessUnitsRouter);
 app.use("/trial", trialRouter);
 app.use("/api", authRouter);
 app.use("/", docsRouter);
-app.use("/businessunits",businessUnitsRouter);
 
-export default app
+export default app;
