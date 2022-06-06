@@ -1,4 +1,7 @@
 "use strict";
+const users = require ("./users");
+const payments = require ("./payments");
+
 const {
     Model, Sequelize
 } = require("sequelize");
@@ -11,8 +14,8 @@ module.exports = (sequelize, DataTypes) => {
      */
        
         static associate(payments_periods) {
-            payments_periods.hasOne(payments_periods.users);
-            payments_periods.hasOne(payments_periods.payments);
+            payments_periods.hasOne(users); 
+            payments_periods.hasOne(payments);
         }
 
     }

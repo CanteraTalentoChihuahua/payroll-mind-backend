@@ -2,7 +2,7 @@
   "development": {
     "username": "postgres",
     "password": "password",
-    "database": "database_test",
+    "database": "associations",
     "host": "127.0.0.1",
     "dialect": "postgres"
   },

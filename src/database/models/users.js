@@ -1,4 +1,7 @@
 "use strict";
+const payments_periods = require ("./payments_periods");
+const business_units = require ("./business_units");
+
 const {
     Model, Sequelize
 } = require("sequelize");
@@ -10,8 +13,8 @@ module.exports = (sequelize) => {
      * The `models/index` file will call this method automatically.
      */
         static associate(users) {
-            users.belongsTo(users.business_units, { foreignKey: "business_unit_id" });
-            users.belongsTo(users.payments_periods, { foreignKey: "payment_period_id" });
+            users.belongsTo(business_units, {foreignKey: "business_unit_id", allowNull: false});
+            users.belongsTo(payments_periods, {foreignKey: "payment_period_id", allowNull: false});
         }
         
     }
