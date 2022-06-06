@@ -10,8 +10,8 @@ module.exports = {
             email: "johnwayne@gmail.com",
             password: "secret_password",
             role: "superadmin",
-            privileges: {
-                privileges: [1, 2, 3, 4, 5, 9, 10]
+            privileges: { 
+                privileges: [1, 2, 3, 4, 5, 9, 8, 10]
             },
             payment_period_id: 1,
             business_unit: {
