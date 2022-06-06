@@ -2,7 +2,20 @@ import db from "../database/database"
 const sqlz = require("sequelize").Sequelize
 const user = require("../database/models/users")(db)
 
-export async function getUsersList(): Promise<{ successful: boolean; userList: object[] | undefined; }> {
+function getOrder(order: string, by: string) {
+    switch (order) {
+        case "name": return [
+            ["first_name", by],
+            ["last_name", by]
+        ]
+        case "salary": return [
+            ["salary", by]
+        ]
+        default: return []
+    }
+}
+
+export async function getUsersList(order: string, by: string): Promise<{ successful: boolean; userList: object[] | undefined; }> {
     let userList;
 
     try {
@@ -16,7 +29,8 @@ export async function getUsersList(): Promise<{ successful: boolean; userList: o
                 [sqlz.json("business_unit.business_unit_ids"), "business_units"],
                 "on_leave",
                 "salary"
-            ]
+            ],
+            order: getOrder(order, by)
         })
     } catch {
         return { successful: false, userList: undefined }
