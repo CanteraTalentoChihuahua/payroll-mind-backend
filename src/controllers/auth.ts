@@ -19,7 +19,10 @@ async function logIn(email: string, password: string) {
         role: userData.dataValues.role
     });
 
-    return { loggedIn: Boolean(token), token };
+    const { first_name, role, privileges } = userData;
+    const dataObject = { first_name, role, privileges };
+
+    return { loggedIn: Boolean(token), token, dataObject };
 }
 
 async function createURL(userId: string, purpose: string) {

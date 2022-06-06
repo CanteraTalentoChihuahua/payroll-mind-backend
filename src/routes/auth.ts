@@ -23,7 +23,7 @@ router.post("/login", async (req, res) => {
         });
     }
 
-    res.json({ token: tokenData.token });
+    res.json({ token: tokenData.token, userData: tokenData.dataObject });
 });
 
 router.post("/forgot", async (req, res) => {
