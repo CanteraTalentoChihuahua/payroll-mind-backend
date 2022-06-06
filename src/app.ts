@@ -14,7 +14,6 @@ app.get("/", (_req, res) => {
     res.send("Works!");
 });
 
-app.use("/trial", trialRouter);
 app.use("/api", authRouter);
 app.use("/", docsRouter);
 
