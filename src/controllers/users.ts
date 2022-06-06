@@ -22,9 +22,7 @@ export async function getUsersList(order: string, by: string): Promise<{ success
         userList = await user.findAll({
             attributes: [
                 "first_name",
-                "second_name",
                 "last_name",
-                "second_last_name",
                 ["payment_period_id", "payment_period"],
                 [sqlz.json("business_unit.business_unit_ids"), "business_units"],
                 "on_leave",
