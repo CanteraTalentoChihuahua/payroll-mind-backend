@@ -1,32 +1,32 @@
 import db from "../database/database";
 import express, { query, response } from "express";
-import { saveBusinessUnit,
-         findAllBusinessUnits,
-         findBusinessUnitById,
-         findBusinessUnitByName } from "../controllers/businessUnits";
+import {
+    saveBusinessUnit,
+    findAllBusinessUnits,
+    findBusinessUnitById,
+    findBusinessUnitByName
+} from "../controllers/businessUnits";
 const businessUnits = require("../database/models/business_units")(db);
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
-
-// MISSING CREDENTIALS --Auth middleware
 
 const businessUnitRouter = express.Router();
 
 businessUnitRouter.get("/list", privileges(Privileges.READ_BUSINESS_UNITS), async (req, res) => {
     const businessUnitsData = await findAllBusinessUnits();
 
-    return (businessUnitsData === null) ? 
-    res.status(404).send("No business unit found.") : 
-    res.status(200).send(businessUnitsData);
+    return (businessUnitsData === null) ?
+        res.status(404).send("No business unit found.") :
+        res.status(200).send(businessUnitsData);
 });
 
 businessUnitRouter.get("/list/:id", privileges(Privileges.READ_BUSINESS_UNITS), async (req, res) => {
     const { id } = req.params;
     const businessUnitsData = await findBusinessUnitById(id);
 
-    return (businessUnitsData === null) ? 
-    res.status(404).send("No business unit found.") : 
-    res.status(200).send(businessUnitsData);
+    return (businessUnitsData === null) ?
+        res.status(404).send("No business unit found.") :
+        res.status(200).send(businessUnitsData);
 });
 
 businessUnitRouter.put("/edit/:id", privileges(Privileges.EDIT_BUSINESS_UNITS), async (req, res) => {
@@ -40,7 +40,7 @@ businessUnitRouter.put("/edit/:id", privileges(Privileges.EDIT_BUSINESS_UNITS), 
             message: "No business unit found."
         });
     }
-    
+
     try {
         const prevName = businessUnitsData.name;
         await businessUnits.update({ name: new_name }, {
