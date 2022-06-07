@@ -1,20 +1,20 @@
 "use strict";
 
+
 module.exports = {
     async up (queryInterface, Sequelize) {
-        await queryInterface.addConstraint('users', {
+        await queryInterface.addConstraint("payments", {
             fields: ["payment_period_id"],
-            name: "users_paymentsperiods_association",
+            name: "paymentsPeriods_payments_association",
             type:"foreign key",
             references: {
                 table: "payments_periods",
                 field: "id"
             }
         });
-       },
+    },
 
     async down (queryInterface, Sequelize) {
-        await queryInterface.removeConstraint(users,"users_paymentsperiods_association");
-   
+        await queryInterface.removeConstraint("payments","paymentsPeriods_payments_association");
     }
 };

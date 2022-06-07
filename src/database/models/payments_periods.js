@@ -15,7 +15,8 @@ module.exports = (sequelize, DataTypes) => {
      */
        
         static associate(models) {
-         
+            payments_periods.hasMany(models.payments, {foreignKey:"payment_period_id", allowNull: false});
+            models.payments.belongsTo(payments_periods);
         }
 
     }

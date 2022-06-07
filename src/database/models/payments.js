@@ -12,8 +12,8 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
         
-        static associate(payments) {
-            payments.belongsTo(payments_periods, {foreignKey:"payment_period_id", allowNull: false});
+        static associate(models) {
+           
         }
 
     }
