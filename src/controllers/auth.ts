@@ -19,10 +19,7 @@ async function logIn(email: string, password: string) {
         role: userData.dataValues.role
     });
 
-    const { first_name, role, privileges } = userData;
-    const dataObject = { first_name, role, privileges };
-
-    return { loggedIn: Boolean(token), token, dataObject };
+    return { loggedIn: Boolean(token), token };
 }
 
 async function createURL(userId: string, purpose: string) {
@@ -85,9 +82,8 @@ async function invalidateToken(userId: string) {
 }
 
 // Data contains token and new_password
-async function restorePassword(data: { token: string, new_password: string }) {
-    console.log(data)
-    const payload = verify(data.token, process.env.JWT_SECRET!) as JwtPayload;
+async function restorePassword(token: string, newPassword: string) {
+    const payload = verify(token, process.env.JWT_SECRET!) as JwtPayload;
 
     if (!payload.purpose || payload.purpose !== "forgot") {
         throw new JsonWebTokenError("Token not valid");
@@ -97,11 +93,11 @@ async function restorePassword(data: { token: string, new_password: string }) {
         where: { id: payload.userId }
     });
 
-    if (data.token !== user[0].dataValues.token) {
+    if (token !== user[0].dataValues.token) {
         return { isSuccessful: true, result: false };
     }
 
-    const hash = await bcrypt.hash(data.new_password, 10);
+    const hash = await bcrypt.hash(newPassword, 10);
 
     await users.update({ password: hash }, {
         where: { id: payload.userId }

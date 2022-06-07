@@ -23,35 +23,50 @@ router.post("/login", async (req, res) => {
         });
     }
 
-    res.json({ token: tokenData.token, userData: tokenData.dataObject });
+    res.json({ token: tokenData.token });
 });
 
 router.post("/forgot", async (req, res) => {
-    const { email } = req.body;
-    const emailStatus = await sendPasswordEmail(email);
+    try {
+        const { email } = req.body;
+        const emailStatus = await sendPasswordEmail(email);
 
-    if (emailStatus!.isSuccessful === true) {
-        res.status(200).send("Email sent.");
+        if (emailStatus!.isSuccessful === true) {
+            res.status(200).send("Email sent.");
+        }
 
-    } else {
+    } catch (error) {
         res.status(500).send("Unable to send email.");
     }
 });
 
 // Data contains token and new_password
 router.post("/restore", async (req, res) => {
-    const data = req.body;
-    const restore = await restorePassword(data);
+    try {
+        const { token, newPassword } = req.body;
+        const restore = await restorePassword(token, newPassword);
 
-    if (!restore.isSuccessful) {
-        return res.status(500).send("Unable to change password. Try again later...");
+        if (!restore.isSuccessful) {
+            return res.status(500).json({
+                message: "Unable to change password."
+            });
+        }
+
+        if (!restore.result) {
+            return res.status(403).json({
+                message: "Unable to change password."
+            });
+        }
+
+        return res.status(200).json({
+            message: "Password changed correctly."
+        });
+
+    } catch (error) {
+        return res.status(403).json({
+            message: "Invalid credentials. Unable to change password."
+        });
     }
-
-    if (!restore.result) {
-        return res.status(403).send("Unable to change password.");
-    }
-
-    return res.status(200).send("Password changed correctly.");
 });
 
 
