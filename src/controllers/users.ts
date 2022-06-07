@@ -1,4 +1,6 @@
 import db from "../database/database"
+import { NewUserData } from "../util/objects"
+import { hash } from "bcrypt"
 const sqlz = require("sequelize").Sequelize
 const user = require("../database/models/users")(db)
 
@@ -62,4 +64,14 @@ export async function getUserDetails(id: number): Promise<{ successful: boolean;
     }
 
     return { successful: true, found: userDetails !== null, userDetails }
+}
+
+export async function createNewUser(userData: NewUserData, password: string) {
+    try {
+        await user.create({ ...userData, on_leave: false, active: true, payment_period_id: userData.payment_period, role: "user", privileges: [1], password: await hash(password, 10) })
+    } catch {
+        return { successful: false }
+    }
+
+    return { successful: true }
 }

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getUserDetails, getUsersList } from "../controllers/users";
+import { createNewUser, getUserDetails, getUsersList } from "../controllers/users";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 
@@ -52,6 +52,26 @@ router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
     }
 
     res.json(data.userDetails)
+})
+
+router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
+    const { first_name, last_name, email, payment_period, business_unit, salary, second_name, second_last_name, password } = req.body
+
+    if (!first_name || !last_name || !email || !payment_period || !business_unit || !salary || !password) {
+        return res.status(400).json({ message: "Missing required fields" })
+    }
+
+    if (![1, 2].includes(payment_period) || ![1, 2].includes(business_unit) || Number.isNaN(parseFloat(salary))) {
+        return res.status(400).json({ message: "Invalid data sent on some fields" })
+    }
+
+    const data = await createNewUser({ first_name, last_name, email, payment_period, business_unit, salary, second_name, second_last_name }, password)
+
+    if (!data.successful) {
+        return res.sendStatus(500)
+    }
+
+    res.status(201).json({ message: "User created successfully" })
 })
 
 export default router
