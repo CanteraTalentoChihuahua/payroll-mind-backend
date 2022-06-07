@@ -31,7 +31,7 @@ businessUnitRouter.get("/list/:id", privileges(Privileges.READ_BUSINESS_UNITS), 
 
 businessUnitRouter.put("/edit/:id", privileges(Privileges.EDIT_BUSINESS_UNITS), async (req, res) => {
     const { id } = req.params;
-    const { new_name } = req.body;
+    const { newName } = req.body;
 
     const businessUnitsData = await findBusinessUnitById(id);
 
@@ -43,16 +43,16 @@ businessUnitRouter.put("/edit/:id", privileges(Privileges.EDIT_BUSINESS_UNITS), 
 
     try {
         const prevName = businessUnitsData.name;
-        await businessUnits.update({ name: new_name }, {
+        await businessUnits.update({ name: newName }, {
             where: { id }
         });
 
         return res.status(200).json({
-            message: `Successs. Updated "${prevName}" business unit name to "${new_name}".`
+            message: `Successs. Updated "${prevName}" business unit name to "${newName}".`
         });
 
     } catch (error) {
-        return res.status(500).json({
+        return res.status(503).json({
             message: "Something went wrong. Unable to cast changes."
         });
     }
@@ -72,7 +72,7 @@ businessUnitRouter.post("/save", privileges(Privileges.CREATE_BUSINESS_UNITS), a
 
     } catch (error) {
         console.log(error)
-        return res.status(500).json({
+        return res.status(503).json({
             message: `Something went wrong. Unable to create business unit "${name}".`
         });
     }
@@ -98,7 +98,7 @@ businessUnitRouter.delete("/delete/:id", privileges(Privileges.DELETE_BUSINESS_U
         });
 
     } catch (error) {
-        return res.status(500).json({
+        return res.status(503).json({
             message: "Unable to delete business unit."
         });
     }
