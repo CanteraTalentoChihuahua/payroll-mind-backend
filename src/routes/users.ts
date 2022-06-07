@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createNewUser, editUser, getUserDetails, getUsersList } from "../controllers/users";
+import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser } from "../controllers/users";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 
@@ -101,6 +101,26 @@ router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
 
     if (!data.successful) {
         return res.sendStatus(500)
+    }
+
+    res.sendStatus(204)
+})
+
+router.delete("/user", privileges(Privileges.DELETE_USERS), async (req, res) => {
+    const { id } = req.query
+
+    if (!id || typeof id !== "string" || Number.isNaN(parseInt(id))) {
+        return res.status(400).json({ message: "Invalid or missing ID" })
+    }
+
+    const data = await pseudoDeleteUser(parseInt(id))
+
+    if (!data.successful) {
+        return res.sendStatus(500)
+    }
+
+    if (!data.found) {
+        return res.sendStatus(404)
     }
 
     res.sendStatus(204)

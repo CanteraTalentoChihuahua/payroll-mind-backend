@@ -97,3 +97,17 @@ export async function editUser(id: number, userData: Partial<NewUserData>) {
 
     return { successful: true }
 }
+
+export async function pseudoDeleteUser(id: number) {
+    let result;
+
+    try {
+        result = await user.update({
+            active: false
+        }, { where: { id } })
+    } catch {
+        return { successful: false, found: false }
+    }
+
+    return { successful: true, found: result[0] === 1 }
+}
