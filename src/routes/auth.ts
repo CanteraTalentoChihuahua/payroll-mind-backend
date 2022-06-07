@@ -1,4 +1,3 @@
-import { Privileges } from "../util/objects";
 import express from "express";
 import {
     logIn,
@@ -41,8 +40,8 @@ router.post("/forgot", async (req, res) => {
 
 // Data contains token and new_password
 router.post("/restore", async (req, res) => {
-    const { token, newPassword } = req.body;
-    const restore = await restorePassword(token, newPassword);
+    const data = req.body;
+    const restore = await restorePassword(data);
 
     if (!restore.isSuccessful) {
         return res.status(500).send("Unable to change password. Try again later...");
@@ -55,8 +54,5 @@ router.post("/restore", async (req, res) => {
     return res.status(200).send("Password changed correctly.");
 });
 
-router.post("/privileges", async (req, res) => {
-    res.send(Privileges);
-})
 
 export default router;
