@@ -23,7 +23,14 @@ router.post("/login", async (req, res) => {
         });
     }
 
-    res.json({ token: tokenData.token });
+    const privilegesObject = tokenData.privileges;
+
+    res.json({
+        token: tokenData.token, 
+        first_name: tokenData.first_name,
+        role: tokenData.role,
+        privileges: privilegesObject.privileges
+    });
 });
 
 router.post("/forgot", async (req, res) => {
