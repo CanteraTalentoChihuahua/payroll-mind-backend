@@ -68,7 +68,16 @@ export async function getUserDetails(id: number): Promise<{ successful: boolean;
 
 export async function createNewUser(userData: NewUserData, password: string) {
     try {
-        await user.create({ ...userData, on_leave: false, active: true, payment_period_id: userData.payment_period, role: "user", privileges: [1], password: await hash(password, 10) })
+        await user.create({
+            ...userData,
+            business_unit: { business_unit_ids: [userData.business_unit] },
+            on_leave: false,
+            active: true,
+            payment_period_id: userData.payment_period,
+            role: "user",
+            privileges: { privileges: [1] },
+            password: await hash(password, 10)
+        })
     } catch {
         return { successful: false }
     }
