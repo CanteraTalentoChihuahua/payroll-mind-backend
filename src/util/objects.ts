@@ -12,3 +12,14 @@ export const Privileges = {
 }
 
 export type Privilege = { id: number, description: string }
+
+export type NewUserData = {
+    first_name: string,
+    last_name: string,
+    email: string,
+    payment_period: number,
+    business_unit: number,
+    salary: number,
+    second_name: string | undefined,
+    second_last_name: string | undefined
+}
