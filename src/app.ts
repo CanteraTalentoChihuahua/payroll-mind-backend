@@ -1,4 +1,3 @@
-import trialRouter from "./routes/trial_routes";
 import authRouter from "./routes/auth";
 import docsRouter from "./routes/docs";
 import express from "express";
