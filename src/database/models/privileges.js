@@ -2,7 +2,7 @@
 const {
     Model, Sequelize
 } = require("sequelize");
-module.exports = (sequelize, DataTypes) => {
+module.exports = (sequelize) => {
     class privileges extends Model {
     /**
      * Helper method for defining associations.
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
         }
     }
     privileges.init({
-        id: {type:Sequelize.INTEGER,primaryKey:true,autoIncrement: true},
+        id: Sequelize.INTEGER,
         description: Sequelize.STRING
     }, {
         sequelize,

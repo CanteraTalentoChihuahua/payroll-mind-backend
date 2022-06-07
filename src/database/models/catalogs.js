@@ -2,7 +2,7 @@
 const {
     Model, Sequelize
 } = require("sequelize");
-module.exports = (sequelize, DataTypes) => {
+module.exports = (sequelize) => {
     class catalogs extends Model {
     /**
      * Helper method for defining associations.
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
         }
     }
     catalogs.init({
-        id: {type:Sequelize.INTEGER,primaryKey:true,autoIncrement: true},
+        id: Sequelize.INTEGER,
         name: Sequelize.STRING,
         description: Sequelize.STRING,
         privileges: Sequelize.JSONB
