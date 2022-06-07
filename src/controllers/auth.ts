@@ -19,7 +19,9 @@ async function logIn(email: string, password: string) {
         role: userData.dataValues.role
     });
 
-    return { loggedIn: Boolean(token), token };
+    const { first_name, role, privileges } = userData;
+
+    return { loggedIn: Boolean(token), token, first_name, role, privileges };
 }
 
 async function createURL(userId: string, purpose: string) {
