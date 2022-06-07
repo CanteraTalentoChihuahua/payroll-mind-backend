@@ -36,3 +36,30 @@ export async function getUsersList(order: string, by: string): Promise<{ success
 
     return { successful: true, userList }
 }
+
+export async function getUserDetails(id: number): Promise<{ successful: boolean; found: boolean; userDetails: object | undefined; }> {
+    let userDetails;
+
+    try {
+        userDetails = await user.findOne({
+            where: { id },
+            attributes: [
+                "first_name",
+                "second_name",
+                "last_name",
+                "second_last_name",
+                "email",
+                "role",
+                ["payment_period_id", "payment_period"],
+                [sqlz.json("business_unit.business_unit_ids"), "business_units"],
+                "on_leave",
+                "active",
+                "salary"
+            ]
+        })
+    } catch {
+        return { successful: false, found: false, userDetails: undefined }
+    }
+
+    return { successful: true, found: userDetails !== null, userDetails }
+}

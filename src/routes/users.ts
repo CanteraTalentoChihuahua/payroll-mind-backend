@@ -1,5 +1,7 @@
 import { Router } from "express";
-import { getUsersList } from "../controllers/users";
+import { getUserDetails, getUsersList } from "../controllers/users";
+import privileges from "../middleware/privileges";
+import { Privileges } from "../util/objects";
 
 const router = Router()
 
@@ -30,6 +32,26 @@ router.get("/users", async (req, res) => {
     }
 
     return res.json(data.userList)
+})
+
+router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
+    const { id } = req.query
+
+    if (!id || typeof id !== "string" || Number.isNaN(parseInt(id))) {
+        return res.status(400).json({ message: "Invalid or missing ID" })
+    }
+
+    const data = await getUserDetails(parseInt(id))
+
+    if (!data.successful) {
+        return res.sendStatus(500)
+    }
+
+    if (!data.found) {
+        return res.sendStatus(404)
+    }
+
+    res.json(data.userDetails)
 })
 
 export default router
