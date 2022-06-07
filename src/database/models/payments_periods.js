@@ -1,3 +1,4 @@
+
 "use strict";
 const users = require ("./users");
 const payments = require ("./payments");
@@ -13,9 +14,8 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
        
-        static associate(payments_periods) {
-            payments_periods.hasOne(users); 
-            payments_periods.hasOne(payments);
+        static associate(models) {
+         
         }
 
     }

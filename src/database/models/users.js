@@ -12,12 +12,12 @@ module.exports = (sequelize) => {
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-        static associate(users) {
-            users.belongsTo(business_units, {foreignKey: "business_unit_id", allowNull: false});
-            users.belongsTo(payments_periods, {foreignKey: "payment_period_id", allowNull: false});
+        static associate(models) {
+            users.belongsTo(models.payments_periods, {foreignKey: "payment_period_id", allowNull: false});
+            models.payments_periods.hasOne(users);
         }
-        
     }
+    
     users.init({
         id: {
             type: Sequelize.INTEGER,

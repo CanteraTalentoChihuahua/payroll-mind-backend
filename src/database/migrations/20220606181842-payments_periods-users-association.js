@@ -1,17 +1,14 @@
 "use strict";
 
-const users = require("../models/users");
-
 module.exports = {
     async up (queryInterface, Sequelize) {
-        queryInterface.addConstraint(users, {
+        await queryInterface.addConstraint('users', {
             fields: ["payment_period_id"],
+            name: "users_paymentsperiods_association",
             type:"foreign key",
-            name: "users_paymentsPeriods_association",
             references: {
-                model: "payments_periods",
-                key: "id"
-                
+                table: "payments_periods",
+                field: "id"
             }
         });
     /**
@@ -23,7 +20,7 @@ module.exports = {
     },
 
     async down (queryInterface, Sequelize) {
-        await queryInterface.removeConstraint(users,"users_paymentsPeriods_association");
+        await queryInterface.removeConstraint(users,"users_paymentsperiods_association");
     /**
      * Add reverting commands here.
      *
