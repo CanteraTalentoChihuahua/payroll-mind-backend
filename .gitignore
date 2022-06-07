@@ -2,6 +2,3 @@ node_modules/
 package-lock.json
 dist/
 .env
-.env
-src/database/database.js
-src/database/config/config.json

@@ -2,14 +2,14 @@
   "development": {
     "username": "postgres",
     "password": "password",
-    "database": "test1",
+    "database": "database_test",
     "host": "127.0.0.1",
     "dialect": "postgres"
   },
   "test": {
     "username": "root",
     "password": null,
-    "database": "payroll-mind",
+    "database": "database_test",
     "host": "127.0.0.2",
     "dialect": "postgres"
   },
