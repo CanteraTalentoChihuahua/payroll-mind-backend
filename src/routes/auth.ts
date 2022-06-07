@@ -1,3 +1,4 @@
+import { Privileges } from "../util/objects";
 import express from "express";
 import {
     logIn,
@@ -23,58 +24,39 @@ router.post("/login", async (req, res) => {
         });
     }
 
-    const privilegesObject = tokenData.privileges;
-
-    res.json({
-        token: tokenData.token, 
-        first_name: tokenData.first_name,
-        role: tokenData.role,
-        privileges: privilegesObject.privileges
-    });
+    res.json({ token: tokenData.token });
 });
 
 router.post("/forgot", async (req, res) => {
-    try {
-        const { email } = req.body;
-        const emailStatus = await sendPasswordEmail(email);
+    const { email } = req.body;
+    const emailStatus = await sendPasswordEmail(email);
 
-        if (emailStatus!.isSuccessful === true) {
-            res.status(200).send("Email sent.");
-        }
+    if (emailStatus!.isSuccessful === true) {
+        res.status(200).send("Email sent.");
 
-    } catch (error) {
+    } else {
         res.status(500).send("Unable to send email.");
     }
 });
 
 // Data contains token and new_password
 router.post("/restore", async (req, res) => {
-    try {
-        const { token, newPassword } = req.body;
-        const restore = await restorePassword(token, newPassword);
+    const { token, newPassword } = req.body;
+    const restore = await restorePassword(token, newPassword);
 
-        if (!restore.isSuccessful) {
-            return res.status(500).json({
-                message: "Unable to change password."
-            });
-        }
-
-        if (!restore.result) {
-            return res.status(403).json({
-                message: "Unable to change password."
-            });
-        }
-
-        return res.status(200).json({
-            message: "Password changed correctly."
-        });
-
-    } catch (error) {
-        return res.status(403).json({
-            message: "Invalid credentials. Unable to change password."
-        });
+    if (!restore.isSuccessful) {
+        return res.status(500).send("Unable to change password. Try again later...");
     }
+
+    if (!restore.result) {
+        return res.status(403).send("Unable to change password.");
+    }
+
+    return res.status(200).send("Password changed correctly.");
 });
 
+router.post("/privileges", async (req, res) => {
+    res.send(Privileges);
+})
 
 export default router;
