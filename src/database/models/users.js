@@ -26,6 +26,7 @@ module.exports = (sequelize) => {
         email: Sequelize.STRING,
         password: Sequelize.STRING,
         role: Sequelize.STRING,
+        token: Sequelize.STRING,
         privileges: Sequelize.JSONB,
         payment_period_id: Sequelize.INTEGER,
         business_unit: Sequelize.JSONB,
