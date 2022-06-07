@@ -24,10 +24,20 @@ module.exports = (sequelize) => {
             primaryKey: true,
             autoIncrement: true
         },
-        role: Sequelize.STRING,
-        password: Sequelize.STRING,
+        first_name: Sequelize.STRING,
+        second_name: Sequelize.STRING,
+        last_name: Sequelize.STRING,
+        second_last_name: Sequelize.STRING,
         email: Sequelize.STRING,
-        token: Sequelize.STRING
+        password: Sequelize.STRING,
+        role: Sequelize.STRING,
+        token: Sequelize.STRING,
+        privileges: Sequelize.JSONB,
+        payment_period_id: Sequelize.INTEGER,
+        business_unit: Sequelize.JSONB,
+        on_leave: Sequelize.BOOLEAN,
+        active: Sequelize.BOOLEAN,
+        salary: Sequelize.DECIMAL
     }, {
         sequelize,
         modelName: "user",

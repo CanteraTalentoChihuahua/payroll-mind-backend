@@ -1,10 +1,9 @@
-
-import jwt from "../util/jwt";
 import db from "../database/database";
 const users = require("../database/models/users")(db);
 import { sign, verify, JsonWebTokenError, JwtPayload } from "jsonwebtoken";
 import transporter from "../config/mailer";
 import bcrypt from "bcrypt"
+import { createSessionJWT } from "../util/jwt";
 
 async function logIn(email: string, password: string) {
     const userData = await users.findOne({
@@ -15,7 +14,7 @@ async function logIn(email: string, password: string) {
         return { loggedIn: false, token: null };
     }
 
-    const token = jwt.createSessionJWT({
+    const token = createSessionJWT({
         id: userData.dataValues.id,
         role: userData.dataValues.role
     });
@@ -23,7 +22,7 @@ async function logIn(email: string, password: string) {
     return { loggedIn: Boolean(token), token };
 }
 
-async function createURL(userId:string, purpose:string) {
+async function createURL(userId: string, purpose: string) {
     const token = sign({ userId, purpose }, process.env.JWT_SECRET!, {
         expiresIn: "10m",
     });
@@ -39,7 +38,7 @@ async function createURL(userId:string, purpose:string) {
 }
 
 // Replace FRONT
-async function sendPasswordEmail(email:string) {
+async function sendPasswordEmail(email: string) {
     const userData = await users.findOne({
         where: { email }
     });
@@ -66,11 +65,11 @@ async function sendPasswordEmail(email:string) {
 
     } catch (error) {
         return { isSuccessful: false };
-    } 
+    }
 
 }
 
-async function invalidateToken(userId:string) {
+async function invalidateToken(userId: string) {
     try {
         await users.update({ token: null }, {
             where: { id: userId }
@@ -83,7 +82,7 @@ async function invalidateToken(userId:string) {
 }
 
 // Data contains token and new_password
-async function restorePassword(data:{token:string, new_password:string}) {
+async function restorePassword(data: { token: string, new_password: string }) {
     console.log(data)
     const payload = verify(data.token, process.env.JWT_SECRET!) as JwtPayload;
 
