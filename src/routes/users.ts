@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createNewUser, getUserDetails, getUsersList } from "../controllers/users";
+import { createNewUser, editUser, getUserDetails, getUsersList } from "../controllers/users";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 
@@ -72,6 +72,38 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     }
 
     res.status(201).json({ message: "User created successfully" })
+})
+
+router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
+    const { id, first_name, last_name, email, payment_period, business_unit, salary, second_name, second_last_name } = req.body
+
+    if (!id) {
+        return res.status(400).json({ message: "Missing required fields" })
+    }
+
+    if (Number.isNaN(parseInt(id)) || Number.isNaN(parseFloat(salary))) {
+        return res.status(400).json({ message: "Invalid data sent on some fields" })
+    }
+
+    if (payment_period) {
+        if (![1, 2].includes(payment_period)) {
+            return res.status(400).json({ message: "Invalid data sent on some fields" })
+        }
+    }
+
+    if (business_unit) {
+        if (![1, 2].includes(business_unit)) {
+            return res.status(400).json({ message: "Invalid data sent on some fields" })
+        }
+    }
+
+    const data = await editUser(id, { first_name, last_name, email, payment_period, business_unit, salary, second_name, second_last_name })
+
+    if (!data.successful) {
+        return res.sendStatus(500)
+    }
+
+    res.sendStatus(204)
 })
 
 export default router
