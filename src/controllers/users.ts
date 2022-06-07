@@ -86,16 +86,18 @@ export async function createNewUser(userData: NewUserData, password: string) {
 }
 
 export async function editUser(id: number, userData: Partial<NewUserData>) {
+    let result;
+
     try {
-        await user.update({
+        result = await user.update({
             ...userData,
             ...(userData.business_unit && { business_unit: { business_unit_ids: [userData.business_unit] } })
         }, { where: { id } })
     } catch {
-        return { successful: false }
+        return { successful: false, found: false }
     }
 
-    return { successful: true }
+    return { successful: true, found: result[0] === 1 }
 }
 
 export async function pseudoDeleteUser(id: number) {

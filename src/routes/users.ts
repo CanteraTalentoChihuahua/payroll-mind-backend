@@ -103,6 +103,10 @@ router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
         return res.sendStatus(500)
     }
 
+    if (!data.found) {
+        return res.sendStatus(404)
+    }
+
     res.sendStatus(204)
 })
 
