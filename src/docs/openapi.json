@@ -9,6 +9,9 @@
       "name": "Authentication"
     },
     {
+      "name": "Password restoration"
+    },
+    {
       "name": "User management"
     },
     {
@@ -253,6 +256,40 @@
         "required": [
           "id"
         ]
+      },
+      "PrivilegesInformationResponse": {
+        "type": "object",
+        "properties": {
+          "CREATE_ADMIN": {
+            "type": "string"
+          },
+          "CREATE_BUSINESS_UNITS": {
+            "type": "string"
+          },
+          "EDIT_BUSINESS_UNITS": {
+            "type": "string"
+          },
+          "DELETE_BUSINESS_UNITS": {
+            "type": "string"
+          },
+          "EDIT_USERS": {
+            "type": "string"
+          },
+          "DELETE_USERS": {
+            "type": "string"
+          },
+          "CREATE_PAYROLL_RECEIPTS": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateRestoreRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        }
       }
     },
     "securitySchemes": {
@@ -263,6 +300,65 @@
     }
   },
   "paths": {
+    "/api/privileges": {
+      "get": {
+        "summary": "Gets all available privileges and their description.",
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns a list of privileges.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivilegesInformationResponse"
+                },
+                "example": {
+                  "CREATE_ADMIN": {
+                    "id": 1,
+                    "description": "Crear administradores"
+                  },
+                  "CREATE_BUSINESS_UNITS": {
+                    "id": 2,
+                    "description": "Crear unidades de negocio"
+                  },
+                  "CREATE_USERS": {
+                    "id": 3,
+                    "description": "Crear usuarios"
+                  },
+                  "EDIT_USERS": {
+                    "id": 4,
+                    "description": "Editar usuarios"
+                  },
+                  "DELETE_USERS": {
+                    "id": 5,
+                    "description": "Borrar usuarios"
+                  },
+                  "CREATE_PAYROLL_RECEIPTS": {
+                    "id": 7,
+                    "description": "Generar recibos de nómina"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unable to send list of privileges.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicMessageResponse"
+                },
+                "example": {
+                  "message": "Unable to send privileges."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/login": {
       "post": {
         "summary": "Checks credentials and returns session token",
@@ -298,6 +394,116 @@
                 },
                 "example": {
                   "message": "Invalid credentials"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forgot": {
+      "post": {
+        "summary": "Sends password restoration email.",
+        "tags": [
+          "Password restoration"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRestoreRequest"
+              },
+              "example": {
+                "email": "john_doe@email.com"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns confirmation message.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicUserInformationResponse"
+                },
+                "example": {
+                  "message": "Email sent."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Email could not be sent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicUserInformationResponse"
+                },
+                "example": {
+                  "message": "Unable to send email."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/restore": {
+      "post": {
+        "summary": "Sends session token and new password.",
+        "tags": [
+          "Password restoration"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": ""
+              },
+              "example": {
+                "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InN1cGVyYWRtaW4iLCJpYXQiOjE2NTQ3MjkzNjYsImV4cCI6MTY1NDczMjk2NiwiYXVkIjoic2Vzc2lvbiJ9.YRnk0qtuPLdegg0KmY6SHubsMpY8rfAWTG0PASMUPEQ",
+                "newPassword": "something_new"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns confirmation message.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicUserInformationResponse"
+                },
+                "example": {
+                  "message": "Password changed correctly."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Invalid credentials. Returns denial message.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicUserInformationResponse"
+                },
+                "example": {
+                  "message": "Unable to change password. Invalid credentials."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error. Returns denial message.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicUserInformationResponse"
+                },
+                "example": {
+                  "message": "Unable to change password. Try again later..."
                 }
               }
             }
