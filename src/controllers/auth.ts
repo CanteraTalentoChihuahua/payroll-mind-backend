@@ -2,7 +2,7 @@ import db from "../database/database";
 const users = require("../database/models/users")(db);
 import { sign, verify, JsonWebTokenError, JwtPayload } from "jsonwebtoken";
 import transporter from "../config/mailer";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
 import { createSessionJWT } from "../util/jwt";
 
 async function logIn(email: string, password: string) {
@@ -51,7 +51,7 @@ async function sendPasswordEmail(email: string) {
 
     const urlToken = await createURL(userData.id, "forgot");
 
-    let message = {
+    const message = {
         from: "Mind Group + <" + process.env.MAIL_ADDR + ">",
         to: email,
         subject: "Restore password",

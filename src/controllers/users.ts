@@ -1,19 +1,19 @@
-import db from "../database/database"
-import { NewUserData } from "../util/objects"
-import { hash } from "bcrypt"
-const sqlz = require("sequelize").Sequelize
-const user = require("../database/models/users")(db)
+import db from "../database/database";
+import { NewUserData } from "../util/objects";
+import { hash } from "bcrypt";
+const sqlz = require("sequelize").Sequelize;
+const user = require("../database/models/users")(db);
 
 function getOrder(order: string, by: string) {
     switch (order) {
-        case "name": return [
-            ["first_name", by],
-            ["last_name", by]
-        ]
-        case "salary": return [
-            ["salary", by]
-        ]
-        default: return []
+    case "name": return [
+        ["first_name", by],
+        ["last_name", by]
+    ];
+    case "salary": return [
+        ["salary", by]
+    ];
+    default: return [];
     }
 }
 
@@ -31,12 +31,12 @@ export async function getUsersList(order: string, by: string): Promise<{ success
                 "salary"
             ],
             order: getOrder(order, by)
-        })
+        });
     } catch {
-        return { successful: false, userList: undefined }
+        return { successful: false, userList: undefined };
     }
 
-    return { successful: true, userList }
+    return { successful: true, userList };
 }
 
 export async function getUserDetails(id: number): Promise<{ successful: boolean; found: boolean; userDetails: object | undefined; }> {
@@ -58,12 +58,12 @@ export async function getUserDetails(id: number): Promise<{ successful: boolean;
                 "active",
                 "salary"
             ]
-        })
+        });
     } catch {
-        return { successful: false, found: false, userDetails: undefined }
+        return { successful: false, found: false, userDetails: undefined };
     }
 
-    return { successful: true, found: userDetails !== null, userDetails }
+    return { successful: true, found: userDetails !== null, userDetails };
 }
 
 export async function createNewUser(userData: NewUserData, password: string) {
@@ -77,12 +77,12 @@ export async function createNewUser(userData: NewUserData, password: string) {
             role: "user",
             privileges: { privileges: [1] },
             password: await hash(password, 10)
-        })
+        });
     } catch {
-        return { successful: false }
+        return { successful: false };
     }
 
-    return { successful: true }
+    return { successful: true };
 }
 
 export async function editUser(id: number, userData: Partial<NewUserData>) {
@@ -92,12 +92,12 @@ export async function editUser(id: number, userData: Partial<NewUserData>) {
         result = await user.update({
             ...userData,
             ...(userData.business_unit && { business_unit: { business_unit_ids: [userData.business_unit] } })
-        }, { where: { id } })
+        }, { where: { id } });
     } catch {
-        return { successful: false, found: false }
+        return { successful: false, found: false };
     }
 
-    return { successful: true, found: result[0] === 1 }
+    return { successful: true, found: result[0] === 1 };
 }
 
 export async function pseudoDeleteUser(id: number) {
@@ -106,10 +106,10 @@ export async function pseudoDeleteUser(id: number) {
     try {
         result = await user.update({
             active: false
-        }, { where: { id } })
+        }, { where: { id } });
     } catch {
-        return { successful: false, found: false }
+        return { successful: false, found: false };
     }
 
-    return { successful: true, found: result[0] === 1 }
+    return { successful: true, found: result[0] === 1 };
 }

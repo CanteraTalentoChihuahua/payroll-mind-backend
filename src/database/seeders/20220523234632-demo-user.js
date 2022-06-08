@@ -64,11 +64,11 @@ module.exports = {
             salary: 20,
             token: null,
         }],
-            { timestamps: true },
-            {
-                privileges: { type: new Sequelize.JSON() },
-                business_unit: { type: new Sequelize.JSON() }
-            });
+        { timestamps: true },
+        {
+            privileges: { type: new Sequelize.JSON() },
+            business_unit: { type: new Sequelize.JSON() }
+        });
     },
 
     async down(queryInterface, Sequelize) {
