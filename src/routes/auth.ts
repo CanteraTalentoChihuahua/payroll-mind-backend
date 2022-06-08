@@ -23,7 +23,7 @@ router.post("/login", async (req, res) => {
             message: "Invalid credentials"
         });
     }
-    
+
     const privilegesObject = tokenData.privileges;
 
     res.json({
@@ -62,8 +62,8 @@ router.post("/restore", async (req, res) => {
     return res.status(200).send("Password changed correctly.");
 });
 
-router.post("/privileges", async (req, res) => {
-    res.send(Privileges);
+router.get("/privileges", async (req, res) => {
+    res.status(200).send(Privileges);
 });
 
 export default router;
