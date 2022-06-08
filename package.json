@@ -24,9 +24,9 @@
   },
   "scripts": {
     "migrate": "npx sequelize-cli db:migrate",
-    "undo-migrate": "npx sequelize-cli db:migrate:undo",
-    "seed": "tsc && sequelize-cli db:seed:all",
-    "undo-seed": "npx sequelize-cli db:seed:undo:all",
+    "undo-migrate": "npx sequelize-cli db:migrate:undo:all",
+    "seed": "tsc && sequelize-cli --options-path './.sequelizerc.dev' db:seed:all",
+    "undo-seed": "sequelize-cli --options-path './.sequelizerc.dev' db:seed:undo:all",
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "tsc && node -r dotenv/config dist/server.js"
