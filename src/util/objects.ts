@@ -9,7 +9,7 @@ export const Privileges = {
     CREATE_PAYROLL_RECEIPTS: { id: 6, description: "Generar recibos de nómina" },
     EDIT_PAYROLL: { id: 7, description: "Editar datos de nómina" },
     READ_BUSINESS_UNITS: { id: 8, description: "Leer las unidades de negocio" }
-}
+};
 
 export type Privilege = { id: number, description: string }
 
