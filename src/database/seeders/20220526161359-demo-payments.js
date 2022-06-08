@@ -11,8 +11,8 @@ module.exports = {
             payment_period_id:3,
             payment_date_id:4,
         }],{}, {automated_bonuses:{type:new Sequelize.JSON()},
-        manual_bonuses:{type:new Sequelize.JSON()}
-    });
+            manual_bonuses:{type:new Sequelize.JSON()}
+        });
     },
 
     async down (queryInterface, Sequelize) {
