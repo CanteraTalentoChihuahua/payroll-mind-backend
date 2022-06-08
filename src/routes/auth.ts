@@ -57,6 +57,6 @@ router.post("/restore", async (req, res) => {
 
 router.post("/privileges", async (req, res) => {
     res.send(Privileges);
-})
+});
 
 export default router;
