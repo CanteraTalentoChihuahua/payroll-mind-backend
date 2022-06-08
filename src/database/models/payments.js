@@ -1,21 +1,25 @@
 "use strict";
+const payments_periods = require ("./payments_periods");
+
 const {
     Model, Sequelize
 } = require("sequelize");
-module.exports = (sequelize) => {
+module.exports = (sequelize, DataTypes) => {
     class payments extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
+        
         static associate(models) {
-            // define association here
+           
         }
+
     }
     payments.init({
-        id: Sequelize.INTEGER,
-        userid: Sequelize.INTEGER,
+        id: {type:Sequelize.INTEGER,primaryKey:true,autoIncrement: true},
+        user_id: Sequelize.INTEGER,
         total_amount: Sequelize.DECIMAL,
         automated_bonuses: Sequelize.JSONB,
         manual_bonuses: Sequelize.JSONB,
