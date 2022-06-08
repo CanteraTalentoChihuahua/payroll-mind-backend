@@ -71,7 +71,6 @@ businessUnitRouter.post("/save", privileges(Privileges.CREATE_BUSINESS_UNITS), a
         });
 
     } catch (error) {
-        console.log(error)
         return res.status(503).json({
             message: `Something went wrong. Unable to create business unit "${name}".`
         });
