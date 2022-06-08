@@ -1,4 +1,5 @@
 "use strict";
+const business_units = require ("./business_units");
 const {
     Model, Sequelize
 } = require("sequelize");
@@ -11,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
      */
 
         static associate(payrolls) {
-            payrolls.belongsTo(payrolls.business_units, { foreignKey: "business_unit_id" });
+            payrolls.belongsTo(business_units, {foreignKey: "business_unit_id", allowNull: false});
         }
         
     }
