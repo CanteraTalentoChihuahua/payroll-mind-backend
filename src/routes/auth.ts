@@ -3,7 +3,8 @@ import express from "express";
 import {
     logIn,
     sendPasswordEmail,
-    restorePassword
+    restorePassword,
+    logOut
 } from "../controllers/auth";
 
 const router = express.Router();
@@ -32,6 +33,30 @@ router.post("/login", async (req, res) => {
         role: tokenData.role,
         privileges: privilegesObject.privileges
     });
+});
+
+router.post("/logout", async (req, res) => {
+    try {
+        const { userId } = req.body;
+
+        const logResult = await logOut(userId);
+
+        if (logResult === true) {
+            res.status(200).json({
+                message: "Logged out successfully."
+            });
+
+        } else {
+            res.status(404).json({
+                message: "User not found."
+            });
+        }
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Invalid request."
+        });
+    }
 });
 
 router.post("/forgot", async (req, res) => {

@@ -115,4 +115,8 @@ async function restorePassword(token: string, newPassword: string) {
     }
 }
 
-export { logIn, sendPasswordEmail, restorePassword };
+async function logOut(userId: string) {
+    return await invalidateToken(userId);
+}
+
+export { logIn, logOut, sendPasswordEmail, restorePassword };
