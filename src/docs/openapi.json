@@ -9,7 +9,13 @@
       "name": "Authentication"
     },
     {
+      "name": "Password restoration"
+    },
+    {
       "name": "User management"
+    },
+    {
+      "name": "Business unit management"
     }
   ],
   "components": {
@@ -42,6 +48,50 @@
         },
         "example": {
           "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+        }
+      },
+      "BusinessUnitInformationResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "deletedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateBusinessUnitRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "EditBusinessUnitRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "BasicMessageResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
         }
       },
       "BadRequestResponse": {
@@ -206,6 +256,40 @@
         "required": [
           "id"
         ]
+      },
+      "PrivilegesInformationResponse": {
+        "type": "object",
+        "properties": {
+          "CREATE_ADMIN": {
+            "type": "string"
+          },
+          "CREATE_BUSINESS_UNITS": {
+            "type": "string"
+          },
+          "EDIT_BUSINESS_UNITS": {
+            "type": "string"
+          },
+          "DELETE_BUSINESS_UNITS": {
+            "type": "string"
+          },
+          "EDIT_USERS": {
+            "type": "string"
+          },
+          "DELETE_USERS": {
+            "type": "string"
+          },
+          "CREATE_PAYROLL_RECEIPTS": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateRestoreRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        }
       }
     },
     "securitySchemes": {
@@ -216,6 +300,65 @@
     }
   },
   "paths": {
+    "/api/privileges": {
+      "get": {
+        "summary": "Gets all available privileges and their description.",
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns a list of privileges.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivilegesInformationResponse"
+                },
+                "example": {
+                  "CREATE_ADMIN": {
+                    "id": 1,
+                    "description": "Crear administradores"
+                  },
+                  "CREATE_BUSINESS_UNITS": {
+                    "id": 2,
+                    "description": "Crear unidades de negocio"
+                  },
+                  "CREATE_USERS": {
+                    "id": 3,
+                    "description": "Crear usuarios"
+                  },
+                  "EDIT_USERS": {
+                    "id": 4,
+                    "description": "Editar usuarios"
+                  },
+                  "DELETE_USERS": {
+                    "id": 5,
+                    "description": "Borrar usuarios"
+                  },
+                  "CREATE_PAYROLL_RECEIPTS": {
+                    "id": 7,
+                    "description": "Generar recibos de nómina"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unable to send list of privileges.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicMessageResponse"
+                },
+                "example": {
+                  "message": "Unable to send privileges."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/login": {
       "post": {
         "summary": "Checks credentials and returns session token",
@@ -258,6 +401,116 @@
         }
       }
     },
+    "/api/forgot": {
+      "post": {
+        "summary": "Sends password restoration email.",
+        "tags": [
+          "Password restoration"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRestoreRequest"
+              },
+              "example": {
+                "email": "john_doe@email.com"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns confirmation message.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicUserInformationResponse"
+                },
+                "example": {
+                  "message": "Email sent."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Email could not be sent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicUserInformationResponse"
+                },
+                "example": {
+                  "message": "Unable to send email."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/restore": {
+      "post": {
+        "summary": "Sends session token and new password.",
+        "tags": [
+          "Password restoration"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": ""
+              },
+              "example": {
+                "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InN1cGVyYWRtaW4iLCJpYXQiOjE2NTQ3MjkzNjYsImV4cCI6MTY1NDczMjk2NiwiYXVkIjoic2Vzc2lvbiJ9.YRnk0qtuPLdegg0KmY6SHubsMpY8rfAWTG0PASMUPEQ",
+                "newPassword": "something_new"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns confirmation message.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicUserInformationResponse"
+                },
+                "example": {
+                  "message": "Password changed correctly."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Invalid credentials. Returns denial message.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicUserInformationResponse"
+                },
+                "example": {
+                  "message": "Unable to change password. Invalid credentials."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error. Returns denial message.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicUserInformationResponse"
+                },
+                "example": {
+                  "message": "Unable to change password. Try again later..."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/users": {
       "get": {
         "summary": "Get a list of users",
@@ -267,7 +520,7 @@
         "parameters": [
           {
             "in": "query",
-            "name": "order",
+            "name": "by",
             "schema": {
               "type": "string",
               "enum": [
@@ -278,7 +531,7 @@
           },
           {
             "in": "query",
-            "name": "by",
+            "name": "order",
             "schema": {
               "type": "string",
               "enum": [
@@ -321,33 +574,6 @@
                     "salary": 150000
                   }
                 ]
-              }
-            }
-          },
-          "400": {
-            "description": "You sent one or more invalid parameters",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "errors": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "example": {
-                  "message": "Invalid parameters",
-                  "errors": [
-                    "order"
-                  ]
-                }
               }
             }
           }
@@ -399,9 +625,6 @@
           },
           "403": {
             "description": "User is missing the \"Read User Information\" privilege"
-          },
-          "404": {
-            "description": "A user with the specified ID does not exist"
           }
         },
         "security": [
@@ -477,9 +700,6 @@
           },
           "403": {
             "description": "User is missing the \"Edit User Information\" privilege"
-          },
-          "404": {
-            "description": "The user you want to edit does not exist"
           }
         },
         "security": [
@@ -512,9 +732,335 @@
           },
           "403": {
             "description": "User is missing the \"Delete User\" privilege"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/businessunits/list": {
+      "get": {
+        "summary": "Get a list of business units",
+        "tags": [
+          "Business unit management"
+        ],
+        "responses": {
+          "200": {
+            "description": "Gets all business units",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BusinessUnitInformationResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "id": 1,
+                    "name": "Farmville",
+                    "createdAt": "2022-06-08T00:10:05.944Z",
+                    "updatedAt": "2022-06-08T00:23:49.739Z",
+                    "deletedAt": null
+                  },
+                  {
+                    "id": 2,
+                    "name": "Springfield",
+                    "createdAt": "2022-06-08T00:10:05.944Z",
+                    "updatedAt": "2022-06-08T00:23:49.739Z",
+                    "deletedAt": null
+                  }
+                ]
+              }
+            }
           },
           "404": {
-            "description": "The user you want to delete does not exist"
+            "description": "No business units found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateBusinessUnitRequest"
+                },
+                "example": {
+                  "message": "No business units found."
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/businessunits/list/id": {
+      "get": {
+        "summary": "Get a specific business unit",
+        "tags": [
+          "Business unit management"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns a requested business unit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": ""
+                },
+                "example": {
+                  "id": 1,
+                  "name": "Farmville",
+                  "createdAt": "2022-06-08T00:10:05.944Z",
+                  "updatedAt": "2022-06-08T00:23:49.739Z",
+                  "deletedAt": null
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No business units found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "message": "No business units found."
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/businessunits/save": {
+      "post": {
+        "tags": [
+          "Business unit management"
+        ],
+        "summary": "Adds a new business unit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBusinessUnitRequest"
+              },
+              "example": {
+                "name": "Springfield"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business unit is created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicMessageResponse"
+                },
+                "example": {
+                  "message": "Business unit 'Springfield' was created successfully."
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Business unit already exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicMessageResponse"
+                },
+                "example": {
+                  "message": "Business unit 'Springfield' already exists."
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Business unit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicMessageResponse"
+                },
+                "example": {
+                  "name": "Something went wrong. Unable to create business unit 'Springfield'."
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/businessunits/edit/id": {
+      "put": {
+        "tags": [
+          "Business unit management"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "summary": "Edit a user information",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditBusinessUnitRequest"
+              },
+              "example": {
+                "newName": "South Park"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updates business unit name.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicMessageResponse"
+                },
+                "example": {
+                  "message": "Successs. Updated 'Farmville' business unit name to 'South Park'."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unable to find business unit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicMessageResponse"
+                },
+                "example": {
+                  "message": "No business unit found."
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unable to change business unit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicMessageResponse"
+                },
+                "example": {
+                  "message": "Something went wrong. Unable to cast changes."
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/businessunits/delete": {
+      "delete": {
+        "tags": [
+          "Business unit management"
+        ],
+        "summary": "Mark a user as inactive",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Business unit was marked as inactive successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicMessageResponse"
+                },
+                "example": {
+                  "message": "Business unit was deleted successfully."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No business unit found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicMessageResponse"
+                },
+                "example": {
+                  "message": "Business unit was deleted successfully."
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unable to delete business unit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasicMessageResponse"
+                },
+                "example": {
+                  "message": "Business unit was deleted successfully."
+                }
+              }
+            }
           }
         },
         "security": [

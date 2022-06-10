@@ -23,7 +23,7 @@ router.post("/login", async (req, res) => {
             message: "Invalid credentials"
         });
     }
-    
+
     const privilegesObject = tokenData.privileges;
 
     res.json({
@@ -52,18 +52,23 @@ router.post("/restore", async (req, res) => {
     const restore = await restorePassword(token, newPassword);
 
     if (!restore.isSuccessful) {
-        return res.status(500).send("Unable to change password. Try again later...");
+        return res.status(500).json({ message: "Unable to change password. Try again later..." });
     }
 
     if (!restore.result) {
-        return res.status(403).send("Unable to change password.");
+        return res.status(403).json({ message: "Unable to change password. Invalid credentials." });
     }
 
-    return res.status(200).send("Password changed correctly.");
+    return res.status(200).json({ message: "Password changed correctly." });
 });
 
-router.post("/privileges", async (req, res) => {
-    res.send(Privileges);
+router.get("/privileges", async (req, res) => {
+    try {
+        res.status(200).send(Privileges);
+    } catch (error) {
+        res.status(503).json({ message: "Unable to send privileges." });
+    }
+
 });
 
 export default router;
