@@ -19,9 +19,13 @@ async function logIn(email: string, password: string) {
         role: userData.dataValues.role
     });
 
-    const { first_name, role, privileges } = userData;
+    await users.update({ token }, {
+        where: { email }
+    });
 
-    return { loggedIn: Boolean(token), token, first_name, role, privileges };
+    const { id, first_name, role, privileges } = userData;
+
+    return { loggedIn: Boolean(token), id, token, first_name, role, privileges };
 }
 
 async function createURL(userId: string, purpose: string) {

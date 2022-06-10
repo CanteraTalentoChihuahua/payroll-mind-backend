@@ -9,6 +9,7 @@ import {
 
 const router = express.Router();
 
+// agregar ! || ! a todas
 router.post("/login", async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -28,6 +29,7 @@ router.post("/login", async (req, res) => {
     const privilegesObject = tokenData.privileges;
 
     res.json({
+        id: tokenData.id,
         token: tokenData.token,
         first_name: tokenData.first_name,
         role: tokenData.role,
