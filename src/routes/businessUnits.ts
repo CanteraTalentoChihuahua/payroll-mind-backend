@@ -30,18 +30,18 @@ businessUnitRouter.get("/list/:id", privileges(Privileges.READ_BUSINESS_UNITS), 
 });
 
 businessUnitRouter.put("/edit/:id", privileges(Privileges.EDIT_BUSINESS_UNITS), async (req, res) => {
-    const { id } = req.params;
-    const { newName } = req.body;
-
-    const businessUnitsData = await findBusinessUnitById(id);
-
-    if (businessUnitsData === null) {
-        return res.status(404).json({
-            message: "No business unit found."
-        });
-    }
-
     try {
+        const { id } = req.params;
+        const { newName } = req.body;
+
+        const businessUnitsData = await findBusinessUnitById(id);
+
+        if (businessUnitsData === null) {
+            return res.status(404).json({
+                message: "No business unit found."
+            });
+        }
+
         const prevName = businessUnitsData.name;
         await businessUnits.update({ name: newName }, {
             where: { id }
