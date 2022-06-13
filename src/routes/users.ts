@@ -5,7 +5,7 @@ import { Privileges } from "../util/objects";
 
 const router = Router();
 
-router.get("/users", async (req, res) => {
+router.get("/users", privileges(Privileges.READ_USERS), async (req, res) => {
     const { order, by } = req.query;
     const errors: string[] = [];
 
