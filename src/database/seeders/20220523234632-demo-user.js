@@ -11,7 +11,7 @@ module.exports = {
             password: "secret_password",
             role: "superadmin",
             privileges: {
-                privileges: [1, 2, 3, 4, 5, 9, 8, 10]
+                privileges: [1, 2, 3, 4, 5, 9, 8, 10, 11]
             },
             payment_period_id: 1,
             business_unit: {
@@ -33,7 +33,7 @@ module.exports = {
             password: "secret_password",
             role: "admin",
             privileges: {
-                privileges: [1]
+                privileges: [1, 11]
             },
             payment_period_id: 1,
             business_unit: {
