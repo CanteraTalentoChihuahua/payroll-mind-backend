@@ -37,7 +37,7 @@ Want to see what the API can do without diving into code? Check out the OpenAPI 
 
 ## License
 
-This project is licenced under the [MIT Licence](https://github.com/CanteraTalentoChihuahua/payroll-mind-backend/blob/main/LICENSE).
+This project is licenced under the [MIT License](https://github.com/CanteraTalentoChihuahua/payroll-mind-backend/blob/main/LICENSE).
 
 ## Made with
 
