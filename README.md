@@ -25,6 +25,10 @@ npm build
 npm start
 ```
 
+## Documentation
+
+Want to see what the API can do without diving into code? Check out the OpenAPI documentation included in the server by typing `/docs` on wherever you have hosted the project. We have listed all endpoints with a description and some example requests.
+
 ## Authors
 
 - **Abraham González** - [abrahamgmacias](https://github.com/abrahamgmacias)
