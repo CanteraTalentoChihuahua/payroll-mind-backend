@@ -5,24 +5,25 @@ import { Privileges } from "../util/objects";
 
 const collabRouter = Router();
 
-
-collabRouter.get("/", privileges(Privileges.READ_USERS), (req, res) => {
-    const { business_units, role } = res.locals.userInfo;
+collabRouter.get("/", privileges(Privileges.READ_USERS), async (req, res) => {
+    const { business_unit, role } = res.locals.userInfo;
+    const { business_unit_ids } = business_unit;
 
     if (role !== "admin") {
-        res.status(400).json({
+        return res.status(400).json({
             message: "Invalid credentials"
         });
     }
 
     try {
-        const users = await getUsers();
-        res.status(200).send(users);
+        const users = await getUsers(business_unit_ids);
+        return res.status(200).send(users);
 
     } catch (error) {
-        res.status(500).send({
+        console.log(error);
+        return res.status(500).send({
             message: "Try again later..."
-        })
+        });
     }
 });
 

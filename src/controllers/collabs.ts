@@ -1,9 +1,24 @@
 import db from "../database/database";
-import { NewUserData } from "../util/objects";
-import { hash } from "bcrypt";
+import { sequelize } from "../database/models";
+const { Op } = require("sequelize");
 const sqlz = require("sequelize").Sequelize;
-const user = require("../database/models/users")(db);
+const users = require("../database/models/users")(db);
 
-export async function getUsers() {
-    return "placeholder text";
+export async function getUsers(businessUnitId: [number]) {
+    console.log(" ");
+
+    const userInfo = await users.findAll({
+        where: {
+            meta: {
+                [Op.contains]: {
+                    business_unit: {
+                        business_unit_ids: businessUnitId
+                    }
+                }
+            }
+        }
+    });
+
+    return userInfo;
+
 }
