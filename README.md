@@ -5,8 +5,8 @@ The server side of an app to manage expenses and employee's salaries.
 ## Pre-requisites
 
 To run the API you need the following:
-- Node.JS (Version 16 recommended)
-- NPM (Version 8 recommended)
+- Node.js (Version 16 recommended)
+- npm (Version 8 recommended)
 - A PostgreSQL instance
 - A SMTP server
 
