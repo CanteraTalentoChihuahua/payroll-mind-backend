@@ -17,7 +17,7 @@ app.get("/", (_req, res) => {
     res.send("Works!");
 });
 
-// Should we add /users to users?
+// Should we add /users to users? Got to eliminate the from the route
 app.use("/api/businessunits", businessUnitsRouter);
 app.use("/api/collabs", collabRouter);
 app.use("/api", usersRouter);
