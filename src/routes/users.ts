@@ -34,7 +34,7 @@ router.get("/users", async (req, res) => {
     return res.json(data.userList);
 });
 
-router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
+router.get("/user", privileges(Privileges.CREATE_ADMINS), async (req, res) => {
     const { id } = req.query;
 
     if (!id || typeof id !== "string" || Number.isNaN(parseInt(id))) {
@@ -54,7 +54,7 @@ router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
     res.json(data.userDetails);
 });
 
-router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
+router.post("/user", privileges(Privileges.CREATE_COLLABORATORS), async (req, res) => {
     const { first_name, last_name, email, payment_period, business_unit, salary, second_name, second_last_name, password } = req.body;
 
     if (!first_name || !last_name || !email || !payment_period || !business_unit || !salary || !password) {
@@ -74,7 +74,7 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     res.status(201).json({ message: "User created successfully" });
 });
 
-router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
+router.put("/user", privileges(Privileges.EDIT_COLLABORATORS), async (req, res) => {
     const { id, first_name, last_name, email, payment_period, business_unit, salary, second_name, second_last_name } = req.body;
 
     if (!id) {
@@ -110,7 +110,7 @@ router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
     res.sendStatus(204);
 });
 
-router.delete("/user", privileges(Privileges.DELETE_USERS), async (req, res) => {
+router.delete("/user", privileges(Privileges.DELETE_COLLABORATORS), async (req, res) => {
     const { id } = req.query;
 
     if (!id || typeof id !== "string" || Number.isNaN(parseInt(id))) {
