@@ -4,6 +4,7 @@ import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 
 // Admin should be limited to only create users roles
+// Superadmin should not appear?
 
 const router = Router();
 
@@ -46,13 +47,20 @@ router.get("/users", privileges(Privileges.READ_USERS), async (req, res) => {
 });
 
 router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
+    const { business_unit, role } = res.locals.userInfo;
+    const { business_unit_ids } = business_unit;
     const { id } = req.query;
 
     if (!id || typeof id !== "string" || Number.isNaN(parseInt(id))) {
         return res.status(400).json({ message: "Invalid or missing ID" });
     }
 
-    const data = await getUserDetails(parseInt(id));
+    let data;
+    if (role === "admin") {
+        data = await getUserDetails(parseInt(id), business_unit_ids);
+    } else {
+        data = await getUserDetails(parseInt(id));
+    }
 
     if (!data.successful) {
         return res.sendStatus(500);

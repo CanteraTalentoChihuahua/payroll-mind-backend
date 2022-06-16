@@ -1,20 +1,21 @@
 import db from "../database/database";
 import { NewUserData } from "../util/objects";
 import { hash } from "bcrypt";
+import business_units from "../database/models/business_units";
 const { Op } = require("sequelize");
 const sqlz = require("sequelize").Sequelize;
 const user = require("../database/models/users")(db);
 
 function getOrder(order: string, by: string) {
     switch (order) {
-    case "name": return [
-        ["first_name", by],
-        ["last_name", by]
-    ];
-    case "salary": return [
-        ["salary", by]
-    ];
-    default: return [];
+        case "name": return [
+            ["first_name", by],
+            ["last_name", by]
+        ];
+        case "salary": return [
+            ["salary", by]
+        ];
+        default: return [];
     }
 }
 
@@ -37,21 +38,21 @@ export async function getUsersList(order: string, by: string, businessUnits?: Ar
                 order: orderSet
             });
 
-            return { successful: true, userList }
+            return { successful: true, userList };
 
         } catch (error) {
-            return { successful: false, userList: undefined }; 
+            return { successful: false, userList: undefined };
         }
     }
 
     try {
-        const unitsList = []; 
-        for (let i in businessUnits) {
-            unitsList.push({"business_unit.business_unit_ids": `[${businessUnits[parseInt(i)]}]`});
+        const unitsList = [];
+        for (const i in businessUnits) {
+            unitsList.push({ "business_unit.business_unit_ids": `[${businessUnits[parseInt(i)]}]` });
         }
 
         userList = await user.findAll({
-            attributes: attributesList ,
+            attributes: attributesList,
             where: {
                 [Op.or]: unitsList
             },
@@ -65,31 +66,55 @@ export async function getUsersList(order: string, by: string, businessUnits?: Ar
     }
 }
 
-export async function getUserDetails(id: number): Promise<{ successful: boolean; found: boolean; userDetails: object | undefined; }> {
+export async function getUserDetails(id: number, businessUnits?: Array<number>): Promise<{ successful: boolean; found: boolean; userDetails: object | undefined; }> {
     let userDetails;
+    const attributesList = [
+        "first_name",
+        "second_name",
+        "last_name",
+        "second_last_name",
+        "email",
+        "role",
+        ["payment_period_id", "payment_period"],
+        [sqlz.json("business_unit.business_unit_ids"), "business_units"],
+        "on_leave",
+        "active",
+        "salary"
+    ];
 
     try {
         userDetails = await user.findOne({
-            where: { id },
-            attributes: [
-                "first_name",
-                "second_name",
-                "last_name",
-                "second_last_name",
-                "email",
-                "role",
-                ["payment_period_id", "payment_period"],
-                [sqlz.json("business_unit.business_unit_ids"), "business_units"],
-                "on_leave",
-                "active",
-                "salary"
-            ]
+            attributes: attributesList,
+            where: { id }
         });
-    } catch {
+
+    } catch (error) {
         return { successful: false, found: false, userDetails: undefined };
     }
 
-    return { successful: true, found: userDetails !== null, userDetails };
+    // Potential 11 business unit exploit?
+    try {
+        const userValues = userDetails.dataValues;
+
+        if (businessUnits) {
+            let status;
+            for (const i in businessUnits) {
+                if (userValues.business_units.includes(String(businessUnits[i]))) {
+                    status = true;
+                    break;
+                }
+            }
+
+            if (status === undefined) {
+                return { successful: false, found: true, userDetails: undefined };
+            }
+        }
+
+        return { successful: true, found: userDetails !== null, userDetails };
+
+    } catch (error) {
+        return { successful: true, found: false, userDetails: undefined };
+    }
 }
 
 export async function createNewUser(userData: NewUserData, password: string) {
