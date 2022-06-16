@@ -16,11 +16,11 @@ collabRouter.get("/", privileges(Privileges.READ_USERS), async (req, res) => {
     }
 
     try {
-        const users = await getUsers(business_unit_ids);
+        const reqSyntax = `[${business_unit_ids}]`;
+        const users = await getUsers(reqSyntax);
         return res.status(200).send(users);
 
     } catch (error) {
-        console.log(error);
         return res.status(500).send({
             message: "Try again later..."
         });

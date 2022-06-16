@@ -1,22 +1,20 @@
 import db from "../database/database";
-import { sequelize } from "../database/models";
-const { Op } = require("sequelize");
 const sqlz = require("sequelize").Sequelize;
 const users = require("../database/models/users")(db);
 
-export async function getUsers(businessUnitId: [number]) {
-    const userInfo = await users.findAll({
-        where: {
-            meta: {
-                [Op.contains]: {
-                    business_unit: {
-                        business_unit_ids: businessUnitId
-                    }
-                }
+export async function getUsers(businessUnitId: string) {
+    let userList;
+
+    try {
+        userList = await users.findAll({
+            where: {
+                "business_unit.business_unit_ids": businessUnitId
             }
-        }
-    });
+        });
 
-    return userInfo;
+        return { isSuccessful: true, userList };
 
+    } catch (error) {
+        return { isSuccessful: false, userList };
+    }
 }
