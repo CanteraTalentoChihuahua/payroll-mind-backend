@@ -12,18 +12,28 @@ To run the API you need the following:
 
 ## Installation
 
+### Installing dependencies
+
+First, install the dependencies for the project. You can do this by running the command `npm install`.
+
 ### Environment variables
 
-First, you will need to give the API all of the credentials for the required services. Check the [.env.example](https://github.com/CanteraTalentoChihuahua/payroll-mind-backend/blob/main/.env.example) file to see what you need.
+You will need to give the API all of the credentials for the required services. Check the [.env.example](https://github.com/CanteraTalentoChihuahua/payroll-mind-backend/blob/main/.env.example) file to see what you need.
 
-### Running the server
+### Running the server (Production)
 
 With your environment variables ready, you can start the API by running the commands:
 
 ```
-npm build
-npm start
+npm run build
+npm run start
 ```
+
+### Running the server (Development)
+
+The command `npm run dev` runs the server with some environment configurations that allow you to use, for example, a local PostgreSQL instance.
+
+If you use [Visual Studio Code](https://code.visualstudio.com), the project contains debugging configurations to aid during development.
 
 ## Documentation
 
