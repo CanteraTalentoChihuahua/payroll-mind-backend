@@ -5,6 +5,9 @@ import { Privileges } from "../util/objects";
 
 const collabRouter = Router();
 
+// Can't we call a role check at users.ts to avoid using different endpoints
+// for the same functionality?
+
 collabRouter.get("/", privileges(Privileges.READ_USERS), async (req, res) => {
     const { business_unit, role } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
@@ -15,16 +18,31 @@ collabRouter.get("/", privileges(Privileges.READ_USERS), async (req, res) => {
         });
     }
 
-    try {
-        const reqSyntax = `[${business_unit_ids}]`;
-        const users = await getUsers(reqSyntax);
-        return res.status(200).send(users);
+    const reqSyntax = `[${business_unit_ids}]`;
+    const data = await getUsers(reqSyntax);
 
-    } catch (error) {
-        return res.status(500).send({
+    if (!data.isSuccessful) {
+        return res.status(500).json({
             message: "Try again later..."
         });
     }
+
+    res.status(200).send(data.userList);
 });
+
+// Define privileges
+collabRouter.post("/", async (req, res) => {
+    const { role } = res.locals.userInfo;
+
+    if (role !== "admin") {
+        return res.status(400).json({
+            message: "Invalid credentials"
+        });
+    }
+
+
+
+});
+
 
 export default collabRouter;
