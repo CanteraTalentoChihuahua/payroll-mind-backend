@@ -1,6 +1,7 @@
 import db from "../database/database";
 import { NewUserData } from "../util/objects";
 import { hash } from "bcrypt";
+const { Op } = require("sequelize");
 const sqlz = require("sequelize").Sequelize;
 const user = require("../database/models/users")(db);
 
@@ -17,26 +18,51 @@ function getOrder(order: string, by: string) {
     }
 }
 
-export async function getUsersList(order: string, by: string): Promise<{ successful: boolean; userList: object[] | undefined; }> {
+export async function getUsersList(order: string, by: string, businessUnits?: Array<number>): Promise<{ successful: boolean; userList: object[] | undefined; }> {
     let userList;
+    const attributesList = [
+        "first_name",
+        "last_name",
+        ["payment_period_id", "payment_period"],
+        [sqlz.json("business_unit.business_unit_ids"), "business_units"],
+        "on_leave",
+        "salary"
+    ];
+    const orderSet = getOrder(order, by);
+
+    if (businessUnits === undefined) {
+        try {
+            userList = await user.findAll({
+                attributes: attributesList,
+                order: orderSet
+            });
+
+            return { successful: true, userList }
+
+        } catch (error) {
+            return { successful: false, userList: undefined }; 
+        }
+    }
 
     try {
+        const unitsList = []; 
+        for (let i in businessUnits) {
+            unitsList.push({"business_unit.business_unit_ids": `[${businessUnits[parseInt(i)]}]`});
+        }
+
         userList = await user.findAll({
-            attributes: [
-                "first_name",
-                "last_name",
-                ["payment_period_id", "payment_period"],
-                [sqlz.json("business_unit.business_unit_ids"), "business_units"],
-                "on_leave",
-                "salary"
-            ],
-            order: getOrder(order, by)
+            attributes: attributesList ,
+            where: {
+                [Op.or]: unitsList
+            },
+            order: orderSet
         });
+
+        return { successful: true, userList };
+
     } catch {
         return { successful: false, userList: undefined };
     }
-
-    return { successful: true, userList };
 }
 
 export async function getUserDetails(id: number): Promise<{ successful: boolean; found: boolean; userDetails: object | undefined; }> {
