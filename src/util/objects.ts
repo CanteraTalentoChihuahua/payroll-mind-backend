@@ -9,7 +9,7 @@ export const Privileges = {
     CREATE_PAYROLL_RECEIPTS: { id: 6, description: "Generar recibos de nómina" },
     EDIT_PAYROLL: { id: 7, description: "Editar datos de nómina" },
     READ_BUSINESS_UNITS: { id: 8, description: "Leer las unidades de negocio" },
-    READ_USERS: { id: 11, description: "Leer los usuarios del sistema "}            // Specify business unit?
+    READ_USERS: { id: 11, description: "Leer los usuarios del sistema " }            // Specify business unit?
 };
 
 export type Privilege = { id: number, description: string }
@@ -20,6 +20,7 @@ export type NewUserData = {
     email: string,
     payment_period: number,
     business_unit: number,
+    role: string,
     salary: number,
     second_name: string | undefined,
     second_last_name: string | undefined
