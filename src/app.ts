@@ -1,5 +1,4 @@
 import businessUnitsRouter from "./routes/businessUnits";
-import collabRouter from "./routes/collabs";
 import authRouter from "./routes/auth";
 import docsRouter from "./routes/docs";
 import usersRouter from "./routes/users";
@@ -19,8 +18,6 @@ app.get("/", (_req, res) => {
 
 // Should we add /users to users? Got to eliminate the from the route
 app.use("/api/businessunits", businessUnitsRouter);
-app.use("/api/collabs", collabRouter);
-app.use("/api", usersRouter);
 app.use("/api", authRouter);
 app.use("/", docsRouter);
 
