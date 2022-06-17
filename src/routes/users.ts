@@ -74,17 +74,40 @@ router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
 });
 
 router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
-    const { first_name, last_name, email, payment_period, business_unit, salary, second_name, second_last_name, password } = req.body;
+    let { business_unit, role } = res.locals.userInfo;
+    const { business_unit_ids } = business_unit;
+
+    const { first_name, last_name, email, payment_period, salary, second_name, second_last_name, password } = req.body;
+    const new_user_business_unit = req.body.business_unit;
+    const new_user_role = req.body.role;
+
+    if (role === "admin") {
+        if (!business_unit_ids.includes(new_user_business_unit) || new_user_role !== "collab") {
+            return res.status(400).json({
+                message: "Invalid request"
+            });
+        }
+
+    } else {
+        if (new_user_role === "superadmin") {
+            return res.status(400).json({
+                message: "Invalid request"
+            });
+        }
+    }
 
     if (!first_name || !last_name || !email || !payment_period || !business_unit || !salary || !password) {
         return res.status(400).json({ message: "Missing required fields" });
     }
 
-    if (![1, 2].includes(payment_period) || ![1, 2].includes(business_unit) || Number.isNaN(parseFloat(salary))) {
+    // Limited to [1, 2]???
+    if (![1, 2].includes(payment_period) || ![1, 2].includes(new_user_business_unit) || Number.isNaN(parseFloat(salary))) {
         return res.status(400).json({ message: "Invalid data sent on some fields" });
     }
 
-    const data = await createNewUser({ first_name, last_name, email, payment_period, business_unit, salary, second_name, second_last_name }, password);
+    business_unit = new_user_business_unit;
+    role = new_user_role;
+    const data = await createNewUser({ first_name, last_name, email, payment_period, business_unit, role, salary, second_name, second_last_name }, password);
 
     if (!data.successful) {
         return res.sendStatus(500);
