@@ -18,6 +18,7 @@ app.get("/", (_req, res) => {
 
 // Should we add /users to users? Got to eliminate the from the route
 app.use("/api/businessunits", businessUnitsRouter);
+app.use("/api", usersRouter);
 app.use("/api", authRouter);
 app.use("/", docsRouter);
 
