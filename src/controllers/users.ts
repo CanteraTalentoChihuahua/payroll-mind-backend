@@ -1,6 +1,7 @@
 import db from "../database/database";
 import { NewUserData } from "../util/objects";
 import { hash } from "bcrypt";
+import business_units from "../database/models/business_units";
 const { Op } = require("sequelize");
 const sqlz = require("sequelize").Sequelize;
 const user = require("../database/models/users")(db);
@@ -21,6 +22,7 @@ function getOrder(order: string, by: string) {
 export async function getUsersList(order: string, by: string, businessUnits?: Array<number>): Promise<{ successful: boolean; userList: object[] | undefined; }> {
     let userList;
     const attributesList = [
+        "id",
         "first_name",
         "last_name",
         ["payment_period_id", "payment_period"],
@@ -45,7 +47,7 @@ export async function getUsersList(order: string, by: string, businessUnits?: Ar
     }
 
     try {
-        const unitsList = [];
+        const unitsList = [{"business_unit.business_unit_ids": `[${String(businessUnits).replace(/,/g, ", ")}]`},]; 
         for (const i in businessUnits) {
             unitsList.push({ "business_unit.business_unit_ids": `[${businessUnits[parseInt(i)]}]` });
         }
@@ -53,7 +55,10 @@ export async function getUsersList(order: string, by: string, businessUnits?: Ar
         userList = await user.findAll({
             attributes: attributesList,
             where: {
-                [Op.or]: unitsList
+                [Op.or]: unitsList,
+                // [Op.ne]: {
+                //     id: "1"
+                // }
             },
             order: orderSet
         });

@@ -3,11 +3,11 @@ import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 
-// Admin should be limited to only create users roles
-// Superadmin should not appear when GET?
+// Admin should be limited to only create users roles - no other admins
+// Superadmin should not appear when GET? x
 // Limited to [1, 2]???
 // Admin should always be id=1
-// Should superadmin be assigned to all business units?
+// Should superadmin be assigned to all business units? Yes
 
 const router = Router();
 
@@ -37,6 +37,14 @@ router.get("/users", privileges(Privileges.READ_USERS), async (req, res) => {
     let data;
     if (role === "admin") {
         data = await getUsersList((order as string | undefined) ?? "name", ((by as string | undefined) ?? "asc").toUpperCase(), business_unit_ids);
+        // const { userList } = data;
+        
+        // for (let i in userList) {
+        //     let currentObject = userList[parseInt(i)];
+
+        //     console.log("===================", currentObject);
+        // }
+
 
     } else {
         data = await getUsersList((order as string | undefined) ?? "name", ((by as string | undefined) ?? "asc").toUpperCase());
@@ -118,25 +126,34 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     res.status(201).json({ message: "User created successfully" });
 });
 
-// Can admins change user business unit? email? password?
+// Admins cannot change password.
+// As an admin you can only edit those that belong to your business unit
+// Admin cannot edit superuser
+// Superuser is always 1
+// TO DO: Admin cannot change his own salary --- add superadmin validation in the future
+// HINT: Superadmin salary is invalid anyway, modification won't matter 
+// EDIT_OWN PRIVILEGE 
 router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
-    let { business_unit, role } = res.locals.userInfo;
+    let { id, business_unit, role } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
-    const { id, first_name, last_name, email, payment_period, salary, second_name, second_last_name } = req.body;
+    const { first_name, last_name, email, payment_period, salary, second_name, second_last_name } = req.body;
     const new_user_business_unit = req.body.business_unit;
-
-    if (!id) {
+    const req_id = req.body.business_unit;
+ 
+    if (!req_id) {
         return res.status(400).json({ message: "Missing required fields" });
     }
 
     if (role === "admin") {
-        if (new_user_business_unit) {
-            if (!business_unit_ids.includes(new_user_business_unit)) {
-                res.status(400).json({
-                    message: "Invalid request"
-                });
-            }
+        // Cannot edit superadmin 
+        if (id === 1) {
+            return res.status(400).json({ message: "Invalid request." })
+        }
+
+        // Cannot edit own salary as admin
+        if (salary && id === req_id) {
+            return res.status(400).json({ message: "Invalid request." })
         }
     }
 
@@ -150,11 +167,11 @@ router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
         }
     }
 
-    // if (business_unit) {
-    //     if (![1, 2].includes(business_unit)) {
-    //         return res.status(400).json({ message: "Invalid data sent on some fields" });
-    //     }
-    // }
+    if (new_user_business_unit) {
+        if (!business_unit_ids.includes(new_user_business_unit)) {
+            return res.status(400).json({ message: "Invalid request" });
+        }
+    }
 
     business_unit = new_user_business_unit;
     const data = await editUser(id, { first_name, last_name, email, payment_period, business_unit, role, salary, second_name, second_last_name });
