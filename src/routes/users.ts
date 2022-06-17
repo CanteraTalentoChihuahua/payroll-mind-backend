@@ -4,7 +4,10 @@ import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 
 // Admin should be limited to only create users roles
-// Superadmin should not appear?
+// Superadmin should not appear when GET?
+// Limited to [1, 2]???
+// Admin should always be id=1
+// Should superadmin be assigned to all business units?
 
 const router = Router();
 
@@ -100,7 +103,6 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
         return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Limited to [1, 2]???
     if (![1, 2].includes(payment_period) || ![1, 2].includes(new_user_business_unit) || Number.isNaN(parseFloat(salary))) {
         return res.status(400).json({ message: "Invalid data sent on some fields" });
     }
@@ -116,11 +118,26 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     res.status(201).json({ message: "User created successfully" });
 });
 
+// Can admins change user business unit? email? password?
 router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
-    const { id, first_name, last_name, email, payment_period, business_unit, salary, second_name, second_last_name } = req.body;
+    let { business_unit, role } = res.locals.userInfo;
+    const { business_unit_ids } = business_unit;
+
+    const { id, first_name, last_name, email, payment_period, salary, second_name, second_last_name } = req.body;
+    const new_user_business_unit = req.body.business_unit;
 
     if (!id) {
         return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    if (role === "admin") {
+        if (new_user_business_unit) {
+            if (!business_unit_ids.includes(new_user_business_unit)) {
+                res.status(400).json({
+                    message: "Invalid request"
+                });
+            }
+        }
     }
 
     if (Number.isNaN(parseInt(id)) || Number.isNaN(parseFloat(salary))) {
@@ -133,13 +150,14 @@ router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
         }
     }
 
-    if (business_unit) {
-        if (![1, 2].includes(business_unit)) {
-            return res.status(400).json({ message: "Invalid data sent on some fields" });
-        }
-    }
+    // if (business_unit) {
+    //     if (![1, 2].includes(business_unit)) {
+    //         return res.status(400).json({ message: "Invalid data sent on some fields" });
+    //     }
+    // }
 
-    const data = await editUser(id, { first_name, last_name, email, payment_period, business_unit, salary, second_name, second_last_name });
+    business_unit = new_user_business_unit;
+    const data = await editUser(id, { first_name, last_name, email, payment_period, business_unit, role, salary, second_name, second_last_name });
 
     if (!data.successful) {
         return res.sendStatus(500);
