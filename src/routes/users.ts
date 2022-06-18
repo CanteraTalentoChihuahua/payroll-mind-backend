@@ -37,14 +37,6 @@ router.get("/users", privileges(Privileges.READ_USERS), async (req, res) => {
     let data;
     if (role === "admin") {
         data = await getUsersList((order as string | undefined) ?? "name", ((by as string | undefined) ?? "asc").toUpperCase(), business_unit_ids);
-        // const { userList } = data;
-        
-        // for (let i in userList) {
-        //     let currentObject = userList[parseInt(i)];
-
-        //     console.log("===================", currentObject);
-        // }
-
 
     } else {
         data = await getUsersList((order as string | undefined) ?? "name", ((by as string | undefined) ?? "asc").toUpperCase());
@@ -140,7 +132,7 @@ router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
     const { first_name, last_name, email, payment_period, salary, second_name, second_last_name } = req.body;
     const new_user_business_unit = req.body.business_unit;
     const req_id = req.body.business_unit;
- 
+
     if (!req_id) {
         return res.status(400).json({ message: "Missing required fields" });
     }
