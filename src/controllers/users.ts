@@ -18,6 +18,16 @@ function getOrder(order: string, by: string) {
     }
 }
 
+function createUnitsListCondition(businessUnits: Array<number>) {
+    const unitsList = [{ "business_unit.business_unit_ids": `[${String(businessUnits).replace(/,/g, ", ")}]` }];
+
+    for (const i in businessUnits) {
+        unitsList.push({ "business_unit.business_unit_ids": `[${businessUnits[parseInt(i)]}]` });
+    }
+
+    return unitsList;
+}
+
 export async function getUsersList(order: string, by: string, businessUnits?: Array<number>): Promise<{ successful: boolean; userList: object[] | undefined; }> {
     let userList;
     const attributesList = [
@@ -46,11 +56,7 @@ export async function getUsersList(order: string, by: string, businessUnits?: Ar
     }
 
     try {
-        const unitsList = [{ "business_unit.business_unit_ids": `[${String(businessUnits).replace(/,/g, ", ")}]` }];
-
-        for (const i in businessUnits) {
-            unitsList.push({ "business_unit.business_unit_ids": `[${businessUnits[parseInt(i)]}]` });
-        }
+        const unitsList = createUnitsListCondition(businessUnits);
 
         userList = await user.findAll({
             attributes: attributesList,
@@ -86,39 +92,26 @@ export async function getUserDetails(id: number, businessUnits?: Array<number>):
         "salary"
     ];
 
+    let condition;
     try {
+        if (businessUnits) {
+            const unitsList = createUnitsListCondition(businessUnits);
+            condition = { id, [Op.or]: unitsList };
+
+        } else {
+            condition = { id };
+        }
+
         userDetails = await user.findOne({
             attributes: attributesList,
-            where: { id }
+            where: condition
         });
 
     } catch (error) {
         return { successful: false, found: false, userDetails: undefined };
     }
 
-    // Potential 11 business unit exploit?
-    try {
-        const userValues = userDetails.dataValues;
-
-        if (businessUnits) {
-            let status;
-            for (const i in businessUnits) {
-                if (userValues.business_units.includes(String(businessUnits[i]))) {
-                    status = true;
-                    break;
-                }
-            }
-
-            if (status === undefined) {
-                return { successful: false, found: true, userDetails: undefined };
-            }
-        }
-
-        return { successful: true, found: userDetails !== null, userDetails };
-
-    } catch (error) {
-        return { successful: true, found: false, userDetails: undefined };
-    }
+    return { successful: true, found: userDetails !== null, userDetails };
 }
 
 export async function createNewUser(userData: NewUserData, password: string) {

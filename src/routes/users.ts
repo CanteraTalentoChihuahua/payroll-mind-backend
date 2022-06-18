@@ -60,7 +60,13 @@ router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
 
     let data;
     if (role === "admin") {
+        // Admin can't query superuser data
+        if (parseInt(id) === 1) {
+            return res.status(400).json({ message: "Invalid request" });
+        }
+
         data = await getUserDetails(parseInt(id), business_unit_ids);
+
     } else {
         data = await getUserDetails(parseInt(id));
     }
