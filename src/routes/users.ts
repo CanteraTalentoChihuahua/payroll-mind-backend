@@ -3,9 +3,13 @@ import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 
+// Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
 const router = Router();
 
-router.get("/users", async (req, res) => {
+router.get("/users", privileges(Privileges.READ_USERS), async (req, res) => {
+    const { business_unit, role } = res.locals.userInfo;
+    const { business_unit_ids } = business_unit;
+
     const { order, by } = req.query;
     const errors: string[] = [];
 
@@ -25,7 +29,13 @@ router.get("/users", async (req, res) => {
         return res.status(400).json({ message: "Invalid parameters", errors });
     }
 
-    const data = await getUsersList((order as string | undefined) ?? "name", ((by as string | undefined) ?? "asc").toUpperCase());
+    let data;
+    if (role === "admin") {
+        data = await getUsersList((order as string | undefined) ?? "name", ((by as string | undefined) ?? "asc").toUpperCase(), business_unit_ids);
+
+    } else {
+        data = await getUsersList((order as string | undefined) ?? "name", ((by as string | undefined) ?? "asc").toUpperCase());
+    }
 
     if (!data.successful) {
         return res.sendStatus(500);
@@ -35,13 +45,26 @@ router.get("/users", async (req, res) => {
 });
 
 router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
+    const { business_unit, role } = res.locals.userInfo;
+    const { business_unit_ids } = business_unit;
     const { id } = req.query;
 
     if (!id || typeof id !== "string" || Number.isNaN(parseInt(id))) {
         return res.status(400).json({ message: "Invalid or missing ID" });
     }
 
-    const data = await getUserDetails(parseInt(id));
+    let data;
+    if (role === "admin") {
+        // Admin can't query superuser data
+        if (parseInt(id) === 1) {
+            return res.status(400).json({ message: "Invalid request" });
+        }
+
+        data = await getUserDetails(parseInt(id), business_unit_ids);
+
+    } else {
+        data = await getUserDetails(parseInt(id));
+    }
 
     if (!data.successful) {
         return res.sendStatus(500);
@@ -55,17 +78,35 @@ router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
 });
 
 router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
-    const { first_name, last_name, email, payment_period, business_unit, salary, second_name, second_last_name, password } = req.body;
+    let { business_unit, role } = res.locals.userInfo;
+    const { business_unit_ids } = business_unit;
 
-    if (!first_name || !last_name || !email || !payment_period || !business_unit || !salary || !password) {
+    const { first_name, last_name, email, payment_period_id, salary, second_name, second_last_name, password } = req.body;
+    const new_user_business_unit = req.body.business_unit;
+    const new_user_role = req.body.role;
+
+    if (role === "admin") {
+        if (!business_unit_ids.includes(new_user_business_unit) || new_user_role !== "collab") {
+            return res.status(400).json({ message: "Invalid request" });
+        }
+
+    } else {
+        if (new_user_role === "superadmin") {
+            return res.status(400).json({ message: "Invalid request" });
+        }
+    }
+
+    if (!first_name || !last_name || !email || !payment_period_id || !business_unit || !salary || !password) {
         return res.status(400).json({ message: "Missing required fields" });
     }
 
-    if (![1, 2].includes(payment_period) || ![1, 2].includes(business_unit) || Number.isNaN(parseFloat(salary))) {
+    if (![1, 2].includes(payment_period_id) || ![1, 2].includes(new_user_business_unit) || Number.isNaN(parseFloat(salary))) {
         return res.status(400).json({ message: "Invalid data sent on some fields" });
     }
 
-    const data = await createNewUser({ first_name, last_name, email, payment_period, business_unit, salary, second_name, second_last_name }, password);
+    business_unit = new_user_business_unit;
+    role = new_user_role;
+    const data = await createNewUser({ first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name }, password);
 
     if (!data.successful) {
         return res.sendStatus(500);
@@ -74,60 +115,97 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     res.status(201).json({ message: "User created successfully" });
 });
 
+// TO DO: Admin cannot change his own salary --- add superadmin validation in the future
+// NOTE: Superadmin salary is invalid anyway, modification won't matter
 router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
-    const { id, first_name, last_name, email, payment_period, business_unit, salary, second_name, second_last_name } = req.body;
+    const { id, role } = res.locals.userInfo;
+    let { business_unit } = res.locals.userInfo;
+    const { business_unit_ids } = business_unit;
 
-    if (!id) {
+    const { first_name, last_name, email, payment_period_id, salary, second_name, second_last_name } = req.body;
+    const req_id = req.body.id;
+    business_unit = req.body.business_unit;
+
+    if (!req_id) {
         return res.status(400).json({ message: "Missing required fields" });
     }
 
-    if (Number.isNaN(parseInt(id)) || Number.isNaN(parseFloat(salary))) {
+    if (Number.isNaN(parseInt(req_id))) {
         return res.status(400).json({ message: "Invalid data sent on some fields" });
     }
 
-    if (payment_period) {
-        if (![1, 2].includes(payment_period)) {
+    if (salary) {
+        if (Number.isNaN(parseFloat(salary))) {
             return res.status(400).json({ message: "Invalid data sent on some fields" });
         }
     }
 
-    if (business_unit) {
-        if (![1, 2].includes(business_unit)) {
+    if (payment_period_id) {
+        if (![1, 2].includes(parseInt(payment_period_id))) {
             return res.status(400).json({ message: "Invalid data sent on some fields" });
         }
     }
 
-    const data = await editUser(id, { first_name, last_name, email, payment_period, business_unit, salary, second_name, second_last_name });
+    let userData;
+    if (role === "admin") {
+        // Cannot edit superadmin 
+        if (req_id === 1) {
+            return res.status(400).json({ message: "Invalid request" });
+        }
 
-    if (!data.successful) {
+        // Cannot edit own salary as admin
+        if (salary && id === req_id) {
+            return res.status(400).json({ message: "Invalid request" });
+        }
+
+        userData = await editUser(req_id, { first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name }, business_unit_ids);
+
+    } else {
+        userData = await editUser(req_id, { first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name });
+    }
+
+    if (!userData.successful) {
         return res.sendStatus(500);
     }
 
-    if (!data.found) {
+    if (!userData.found) {
         return res.sendStatus(404);
     }
 
-    res.sendStatus(204);
+    res.sendStatus(200);
 });
 
 router.delete("/user", privileges(Privileges.DELETE_USERS), async (req, res) => {
+    const { business_unit, role } = res.locals.userInfo;
+    const { business_unit_ids } = business_unit;
     const { id } = req.query;
 
     if (!id || typeof id !== "string" || Number.isNaN(parseInt(id))) {
         return res.status(400).json({ message: "Invalid or missing ID" });
     }
 
-    const data = await pseudoDeleteUser(parseInt(id));
+    // Superadmin cannot be destroyed
+    if (parseInt(id) === 1) {
+        return res.status(400).json({ message: "Invalid request" });
+    }
 
-    if (!data.successful) {
+    let userData;
+    if (role === "admin") {
+        userData = await pseudoDeleteUser(parseInt(id), business_unit_ids);
+
+    } else {
+        userData = await pseudoDeleteUser(parseInt(id));
+    }
+
+    if (!userData.successful) {
         return res.sendStatus(500);
     }
 
-    if (!data.found) {
-        return res.sendStatus(404);
+    if (!userData.found) {
+        return res.status(400).json({ message: "Not found or invalid request" });
     }
 
-    res.sendStatus(204);
+    return res.sendStatus(204);
 });
 
 export default router;
