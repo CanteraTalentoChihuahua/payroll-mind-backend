@@ -151,21 +151,21 @@ router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
             return res.status(400).json({ message: "Invalid data sent on some fields" });
         }
     }
-    
+
     let userData;
     if (role === "admin") {
         // Cannot edit superadmin 
         if (req_id === 1) {
-            return res.status(400).json({ message: "Invalid request" })
+            return res.status(400).json({ message: "Invalid request" });
         }
 
         // Cannot edit own salary as admin
         if (salary && id === req_id) {
-            return res.status(400).json({ message: "Invalid request" })
+            return res.status(400).json({ message: "Invalid request" });
         }
 
         userData = await editUser(req_id, { first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name }, business_unit_ids);
-    
+
     } else {
         userData = await editUser(req_id, { first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name });
     }
@@ -192,7 +192,7 @@ router.delete("/user", privileges(Privileges.DELETE_USERS), async (req, res) => 
 
     // Superadmin cannot be destroyed
     if (parseInt(id) === 1) {
-        return res.status(400).json({ message: "Invalid request" })
+        return res.status(400).json({ message: "Invalid request" });
     }
 
     let userData;
@@ -208,10 +208,10 @@ router.delete("/user", privileges(Privileges.DELETE_USERS), async (req, res) => 
     }
 
     if (!userData.found) {
-        return res.sendStatus(400).json({ message: "Not found or invalid request"});
+        return res.status(400).json({ message: "Not found or invalid request" });
     }
 
-    res.sendStatus(204);
+    return res.sendStatus(204);
 });
 
 export default router;

@@ -140,9 +140,9 @@ export async function editUser(id: number, userData: Partial<NewUserData>, busin
     if (businessUnits) {
         const unitsList = createUnitsListCondition(businessUnits);
         condition = { id, [Op.or]: unitsList };
-        
+
     } else {
-        condition = { id }
+        condition = { id };
     }
 
     try {
@@ -158,6 +158,7 @@ export async function editUser(id: number, userData: Partial<NewUserData>, busin
     return { successful: true, found: result[0] === 1 };
 }
 
+// No use of paranoid?
 export async function pseudoDeleteUser(id: number, businessUnits?: Array<number>) {
     let result;
     let condition;
@@ -167,16 +168,14 @@ export async function pseudoDeleteUser(id: number, businessUnits?: Array<number>
         condition = { id, [Op.or]: unitsList };
 
     } else {
-        condition = { id }
+        condition = { id };
     }
 
-    // No paranoid then??
     try {
         result = await user.update({ active: false }, {
             where: condition
         });
-
-        console.log(result)
+        console.log(result);
 
     } catch (error) {
         return { successful: false, found: false };
