@@ -78,7 +78,6 @@ router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
     res.json(data.userDetails);
 });
 
-// No hay logica
 router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     let { business_unit, role } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
@@ -89,16 +88,12 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
 
     if (role === "admin") {
         if (!business_unit_ids.includes(new_user_business_unit) || new_user_role !== "collab") {
-            return res.status(400).json({
-                message: "Invalid request"
-            });
+            return res.status(400).json({ message: "Invalid request" });
         }
 
     } else {
         if (new_user_role === "superadmin") {
-            return res.status(400).json({
-                message: "Invalid request"
-            });
+            return res.status(400).json({ message: "Invalid request" });
         }
     }
 
@@ -125,7 +120,8 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
 // NOTE: Superadmin salary is invalid anyway, modification won't matter
 // MUST FIX: PAYMENT PERIOD CANNOT BE EDITED
 router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
-    let { id, business_unit, role } = res.locals.userInfo;
+    const { id, role } = res.locals.userInfo;
+    let { business_unit } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
     const { first_name, last_name, email, payment_period_id, salary, second_name, second_last_name } = req.body;
@@ -136,7 +132,7 @@ router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
         return res.status(400).json({ message: "Missing required fields" });
     }
 
-    if (Number.isNaN(parseInt(id))) {
+    if (Number.isNaN(parseInt(req_id))) {
         return res.status(400).json({ message: "Invalid data sent on some fields" });
     }
 
