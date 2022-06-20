@@ -1,6 +1,7 @@
 import db from "../database/database";
 import { NewUserData } from "../util/objects";
 import { hash } from "bcrypt";
+import business_units from "../database/models/business_units";
 const { Op } = require("sequelize");
 const sqlz = require("sequelize").Sequelize;
 const user = require("../database/models/users")(db);
@@ -147,14 +148,27 @@ export async function editUser(id: number, userData: Partial<NewUserData>) {
     return { successful: true, found: result[0] === 1 };
 }
 
-export async function pseudoDeleteUser(id: number) {
+export async function pseudoDeleteUser(id: number, businessUnits?: Array<number>) {
     let result;
+    let condition;
 
+    if (businessUnits) {
+        const unitsList = createUnitsListCondition(businessUnits);
+        condition = { id, [Op.or]: unitsList };
+
+    } else {
+        condition = { id }
+    }
+
+    // No paranoid then??
     try {
-        result = await user.update({
-            active: false
-        }, { where: { id } });
-    } catch {
+        result = await user.update({ active: false }, {
+            where: condition
+        });
+
+        console.log(result)
+
+    } catch (error) {
         return { successful: false, found: false };
     }
 

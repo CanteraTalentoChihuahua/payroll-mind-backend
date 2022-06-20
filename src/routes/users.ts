@@ -186,20 +186,33 @@ router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
 });
 
 router.delete("/user", privileges(Privileges.DELETE_USERS), async (req, res) => {
+    const { business_unit, role } = res.locals.userInfo;
+    const { business_unit_ids } = business_unit;
     const { id } = req.query;
 
     if (!id || typeof id !== "string" || Number.isNaN(parseInt(id))) {
         return res.status(400).json({ message: "Invalid or missing ID" });
     }
 
-    const data = await pseudoDeleteUser(parseInt(id));
+    // Superadmin cannot be destroyed
+    if (parseInt(id) === 1) {
+        return res.status(400).json({ message: "Invalid request" })
+    }
 
-    if (!data.successful) {
+    let userData;
+    if (role === "admin") {
+        userData = await pseudoDeleteUser(parseInt(id), business_unit_ids);
+
+    } else {
+        userData = await pseudoDeleteUser(parseInt(id));
+    }
+
+    if (!userData.successful) {
         return res.sendStatus(500);
     }
 
-    if (!data.found) {
-        return res.sendStatus(404);
+    if (!userData.found) {
+        return res.sendStatus(400).json({ message: "Not found or invalid request"});
     }
 
     res.sendStatus(204);
