@@ -4,7 +4,6 @@ import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 
 // Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
-
 const router = Router();
 
 router.get("/users", privileges(Privileges.READ_USERS), async (req, res) => {
@@ -118,7 +117,6 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
 
 // TO DO: Admin cannot change his own salary --- add superadmin validation in the future
 // NOTE: Superadmin salary is invalid anyway, modification won't matter
-// MUST FIX: PAYMENT PERIOD CANNOT BE EDITED
 router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
     const { id, role } = res.locals.userInfo;
     let { business_unit } = res.locals.userInfo;
