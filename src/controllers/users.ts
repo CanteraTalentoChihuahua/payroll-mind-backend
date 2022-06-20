@@ -122,7 +122,7 @@ export async function createNewUser(userData: NewUserData, password: string) {
             business_unit: { business_unit_ids: [userData.business_unit] },
             on_leave: false,
             active: true,
-            payment_period_id: userData.payment_period,
+            payment_period_id: userData.payment_period_id,
             privileges: { privileges: [1] },
             password: await hash(password, 10)
         });
@@ -138,7 +138,9 @@ export async function editUser(id: number, userData: Partial<NewUserData>, busin
     let condition;
 
     if (businessUnits) {
-        condition = createUnitsListCondition(businessUnits);
+        const unitsList = createUnitsListCondition(businessUnits);
+        condition = { id, [Op.or]: unitsList };
+        
     } else {
         condition = { id }
     }

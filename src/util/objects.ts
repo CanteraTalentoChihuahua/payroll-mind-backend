@@ -18,7 +18,7 @@ export type NewUserData = {
     first_name: string,
     last_name: string,
     email: string,
-    payment_period: number,
+    payment_period_id: number,
     business_unit: number,
     role: string,
     salary: number,

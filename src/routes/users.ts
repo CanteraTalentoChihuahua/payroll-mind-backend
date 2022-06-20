@@ -2,7 +2,6 @@ import { Router } from "express";
 import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser } from "../controllers/users";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
-import businessUnitRouter from "./businessUnits";
 
 // Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
 
@@ -79,11 +78,12 @@ router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
     res.json(data.userDetails);
 });
 
+// No hay logica
 router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     let { business_unit, role } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
-    const { first_name, last_name, email, payment_period, salary, second_name, second_last_name, password } = req.body;
+    const { first_name, last_name, email, payment_period_id, salary, second_name, second_last_name, password } = req.body;
     const new_user_business_unit = req.body.business_unit;
     const new_user_role = req.body.role;
 
@@ -102,17 +102,17 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
         }
     }
 
-    if (!first_name || !last_name || !email || !payment_period || !business_unit || !salary || !password) {
+    if (!first_name || !last_name || !email || !payment_period_id || !business_unit || !salary || !password) {
         return res.status(400).json({ message: "Missing required fields" });
     }
 
-    if (![1, 2].includes(payment_period) || ![1, 2].includes(new_user_business_unit) || Number.isNaN(parseFloat(salary))) {
+    if (![1, 2].includes(payment_period_id) || ![1, 2].includes(new_user_business_unit) || Number.isNaN(parseFloat(salary))) {
         return res.status(400).json({ message: "Invalid data sent on some fields" });
     }
 
     business_unit = new_user_business_unit;
     role = new_user_role;
-    const data = await createNewUser({ first_name, last_name, email, payment_period, business_unit, role, salary, second_name, second_last_name }, password);
+    const data = await createNewUser({ first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name }, password);
 
     if (!data.successful) {
         return res.sendStatus(500);
@@ -128,7 +128,7 @@ router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
     let { id, business_unit, role } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
-    const { first_name, last_name, email, payment_period, salary, second_name, second_last_name } = req.body;
+    const { first_name, last_name, email, payment_period_id, salary, second_name, second_last_name } = req.body;
     const req_id = req.body.id;
     business_unit = req.body.business_unit;
 
@@ -146,8 +146,8 @@ router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
         }
     }
 
-    if (payment_period) {
-        if (![1, 2].includes(parseInt(payment_period))) {
+    if (payment_period_id) {
+        if (![1, 2].includes(parseInt(payment_period_id))) {
             return res.status(400).json({ message: "Invalid data sent on some fields" });
         }
     }
@@ -164,10 +164,10 @@ router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
             return res.status(400).json({ message: "Invalid request" })
         }
 
-        userData = await editUser(id, { first_name, last_name, email, payment_period, business_unit, role, salary, second_name, second_last_name }, business_unit_ids);
+        userData = await editUser(req_id, { first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name }, business_unit_ids);
     
     } else {
-        userData = await editUser(id, { first_name, last_name, email, payment_period, business_unit, role, salary, second_name, second_last_name });
+        userData = await editUser(req_id, { first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name });
     }
 
     if (!userData.successful) {
