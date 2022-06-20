@@ -2,12 +2,9 @@ import { Router } from "express";
 import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser } from "../controllers/users";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
+import businessUnitRouter from "./businessUnits";
 
-// Admin should be limited to only create users roles - no other admins
-// Superadmin should not appear when GET? x
-// Limited to [1, 2]???
-// Admin should always be id=1
-// Should superadmin be assigned to all business units? Yes
+// Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
 
 const router = Router();
 
@@ -124,65 +121,64 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     res.status(201).json({ message: "User created successfully" });
 });
 
-// Admins cannot change password.
-// As an admin you can only edit those that belong to your business unit
-// Admin cannot edit superuser
-// Superuser is always 1
 // TO DO: Admin cannot change his own salary --- add superadmin validation in the future
-// HINT: Superadmin salary is invalid anyway, modification won't matter 
-// EDIT_OWN PRIVILEGE 
+// NOTE: Superadmin salary is invalid anyway, modification won't matter
+// MUST FIX: PAYMENT PERIOD CANNOT BE EDITED
 router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
     let { id, business_unit, role } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
     const { first_name, last_name, email, payment_period, salary, second_name, second_last_name } = req.body;
-    const new_user_business_unit = req.body.business_unit;
-    const req_id = req.body.business_unit;
+    const req_id = req.body.id;
+    business_unit = req.body.business_unit;
 
     if (!req_id) {
         return res.status(400).json({ message: "Missing required fields" });
     }
 
-    if (role === "admin") {
-        // Cannot edit superadmin 
-        if (id === 1) {
-            return res.status(400).json({ message: "Invalid request." })
-        }
-
-        // Cannot edit own salary as admin
-        if (salary && id === req_id) {
-            return res.status(400).json({ message: "Invalid request." })
-        }
-    }
-
-    if (Number.isNaN(parseInt(id)) || Number.isNaN(parseFloat(salary))) {
+    if (Number.isNaN(parseInt(id))) {
         return res.status(400).json({ message: "Invalid data sent on some fields" });
     }
 
-    if (payment_period) {
-        if (![1, 2].includes(payment_period)) {
+    if (salary) {
+        if (Number.isNaN(parseFloat(salary))) {
             return res.status(400).json({ message: "Invalid data sent on some fields" });
         }
     }
 
-    if (new_user_business_unit) {
-        if (!business_unit_ids.includes(new_user_business_unit)) {
-            return res.status(400).json({ message: "Invalid request" });
+    if (payment_period) {
+        if (![1, 2].includes(parseInt(payment_period))) {
+            return res.status(400).json({ message: "Invalid data sent on some fields" });
         }
     }
+    
+    let userData;
+    if (role === "admin") {
+        // Cannot edit superadmin 
+        if (req_id === 1) {
+            return res.status(400).json({ message: "Invalid request" })
+        }
 
-    business_unit = new_user_business_unit;
-    const data = await editUser(id, { first_name, last_name, email, payment_period, business_unit, role, salary, second_name, second_last_name });
+        // Cannot edit own salary as admin
+        if (salary && id === req_id) {
+            return res.status(400).json({ message: "Invalid request" })
+        }
 
-    if (!data.successful) {
+        userData = await editUser(id, { first_name, last_name, email, payment_period, business_unit, role, salary, second_name, second_last_name }, business_unit_ids);
+    
+    } else {
+        userData = await editUser(id, { first_name, last_name, email, payment_period, business_unit, role, salary, second_name, second_last_name });
+    }
+
+    if (!userData.successful) {
         return res.sendStatus(500);
     }
 
-    if (!data.found) {
+    if (!userData.found) {
         return res.sendStatus(404);
     }
 
-    res.sendStatus(204);
+    res.sendStatus(200);
 });
 
 router.delete("/user", privileges(Privileges.DELETE_USERS), async (req, res) => {

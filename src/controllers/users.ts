@@ -133,14 +133,22 @@ export async function createNewUser(userData: NewUserData, password: string) {
     return { successful: true };
 }
 
-export async function editUser(id: number, userData: Partial<NewUserData>) {
+export async function editUser(id: number, userData: Partial<NewUserData>, businessUnits?: Array<number>) {
     let result;
+    let condition;
+
+    if (businessUnits) {
+        condition = createUnitsListCondition(businessUnits);
+    } else {
+        condition = { id }
+    }
 
     try {
         result = await user.update({
             ...userData,
             ...(userData.business_unit && { business_unit: { business_unit_ids: [userData.business_unit] } })
-        }, { where: { id } });
+        }, { where: condition });
+
     } catch {
         return { successful: false, found: false };
     }
