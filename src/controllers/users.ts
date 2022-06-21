@@ -1,7 +1,6 @@
 import db from "../database/database";
 import { NewUserData } from "../util/objects";
 import { hash } from "bcrypt";
-import business_units from "../database/models/business_units";
 const { Op } = require("sequelize");
 const sqlz = require("sequelize").Sequelize;
 const user = require("../database/models/users")(db);

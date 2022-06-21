@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, generatePassword } from "../controllers/users";
+import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser } from "../controllers/users";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 

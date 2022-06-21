@@ -1,10 +1,5 @@
-import { Privileges } from "../util/objects";
 import express from "express";
-import {
-    logIn,
-    sendPasswordEmail,
-    restorePassword
-} from "../controllers/auth";
+import { logIn, sendPasswordEmail, restorePassword } from "../controllers/auth";
 
 const router = express.Router();
 
@@ -60,15 +55,6 @@ router.post("/restore", async (req, res) => {
     }
 
     return res.status(200).json({ message: "Password changed correctly." });
-});
-
-router.get("/privileges", async (req, res) => {
-    try {
-        res.status(200).send(Privileges);
-    } catch (error) {
-        res.status(503).json({ message: "Unable to send privileges." });
-    }
-
 });
 
 export default router;
