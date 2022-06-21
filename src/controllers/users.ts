@@ -30,6 +30,20 @@ function createUnitsListCondition(businessUnits: Array<number>) {
     return unitsList;
 }
 
+export async function checkIfEmailExists(email: string) {
+    let status;
+    try {
+        status = await user.findOne({
+            where: { email }
+        });
+
+    } catch (error) {
+        return false;
+    }
+
+    return status;
+}
+
 export async function getUsersList(order: string, by: string, businessUnits?: Array<number>): Promise<{ successful: boolean; userList: object[] | undefined; }> {
     let userList;
     const attributesList = [
@@ -187,14 +201,14 @@ export async function pseudoDeleteUser(id: number, businessUnits?: Array<number>
 
 // Alphanumeric
 export async function generatePassword(length: number) {
-    var result = '';
-    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
+    let result = "";
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const charactersLength = characters.length;
 
-    for ( var i = 0; i < length; i++ ) {
+    for (let i = 0; i < length; i++) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
-    
+
     return result;
 }
 
@@ -203,7 +217,7 @@ export async function getPaymentPeriods() {
 
     try {
         businessUnitData = await businessUnits.findAll();
-        
+
     } catch (error) {
         return false;
     }

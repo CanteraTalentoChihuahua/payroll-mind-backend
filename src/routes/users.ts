@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { sendPasswordEmail } from "../controllers/auth";
-import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, generatePassword } from "../controllers/users";
+// import { sendPasswordEmail } from "../controllers/auth";
+import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, generatePassword, checkIfEmailExists } from "../controllers/users";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 
@@ -82,19 +82,22 @@ router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
 });
 
 router.get("/trial", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
-    console.log(res.locals.userInfo)
+    const { email } = req.body;
+    console.log(await checkIfEmailExists(email));
     return res.send();
-})
+});
 
 router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     let { business_unit, role } = res.locals.userInfo;
-    const { email } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
-    const { first_name, last_name, payment_period_id, salary, second_name, second_last_name } = req.body;
+    const { first_name, last_name, email, payment_period_id, salary, second_name, second_last_name } = req.body;
     const new_user_business_unit = req.body.business_unit;
     const new_user_role = req.body.role;
-    const new_user_email = req.body.role;
+
+    if (await checkIfEmailExists(email)) {
+        return res.status(400).json({ message: "Invalid request" });
+    }
 
     if (role === "admin") {
         if (!business_unit_ids.includes(new_user_business_unit) || new_user_role !== "collab") {
@@ -107,7 +110,7 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
         }
     }
 
-    if (!first_name || !last_name || !email || !payment_period_id || !business_unit || !salary || !newPass) {
+    if (!first_name || !last_name || !email || !payment_period_id || !business_unit || !salary) {
         return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -120,14 +123,14 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
 
     // Message is generated and email is sent
     // MUST REFACTOR RESTORE ENDPOINT THEN
-    const message = {
-        from: "Mind Group + <" + process.env.MAIL_ADDR + ">",
-        to: email,
-        subject: "Change password",
-        text: `Your credentials: ; click on the following link to change them`,
-    };
+    // const message = {
+    //     from: "Mind Group + <" + process.env.MAIL_ADDR + ">",
+    //     to: email,
+    //     subject: "Change password",
+    //     text: `Your credentials: ; click on the following link to change them`,
+    // };
 
-    await sendPasswordEmail(email, message);
+    // await sendPasswordEmail(email, message);
 
     business_unit = new_user_business_unit;
     role = new_user_role;
