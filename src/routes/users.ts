@@ -1,9 +1,12 @@
 import { Router } from "express";
-import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser } from "../controllers/users";
+import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, generatePassword } from "../controllers/users";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 
 // Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
+// TO DO: Email should not be repeated
+// Generate random password
+// Recibir email para cambiar password.
 const router = Router();
 
 router.get("/users", privileges(Privileges.READ_USERS), async (req, res) => {
@@ -81,7 +84,10 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     let { business_unit, role } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
-    const { first_name, last_name, email, payment_period_id, salary, second_name, second_last_name, password } = req.body;
+    // Password is generated automatically
+    const newPass = await generatePassword(30);
+
+    const { first_name, last_name, email, payment_period_id, salary, second_name, second_last_name } = req.body;
     const new_user_business_unit = req.body.business_unit;
     const new_user_role = req.body.role;
 
@@ -96,7 +102,7 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
         }
     }
 
-    if (!first_name || !last_name || !email || !payment_period_id || !business_unit || !salary || !password) {
+    if (!first_name || !last_name || !email || !payment_period_id || !business_unit || !salary || !newPass) {
         return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -106,7 +112,7 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
 
     business_unit = new_user_business_unit;
     role = new_user_role;
-    const data = await createNewUser({ first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name }, password);
+    const data = await createNewUser({ first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name }, newPass);
 
     if (!data.successful) {
         return res.sendStatus(500);
