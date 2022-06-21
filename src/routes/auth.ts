@@ -31,7 +31,7 @@ router.post("/login", async (req, res) => {
 
 router.post("/forgot", async (req, res) => {
     const { email } = req.body;
-    const emailStatus = await sendPasswordEmail(email);
+    const emailStatus = await sendPasswordEmail(email, "dogshit");
 
     if (emailStatus!.isSuccessful === true) {
         res.status(200).send("Email sent.");

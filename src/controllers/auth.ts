@@ -39,8 +39,8 @@ async function createURL(userId: string, purpose: string) {
     return `${process.env.FRONT}/${purpose}/${token}`;
 }
 
-// Replace FRONT
-async function sendPasswordEmail(email: string) {
+// Replace FRONT --use brandom object definition
+async function sendPasswordEmail(email: string, message: string) {
     const userData = await users.findOne({
         where: { email }
     });
@@ -50,13 +50,6 @@ async function sendPasswordEmail(email: string) {
     }
 
     const urlToken = await createURL(userData.id, "forgot");
-
-    const message = {
-        from: "Mind Group + <" + process.env.MAIL_ADDR + ">",
-        to: email,
-        subject: "Restore password",
-        text: `Click on the following link to restore your password: ${urlToken}`,
-    };
 
     try {
         const info = await transporter.sendMail(message);
@@ -68,7 +61,6 @@ async function sendPasswordEmail(email: string) {
     } catch (error) {
         return { isSuccessful: false };
     }
-
 }
 
 async function invalidateToken(userId: string) {

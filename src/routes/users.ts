@@ -1,10 +1,11 @@
 import { Router } from "express";
+import { sendPasswordEmail } from "../controllers/auth";
 import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, generatePassword } from "../controllers/users";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 
 // Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
-// TO DO: Email should not be repeated
+// TO DO: EMAIL SHOULD NOT BE REPEATED
 // Generate random password
 // Recibir email para cambiar password.
 const router = Router();
@@ -80,16 +81,20 @@ router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
     res.json(data.userDetails);
 });
 
+router.get("/trial", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
+    console.log(res.locals.userInfo)
+    return res.send();
+})
+
 router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     let { business_unit, role } = res.locals.userInfo;
+    const { email } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
-    // Password is generated automatically
-    const newPass = await generatePassword(30);
-
-    const { first_name, last_name, email, payment_period_id, salary, second_name, second_last_name } = req.body;
+    const { first_name, last_name, payment_period_id, salary, second_name, second_last_name } = req.body;
     const new_user_business_unit = req.body.business_unit;
     const new_user_role = req.body.role;
+    const new_user_email = req.body.role;
 
     if (role === "admin") {
         if (!business_unit_ids.includes(new_user_business_unit) || new_user_role !== "collab") {
@@ -109,6 +114,20 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     if (![1, 2].includes(payment_period_id) || ![1, 2].includes(new_user_business_unit) || Number.isNaN(parseFloat(salary))) {
         return res.status(400).json({ message: "Invalid data sent on some fields" });
     }
+
+    // Password is generated automatically
+    const newPass = await generatePassword(30);
+
+    // Message is generated and email is sent
+    // MUST REFACTOR RESTORE ENDPOINT THEN
+    const message = {
+        from: "Mind Group + <" + process.env.MAIL_ADDR + ">",
+        to: email,
+        subject: "Change password",
+        text: `Your credentials: ; click on the following link to change them`,
+    };
+
+    await sendPasswordEmail(email, message);
 
     business_unit = new_user_business_unit;
     role = new_user_role;
