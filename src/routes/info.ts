@@ -1,4 +1,4 @@
-import { getPaymentPeriods } from "../controllers/info";
+import { getPaymentPeriods } from "../controllers/users";
 import { Privileges } from "../util/objects";
 import express from "express";
 
