@@ -1,5 +1,6 @@
 import express from "express";
-import { logIn, sendPasswordEmail, restorePassword } from "../controllers/auth";
+import { checkIfEmailExists } from "../controllers/users";
+import { logIn, sendPasswordRestoreEmail, restorePassword } from "../controllers/auth";
 
 const router = express.Router();
 
@@ -31,9 +32,14 @@ router.post("/login", async (req, res) => {
 
 router.post("/forgot", async (req, res) => {
     const { email } = req.body;
-    const emailStatus = await sendPasswordEmail(email, "dogshit");
 
-    if (emailStatus!.isSuccessful === true) {
+    const userStatus = await checkIfEmailExists(email);
+    if (!userStatus) {
+        return res.sendStatus(404);
+    }
+
+    const emailStatus = await sendPasswordRestoreEmail(userStatus.id, email);
+    if (emailStatus!.isSuccessful) {
         res.status(200).send("Email sent.");
 
     } else {
