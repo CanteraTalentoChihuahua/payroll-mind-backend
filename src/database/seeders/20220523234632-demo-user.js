@@ -10,8 +10,8 @@ module.exports = {
             email: "johnwayne@gmail.com",
             password: "secret_password",
             role: "superadmin",
-            privileges: { 
-                privileges: [1, 2, 3, 4, 5, 9, 8, 10]
+            privileges: {
+                privileges: [1, 2, 3, 4, 5, 9, 8, 10, 11]
             },
             payment_period_id: 1,
             business_unit: {
@@ -33,15 +33,35 @@ module.exports = {
             password: "secret_password",
             role: "admin",
             privileges: {
-                privileges: [1]
+                privileges: [1, 11]
             },
             payment_period_id: 1,
             business_unit: {
-                business_unit_ids: [3, 4, 5, 6, 7, 8]
+                business_unit_ids: [1]
             },
             on_leave: false,
             active: true,
             salary: 0,
+            token: null,
+        },
+        {
+            first_name: "Another",
+            second_name: null,
+            last_name: "User",
+            second_last_name: "Tonik",
+            email: "anotheruser@gmail.com",
+            password: "secret_password",
+            role: "collab",
+            privileges: {
+                privileges: []
+            },
+            payment_period_id: 1,
+            business_unit: {
+                business_unit_ids: [1]
+            },
+            on_leave: false,
+            active: true,
+            salary: 420,
             token: null,
         },
         {
@@ -64,11 +84,11 @@ module.exports = {
             salary: 20,
             token: null,
         }],
-        { timestamps: true },
-        {
-            privileges: { type: new Sequelize.JSON() },
-            business_unit: { type: new Sequelize.JSON() }
-        });
+            { timestamps: true },
+            {
+                privileges: { type: new Sequelize.JSON() },
+                business_unit: { type: new Sequelize.JSON() }
+            });
     },
 
     async down(queryInterface, Sequelize) {
