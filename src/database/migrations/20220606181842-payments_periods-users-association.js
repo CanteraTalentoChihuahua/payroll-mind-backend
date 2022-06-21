@@ -1,11 +1,11 @@
 "use strict";
 
 module.exports = {
-    async up (queryInterface, Sequelize) {
+    async up(queryInterface, Sequelize) {
         await queryInterface.addConstraint("users", {
             fields: ["payment_period_id"],
             name: "users_paymentsperiods_association",
-            type:"foreign key",
+            type: "foreign key",
             references: {
                 table: "payments_periods",
                 field: "id"
@@ -13,8 +13,8 @@ module.exports = {
         });
     },
 
-    async down (queryInterface, Sequelize) {
-        await queryInterface.removeConstraint(users,"users_paymentsperiods_association");
-   
+    async down(queryInterface, Sequelize) {
+        await queryInterface.removeConstraint("users", "users_paymentsperiods_association");
+
     }
 };
