@@ -1,6 +1,7 @@
 import { Router } from "express";
 // import { sendPasswordEmail } from "../controllers/auth";
-import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, generatePassword, checkIfEmailExists } from "../controllers/users";
+import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, checkIfEmailExists } from "../controllers/users";
+import { generatePassword } from "../controllers/auth";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 
@@ -87,6 +88,7 @@ router.get("/trial", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
     return res.send();
 });
 
+// FRONT MUST CALL /CHANGE AFTER CREATION DUE TO EMAIL
 router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     let { business_unit, role } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
@@ -95,8 +97,17 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     const new_user_business_unit = req.body.business_unit;
     const new_user_role = req.body.role;
 
-    if (await checkIfEmailExists(email)) {
+    if (!first_name || !last_name || !email || !payment_period_id || !business_unit || !salary) {
+        return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const emailStatus = await checkIfEmailExists(email);
+    if (emailStatus) {
         return res.status(400).json({ message: "Invalid request" });
+    }
+
+    if (![1, 2].includes(payment_period_id) || ![1, 2].includes(new_user_business_unit) || Number.isNaN(parseFloat(salary))) {
+        return res.status(400).json({ message: "Invalid data sent on some fields" });
     }
 
     if (role === "admin") {
@@ -110,28 +121,8 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
         }
     }
 
-    if (!first_name || !last_name || !email || !payment_period_id || !business_unit || !salary) {
-        return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    if (![1, 2].includes(payment_period_id) || ![1, 2].includes(new_user_business_unit) || Number.isNaN(parseFloat(salary))) {
-        return res.status(400).json({ message: "Invalid data sent on some fields" });
-    }
-
-    // Password is generated automatically
+    // Initial password is generated automatically
     const newPass = await generatePassword(30);
-
-    // Message is generated and email is sent
-    // MUST REFACTOR RESTORE ENDPOINT THEN
-    // const message = {
-    //     from: "Mind Group + <" + process.env.MAIL_ADDR + ">",
-    //     to: email,
-    //     subject: "Change password",
-    //     text: `Your credentials: ; click on the following link to change them`,
-    // };
-
-    // await sendPasswordEmail(email, message);
-
     business_unit = new_user_business_unit;
     role = new_user_role;
     const data = await createNewUser({ first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name }, newPass);
