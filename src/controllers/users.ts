@@ -5,6 +5,7 @@ import { hash } from "bcrypt";
 const { Op } = require("sequelize");
 const sqlz = require("sequelize").Sequelize;
 const user = require("../database/models/users")(db);
+const businessUnits = require("../database/models/payments_periods")(db);
 
 function getOrder(order: string, by: string) {
     switch (order) {
@@ -196,4 +197,17 @@ export async function pseudoDeleteUser(id: number, businessUnits?: Array<number>
     }
 
     return { successful: true, found: result[0] === 1 };
+}
+
+export async function getPaymentPeriods() {
+    let businessUnitData;
+
+    try {
+        businessUnitData = await businessUnits.findAll();
+
+    } catch (error) {
+        return false;
+    }
+
+    return businessUnitData;
 }
