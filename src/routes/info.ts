@@ -1,4 +1,4 @@
-import { getPaymentPeriods } from "../controllers/users";
+import { getPaymentPeriods, getRoles } from "../controllers/info";
 import { Privileges } from "../util/objects";
 import express from "express";
 
@@ -18,11 +18,21 @@ router.get("/privileges", async (req, res) => {
 router.get("/paymentperiods", async (req, res) => {
     const businessUnitData = await getPaymentPeriods();
 
-    if (businessUnitData === false) {
+    if (!businessUnitData) {
         return res.status(400).send("Invalid request.");
     }
 
     return res.status(200).send(businessUnitData);
+});
+
+router.get("/roles", async (req, res) => {
+    const rolesData = await getPaymentPeriods();
+
+    if (!rolesData) {
+        return res.status(400).send("Invalid request.");
+    }
+
+    return res.status(200).send(rolesData);
 });
 
 export default router;
