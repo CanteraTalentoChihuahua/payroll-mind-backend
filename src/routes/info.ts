@@ -26,7 +26,7 @@ router.get("/paymentperiods", async (req, res) => {
 });
 
 router.get("/roles", async (req, res) => {
-    const rolesData = await getPaymentPeriods();
+    const rolesData = await getRoles();
 
     if (!rolesData) {
         return res.status(400).send("Invalid request.");
