@@ -5,7 +5,7 @@ import transporter from "../config/mailer";
 import bcrypt from "bcrypt";
 import { createSessionJWT } from "../util/jwt";
 
-async function logIn(email: string, password: string) {
+export async function logIn(email: string, password: string) {
     const userData = await users.findOne({
         where: { email }
     });
@@ -24,7 +24,7 @@ async function logIn(email: string, password: string) {
     return { loggedIn: Boolean(token), token, first_name, role, privileges };
 }
 
-async function createURL(userId: string, purpose: string) {
+export async function createURL(userId: number, purpose: string) {
     const token = sign({ userId, purpose }, process.env.JWT_SECRET!, {
         expiresIn: "10m",
     });
@@ -39,23 +39,26 @@ async function createURL(userId: string, purpose: string) {
     return `${process.env.FRONT}/${purpose}/${token}`;
 }
 
-// Replace FRONT
-async function sendPasswordEmail(email: string) {
-    const userData = await users.findOne({
-        where: { email }
-    });
+export async function generatePassword(length: number) {
+    let result = "";
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const charactersLength = characters.length;
 
-    if (userData === null) {
-        return { isSuccessful: false };
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
 
-    const urlToken = await createURL(userData.id, "forgot");
+    return result;
+}
+
+export async function sendPasswordRestoreEmail(id: number, email: string) {
+    const urlToken = await createURL(id, "forgot");
 
     const message = {
         from: "Mind Group + <" + process.env.MAIL_ADDR + ">",
         to: email,
         subject: "Restore password",
-        text: `Click on the following link to restore your password: ${urlToken}`,
+        text: `Click on the following link to restore your password:\n ${urlToken}`,
     };
 
     try {
@@ -68,10 +71,31 @@ async function sendPasswordEmail(email: string) {
     } catch (error) {
         return { isSuccessful: false };
     }
-
 }
 
-async function invalidateToken(userId: string) {
+export async function sendPasswordChangeEmail(id: number, password: string, email: string) {
+    const urlToken = await createURL(id, "restore");
+
+    const message = {
+        from: "Mind Group + <" + process.env.MAIL_ADDR + ">",
+        to: email,
+        subject: "Change credentials",
+        text: `Welcome to Arkus Mind Group! Your credentials:\nemail: ${email} ; password: ${password}\nPlease change your password immediately via the following link: ${urlToken}`
+    };
+
+    try {
+        const info = await transporter.sendMail(message);
+
+        if (info.accepted[0] === email) {
+            return { isSuccessful: true, result: info };
+        }
+
+    } catch (error) {
+        return { isSuccessful: false };
+    }
+}
+
+export async function invalidateToken(userId: string) {
     try {
         await users.update({ token: null }, {
             where: { id: userId }
@@ -84,7 +108,7 @@ async function invalidateToken(userId: string) {
 }
 
 // Data contains token and new_password
-async function restorePassword(token: string, newPassword: string) {
+export async function restorePassword(token: string, newPassword: string) {
     const payload = verify(token, process.env.JWT_SECRET!) as JwtPayload;
 
     if (!payload.purpose || payload.purpose !== "forgot") {
@@ -114,5 +138,3 @@ async function restorePassword(token: string, newPassword: string) {
         return { isSuccessful: true, result: false };
     }
 }
-
-export { logIn, sendPasswordEmail, restorePassword };
