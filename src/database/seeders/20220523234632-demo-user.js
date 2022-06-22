@@ -9,7 +9,7 @@ module.exports = {
             second_last_name: "Moe",
             email: "johnwayne@gmail.com",
             password: "secret_password",
-            roles_id: 1,
+            role_id: 1,
             privileges: {
                 privileges: [1, 2, 3, 4, 5, 6, 7, 8, 10, 11]
             },
@@ -31,7 +31,7 @@ module.exports = {
             second_last_name: "Macias",
             email: "abrahamgmacias@gmail.com",
             password: "secret_password",
-            roles_id: 2,
+            role_id: 2,
             privileges: {
                 privileges: [1, 2, 3, 4, 5, 9, 8, 10, 11]
             },
@@ -51,7 +51,7 @@ module.exports = {
             second_last_name: "Tonik",
             email: "anotheruser@gmail.com",
             password: "secret_password",
-            roles_id: 1,
+            role_id: 3,
             privileges: {
                 privileges: []
             },
@@ -71,7 +71,7 @@ module.exports = {
             second_last_name: "Tonik",
             email: "elvistek@gmail.com",
             password: "secret_password",
-            roles_id: 1,
+            role_id: 3,
             privileges: {
                 privileges: []
             },

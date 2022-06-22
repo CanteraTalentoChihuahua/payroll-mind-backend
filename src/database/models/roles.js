@@ -1,7 +1,7 @@
 'use strict';
 
 const {
-  Model
+  Model, Sequelize
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class roles extends Model {
@@ -21,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'roles',
+    paranoid: true
   });
   return roles;
 };

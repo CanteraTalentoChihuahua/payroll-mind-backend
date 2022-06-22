@@ -16,7 +16,7 @@ module.exports = (sequelize) => {
         static associate(models) {
             users.belongsTo(models.payments_periods, { foreignKey: "payment_period_id", allowNull: false });
             models.payments_periods.hasOne(users);
-            users.belongsTo(models.roles, { foreignKey: "roles_id", allowNull: false });
+            users.belongsTo(models.roles, { foreignKey: "role_id", allowNull: false });
             models.roles.hasOne(users);
         }
     }
@@ -33,7 +33,7 @@ module.exports = (sequelize) => {
         second_last_name: Sequelize.STRING,
         email: Sequelize.STRING,
         password: Sequelize.STRING,
-        role: Sequelize.STRING,
+        role_id: Sequelize.STRING,
         token: Sequelize.STRING,
         privileges: Sequelize.JSONB,
         payment_period_id: Sequelize.INTEGER,

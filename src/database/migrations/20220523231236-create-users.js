@@ -33,7 +33,7 @@ module.exports = {
                 type: Sequelize.STRING,
                 allowNull: false
             },
-            roles_id: {
+            role_id: {
                 type: Sequelize.INTEGER,
                 allowNull: false
             },
