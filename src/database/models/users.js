@@ -1,23 +1,26 @@
 "use strict";
-const payments_periods = require ("./payments_periods");
-const business_units = require ("./business_units");
+const payments_periods = require("./payments_periods");
+const business_units = require("./business_units");
+const roles = require("./roles");
 
 const {
     Model, Sequelize
 } = require("sequelize");
 module.exports = (sequelize) => {
     class users extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
+        /**
+         * Helper method for defining associations.
+         * This method is not a part of Sequelize lifecycle.
+         * The `models/index` file will call this method automatically.
+         */
         static associate(models) {
-            users.belongsTo(models.payments_periods, {foreignKey: "payment_period_id", allowNull: false});
+            users.belongsTo(models.payments_periods, { foreignKey: "payment_period_id", allowNull: false });
             models.payments_periods.hasOne(users);
+            users.belongsTo(models.roles, { foreignKey: "role_id", allowNull: false });
+            models.roles.hasOne(users);
         }
     }
-    
+
     users.init({
         id: {
             type: Sequelize.INTEGER,
@@ -30,7 +33,7 @@ module.exports = (sequelize) => {
         second_last_name: Sequelize.STRING,
         email: Sequelize.STRING,
         password: Sequelize.STRING,
-        role: Sequelize.STRING,
+        role_id: Sequelize.STRING,
         token: Sequelize.STRING,
         privileges: Sequelize.JSONB,
         payment_period_id: Sequelize.INTEGER,

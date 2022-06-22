@@ -1,7 +1,8 @@
 import businessUnitsRouter from "./routes/businessUnits";
+import usersRouter from "./routes/users";
+import infoRouter from "./routes/info";
 import authRouter from "./routes/auth";
 import docsRouter from "./routes/docs";
-import usersRouter from "./routes/users";
 import express from "express";
 import cors from "cors";
 
@@ -18,6 +19,7 @@ app.get("/", (_req, res) => {
 
 // Should we add /users to users? Got to eliminate the from the route
 app.use("/api/businessunits", businessUnitsRouter);
+app.use("/api/info", infoRouter);
 app.use("/api", usersRouter);
 app.use("/api", authRouter);
 app.use("/", docsRouter);

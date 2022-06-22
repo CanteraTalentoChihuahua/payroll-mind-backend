@@ -33,8 +33,8 @@ module.exports = {
                 type: Sequelize.STRING,
                 allowNull: false
             },
-            role: {
-                type: Sequelize.STRING,
+            role_id: {
+                type: Sequelize.INTEGER,
                 allowNull: false
             },
             privileges: {
@@ -73,8 +73,8 @@ module.exports = {
             updatedAt: {
                 allowNull: true,
                 type: Sequelize.DATE
-            }      
-        },{});
+            }
+        }, {});
     },
     async down(queryInterface, Sequelize) {
         await queryInterface.dropTable("users");
