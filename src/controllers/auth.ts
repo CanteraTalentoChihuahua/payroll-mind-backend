@@ -73,14 +73,27 @@ export async function sendPasswordRestoreEmail(id: number, email: string) {
     }
 }
 
-// export async function sendPasswordChangeEmail(email: string) {
-//     const message = {
-//         from: "Mind Group + <" + process.env.MAIL_ADDR + ">",
-//         to: email,
-//         subject: "Password change",
-//         text: `Your credentials,\nEmail: ${email}\npassword: ${newPass}\nClick on the following link to change your password: `,
-//     };
-// }
+export async function sendPasswordChangeEmail(id: number, password: string, email: string) {
+    const urlToken = await createURL(id, "restore");
+
+    const message = {
+        from: "Mind Group + <" + process.env.MAIL_ADDR + ">",
+        to: email,
+        subject: "Change credentials",
+        text: `Welcome to Arkus Mind Group! Your credentials:\nemail: ${email} ; password: ${password}\nPlease change your password immediately via the following link: ${urlToken}`
+    };
+
+    try {
+        const info = await transporter.sendMail(message);
+
+        if (info.accepted[0] === email) {
+            return { isSuccessful: true, result: info };
+        }
+
+    } catch (error) {
+        return { isSuccessful: false };
+    }
+}
 
 export async function invalidateToken(userId: string) {
     try {

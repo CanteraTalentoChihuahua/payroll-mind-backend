@@ -1,6 +1,9 @@
 import express from "express";
 import { checkIfEmailExists } from "../controllers/users";
+import { sendPasswordChangeEmail } from "../controllers/auth";
 import { logIn, sendPasswordRestoreEmail, restorePassword } from "../controllers/auth";
+
+// TO DO: ADD LOGIC SO THAT ID=1 EMAIL CANT BE CHANGED
 
 const router = express.Router();
 
@@ -39,6 +42,24 @@ router.post("/forgot", async (req, res) => {
     }
 
     const emailStatus = await sendPasswordRestoreEmail(userStatus.id, email);
+    if (emailStatus!.isSuccessful) {
+        res.status(200).send("Email sent.");
+
+    } else {
+        res.status(500).send("Unable to send email.");
+    }
+});
+
+router.post("/change", async (req, res) => {
+    const { email } = req.body;
+
+    const userStatus = await checkIfEmailExists(email);
+    if (!userStatus) {
+        return res.sendStatus(404);
+    }
+
+    const emailStatus = await sendPasswordChangeEmail(userStatus.id, userStatus.password, email);
+
     if (emailStatus!.isSuccessful) {
         res.status(200).send("Email sent.");
 
