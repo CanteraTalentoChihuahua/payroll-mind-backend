@@ -4,13 +4,9 @@ const {
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class incomes_users extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // define association here
+      incomes_users.belongsTo(models.incomes, { foreignKey: "income_id", allowNull: false });
+      models.incomes.hasMany(incomes_users);
     }
   }
   incomes_users.init({
@@ -20,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
     amount: Sequelize.DECIMAL
   }, {
     sequelize,
-    modelName: 'incomes-users',
+    modelName: 'incomes_users',
     paranoid: true
   });
   return incomes_users;
