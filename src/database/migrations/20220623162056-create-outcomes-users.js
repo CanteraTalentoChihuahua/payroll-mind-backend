@@ -12,7 +12,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER
       },
-      income_id: {
+      outcome_id: {
         allowNull: false,
         type: Sequelize.INTEGER
       },
