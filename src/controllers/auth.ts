@@ -19,9 +19,9 @@ export async function logIn(email: string, password: string) {
         role: userData.dataValues.role
     });
 
-    const { first_name, role, privileges } = userData;
+    const { first_name, role_id, privileges } = userData;
 
-    return { loggedIn: Boolean(token), token, first_name, role, privileges };
+    return { loggedIn: Boolean(token), token, first_name, role_id, privileges };
 }
 
 export async function createURL(userId: number, purpose: string) {

@@ -28,7 +28,7 @@ router.post("/login", async (req, res) => {
     res.json({
         token: tokenData.token,
         first_name: tokenData.first_name,
-        role: tokenData.role,
+        role_id: tokenData.role_id,
         privileges: privilegesObject.privileges
     });
 });
