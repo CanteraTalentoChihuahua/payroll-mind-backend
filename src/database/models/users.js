@@ -18,6 +18,8 @@ module.exports = (sequelize) => {
             models.payments_periods.hasOne(users);
             users.belongsTo(models.roles, { foreignKey: "role_id", allowNull: false });
             models.roles.hasOne(users);
+            users.belongsTo(models.payroll_schemas, { foreignKey: "payroll_schema_id", allowNull: false });
+            models.payroll_schemas.hasOne(users);
         }
     }
 
@@ -40,7 +42,8 @@ module.exports = (sequelize) => {
         business_unit: Sequelize.JSONB,
         on_leave: Sequelize.BOOLEAN,
         active: Sequelize.BOOLEAN,
-        salary: Sequelize.DECIMAL
+        salary: Sequelize.DECIMAL,
+        payroll_schema_id: Sequelize.INTEGER
     }, {
         sequelize,
         modelName: "user",
