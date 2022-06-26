@@ -68,7 +68,7 @@ module.exports = {
                 allowNull: false
             },
             salary_id: {
-                type: Sequelize.DECIMAL,
+                type: Sequelize.INTEGER,
                 allowNull: false
             },
             bank: {

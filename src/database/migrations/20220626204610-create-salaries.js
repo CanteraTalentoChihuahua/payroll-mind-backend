@@ -22,17 +22,17 @@ module.exports = {
         type: Sequelize.DATE
       },
       createdAt: {
-        allowNull: true,
-        type: Sequelize.DATE
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: new Date()
       },
       updatedAt: {
         allowNull: true,
         type: Sequelize.DATE
       },
       deletedAt: {
-        allowNull: false,
-        type: Sequelize.STRING,
-        defaultValue: new Date()
+        allowNull: true,
+        type: Sequelize.STRING
       }
     });
   },

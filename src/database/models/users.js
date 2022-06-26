@@ -20,6 +20,8 @@ module.exports = (sequelize) => {
             models.roles.hasOne(users);
             users.belongsTo(models.payroll_schemas, { foreignKey: "payroll_schema_id", allowNull: false });
             models.payroll_schemas.hasOne(users);
+            users.belongsTo(models.salaries, { foreignKey: "salary_id", allowNull: false });
+            models.salaries.hasOne(users);
         }
     }
 
