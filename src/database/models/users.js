@@ -42,7 +42,7 @@ module.exports = (sequelize) => {
         business_unit: Sequelize.JSONB,
         on_leave: Sequelize.BOOLEAN,
         active: Sequelize.BOOLEAN,
-        salary: Sequelize.DECIMAL,
+        salary_id: Sequelize.INTEGER,
         payroll_schema_id: Sequelize.INTEGER
     }, {
         sequelize,
