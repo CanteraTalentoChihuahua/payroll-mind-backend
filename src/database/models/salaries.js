@@ -16,8 +16,8 @@ module.exports = (sequelize, DataTypes) => {
   salaries.init({
     name: Sequelize.STRING,
     user_id: Sequelize.INTEGER,
-    date: Sequelize.DATE,
-    salary: Sequelize.DECIMAL
+    salary: Sequelize.DECIMAL,
+    date: Sequelize.DATE
   }, {
     sequelize,
     modelName: 'salaries',

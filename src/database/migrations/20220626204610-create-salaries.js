@@ -13,13 +13,13 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false
       },
-      date: {
-        allowNull: false,
-        type: Sequelize.DATE
-      },
       salary: {
         type: Sequelize.DECIMAL,
         allowNull: false
+      },
+      date: {
+        allowNull: false,
+        type: Sequelize.DATE
       },
       createdAt: {
         allowNull: true,
