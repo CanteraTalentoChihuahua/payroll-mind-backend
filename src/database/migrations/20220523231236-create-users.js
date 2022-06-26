@@ -67,7 +67,7 @@ module.exports = {
                 type: Sequelize.BOOLEAN,
                 allowNull: false
             },
-            salary: {
+            salary_id: {
                 type: Sequelize.DECIMAL,
                 allowNull: false
             },
