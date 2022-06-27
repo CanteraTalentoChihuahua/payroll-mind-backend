@@ -48,7 +48,7 @@ module.exports = (sequelize) => {
         payroll_schema_id: Sequelize.INTEGER
     }, {
         sequelize,
-        modelName: "user",
+        modelName: "users",
         timestamps: false
     });
     return users;
