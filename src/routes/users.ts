@@ -1,14 +1,12 @@
 import { Router } from "express";
 // import { sendPasswordEmail } from "../controllers/auth";
-import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, checkIfEmailExists } from "../controllers/users";
+import { createNewUser, getUserDetails, getUsersList, pseudoDeleteUser, checkIfEmailExists, getRoleName } from "../controllers/users";
 import { generatePassword } from "../controllers/auth";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 
 // Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
 // TO DO: EMAIL SHOULD NOT BE REPEATED
-// Generate random password
-// Recibir email para cambiar password.
 const router = Router();
 
 router.get("/users", privileges(Privileges.READ_USERS), async (req, res) => {
@@ -82,50 +80,58 @@ router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
     res.json(data.userDetails);
 });
 
-router.get("/trial", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
-    const { email } = req.body;
-    console.log(await checkIfEmailExists(email));
-    return res.send();
-});
+// router.get("/trial", async (req, res) => {
+//     const data = await getRoleObject(1);
+//     return res.send(data);
+// });
 
+// --FORMAT DATE?
 // FRONT MUST CALL /CHANGE AFTER CREATION DUE TO EMAIL
+// first_name, second_name, last_name, second_last_name
+// birthday, email, phone_number, role_id, privileges, payment_period_id, business_unit, on_leave, active, salary_id, bank, CLABE, payroll_schema_id, 
+// MUST CREATE PAYROLL SCHEMA ENDPOINT
+// Privileges, password, on_leave, active are given
 router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
-    let { business_unit, role } = res.locals.userInfo;
+    const { business_unit } = res.locals.userInfo;
+    let { role_id } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
-    const { first_name, last_name, email, payment_period_id, salary, second_name, second_last_name } = req.body;
-    const new_user_business_unit = req.body.business_unit;
-    const new_user_role = req.body.role;
+    // Required
+    const { first_name, last_name, birthday, email, phone_number, payment_period_id, salary_id, business_unit_id, bank, CLABE, payroll_schema_id } = req.body;
+    const new_role_id = req.body.role_id;
 
-    if (!first_name || !last_name || !email || !payment_period_id || !business_unit || !salary) {
+    // Optional
+    const { second_name, second_last_name } = req.body;
+
+    // Required validation
+    if (!first_name || !last_name || !email || !birthday || !email || !phone_number || !new_role_id || !payment_period_id || !salary_id || !business_unit_id || !bank || !CLABE || !payroll_schema_id) {
         return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const emailStatus = await checkIfEmailExists(email);
-    if (emailStatus) {
-        return res.status(400).json({ message: "Invalid request" });
-    }
-
-    if (![1, 2].includes(payment_period_id) || ![1, 2].includes(new_user_business_unit) || Number.isNaN(parseFloat(salary))) {
+    // Change business unit, add req data
+    if (![1, 2].includes(payment_period_id) || !business_unit_ids.includes(business_unit_id)) {
         return res.status(400).json({ message: "Invalid data sent on some fields" });
     }
 
-    if (role === "admin") {
-        if (!business_unit_ids.includes(new_user_business_unit) || new_user_role !== "collab") {
+    // Check role...
+    const newUserRole = await getRoleName(role_id);
+    const currentUserRole = await getRoleName(new_role_id);
+
+    if (currentUserRole === "admin") {
+        if (!business_unit_ids.includes(business_unit_id) || newUserRole !== "collab") {
             return res.status(400).json({ message: "Invalid request" });
         }
 
     } else {
-        if (new_user_role === "superadmin") {
+        if (newUserRole === "superadmin") {
             return res.status(400).json({ message: "Invalid request" });
         }
     }
 
     // Initial password is generated automatically
+    role_id = new_role_id;
     const newPass = await generatePassword(30);
-    business_unit = new_user_business_unit;
-    role = new_user_role;
-    const data = await createNewUser({ first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name }, newPass);
+    const data = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, payment_period_id, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
 
     if (!data.successful) {
         return res.sendStatus(500);
@@ -136,63 +142,63 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
 
 // TO DO: Admin cannot change his own salary --- add superadmin validation in the future
 // NOTE: Superadmin salary is invalid anyway, modification won't matter
-router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
-    const { id, role } = res.locals.userInfo;
-    let { business_unit } = res.locals.userInfo;
-    const { business_unit_ids } = business_unit;
+// router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
+//     const { id, role } = res.locals.userInfo;
+//     let { business_unit } = res.locals.userInfo;
+//     const { business_unit_ids } = business_unit;
 
-    const { first_name, last_name, email, payment_period_id, salary, second_name, second_last_name } = req.body;
-    const req_id = req.body.id;
-    business_unit = req.body.business_unit;
+//     const { first_name, last_name, email, payment_period_id, salary, second_name, second_last_name } = req.body;
+//     const req_id = req.body.id;
+//     business_unit = req.body.business_unit;
 
-    if (!req_id) {
-        return res.status(400).json({ message: "Missing required fields" });
-    }
+//     if (!req_id) {
+//         return res.status(400).json({ message: "Missing required fields" });
+//     }
 
-    if (Number.isNaN(parseInt(req_id))) {
-        return res.status(400).json({ message: "Invalid data sent on some fields" });
-    }
+//     if (Number.isNaN(parseInt(req_id))) {
+//         return res.status(400).json({ message: "Invalid data sent on some fields" });
+//     }
 
-    if (salary) {
-        if (Number.isNaN(parseFloat(salary))) {
-            return res.status(400).json({ message: "Invalid data sent on some fields" });
-        }
-    }
+//     if (salary) {
+//         if (Number.isNaN(parseFloat(salary))) {
+//             return res.status(400).json({ message: "Invalid data sent on some fields" });
+//         }
+//     }
 
-    if (payment_period_id) {
-        if (![1, 2].includes(parseInt(payment_period_id))) {
-            return res.status(400).json({ message: "Invalid data sent on some fields" });
-        }
-    }
+//     if (payment_period_id) {
+//         if (![1, 2].includes(parseInt(payment_period_id))) {
+//             return res.status(400).json({ message: "Invalid data sent on some fields" });
+//         }
+//     }
 
-    let userData;
-    if (role === "admin") {
-        // Cannot edit superadmin 
-        if (req_id === 1) {
-            return res.status(400).json({ message: "Invalid request" });
-        }
+//     let userData;
+//     if (role === "admin") {
+//         // Cannot edit superadmin 
+//         if (req_id === 1) {
+//             return res.status(400).json({ message: "Invalid request" });
+//         }
 
-        // Cannot edit own salary as admin
-        if (salary && id === req_id) {
-            return res.status(400).json({ message: "Invalid request" });
-        }
+//         // Cannot edit own salary as admin
+//         if (salary && id === req_id) {
+//             return res.status(400).json({ message: "Invalid request" });
+//         }
 
-        userData = await editUser(req_id, { first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name }, business_unit_ids);
+//         userData = await editUser(req_id, { first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name }, business_unit_ids);
 
-    } else {
-        userData = await editUser(req_id, { first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name });
-    }
+//     } else {
+//         userData = await editUser(req_id, { first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name });
+//     }
 
-    if (!userData.successful) {
-        return res.sendStatus(500);
-    }
+//     if (!userData.successful) {
+//         return res.sendStatus(500);
+//     }
 
-    if (!userData.found) {
-        return res.sendStatus(404);
-    }
+//     if (!userData.found) {
+//         return res.sendStatus(404);
+//     }
 
-    res.sendStatus(200);
-});
+//     res.sendStatus(200);
+// });
 
 router.delete("/user", privileges(Privileges.DELETE_USERS), async (req, res) => {
     const { business_unit, role } = res.locals.userInfo;

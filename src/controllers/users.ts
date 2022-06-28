@@ -5,7 +5,8 @@ import { hash } from "bcrypt";
 const { Op } = require("sequelize");
 const sqlz = require("sequelize").Sequelize;
 const user = require("../database/models/users")(db);
-const businessUnits = require("../database/models/payments_periods")(db);
+const roles = require("../database/models/roles")(db);
+const businessUnits = require("../database/models/business_units")(db);
 
 function getOrder(order: string, by: string) {
     switch (order) {
@@ -130,48 +131,49 @@ export async function getUserDetails(id: number, businessUnits?: Array<number>):
     return { successful: true, found: userDetails !== null, userDetails };
 }
 
+// ADD PRIVILEGES SELECTION DEPENDING ON USER SPECIFICATION
 export async function createNewUser(userData: NewUserData, password: string) {
     try {
         await user.create({
             ...userData,
-            business_unit: { business_unit_ids: [userData.business_unit] },
+            business_unit: { business_unit_ids: [userData.business_unit_id] },
             on_leave: false,
             active: true,
-            payment_period_id: userData.payment_period_id,
             privileges: { privileges: [1] },
             password: await hash(password, 10)
         });
-    } catch {
+
+    } catch (error) {
         return { successful: false };
     }
 
     return { successful: true };
 }
 
-export async function editUser(id: number, userData: Partial<NewUserData>, businessUnits?: Array<number>) {
-    let result;
-    let condition;
+// export async function editUser(id: number, userData: Partial<NewUserData>, businessUnits?: Array<number>) {
+//     let result;
+//     let condition;
 
-    if (businessUnits) {
-        const unitsList = createUnitsListCondition(businessUnits);
-        condition = { id, [Op.or]: unitsList };
+//     if (businessUnits) {
+//         const unitsList = createUnitsListCondition(businessUnits);
+//         condition = { id, [Op.or]: unitsList };
 
-    } else {
-        condition = { id };
-    }
+//     } else {
+//         condition = { id };
+//     }
 
-    try {
-        result = await user.update({
-            ...userData,
-            ...(userData.business_unit && { business_unit: { business_unit_ids: [userData.business_unit] } })
-        }, { where: condition });
+//     try {
+//         result = await user.update({
+//             ...userData,
+//             ...(userData.business_unit && { business_unit: { business_unit_ids: [userData.business_unit] } })
+//         }, { where: condition });
 
-    } catch {
-        return { successful: false, found: false };
-    }
+//     } catch {
+//         return { successful: false, found: false };
+//     }
 
-    return { successful: true, found: result[0] === 1 };
-}
+//     return { successful: true, found: result[0] === 1 };
+// }
 
 // No use of paranoid?
 export async function pseudoDeleteUser(id: number, businessUnits?: Array<number>) {
@@ -210,4 +212,21 @@ export async function getPaymentPeriods() {
     }
 
     return businessUnitData;
+}
+
+export async function getRoleName(id: number) {
+    let roleName;
+
+    try {
+        roleName = await roles.findOne({
+            attributes: ["name"],
+            where: { id }
+        });
+
+    } catch (error) {
+        return null;
+    }
+
+    const { name } = roleName;
+    return name;
 }

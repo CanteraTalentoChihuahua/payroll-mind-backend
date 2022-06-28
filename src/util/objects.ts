@@ -17,11 +17,16 @@ export type Privilege = { id: number, description: string }
 export type NewUserData = {
     first_name: string,
     last_name: string,
+    birthday: string,
     email: string,
+    phone_number: string,
+    role_id: number,
     payment_period_id: number,
-    business_unit: number,
-    role: string,
-    salary: number,
+    salary_id: number,
+    business_unit_id: number,
+    bank: string,
+    CLABE: string,
+    payroll_schema_id: number,
     second_name: string | undefined,
     second_last_name: string | undefined
 }
