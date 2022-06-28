@@ -192,7 +192,6 @@ export async function pseudoDeleteUser(id: number, businessUnits?: Array<number>
         result = await user.update({ active: false }, {
             where: condition
         });
-        console.log(result);
 
     } catch (error) {
         return { successful: false, found: false };

@@ -87,8 +87,8 @@ router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
 // MUST CREATE PAYROLL SCHEMA ENDPOINT
 // Privileges, password, on_leave, active are given
 router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
-    const { business_unit } = res.locals.userInfo;
     let { role_id } = res.locals.userInfo;
+    const { business_unit } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
     // Required
@@ -195,10 +195,10 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
 //     res.sendStatus(200);
 // });
 
-router.delete("/user", privileges(Privileges.DELETE_USERS), async (req, res) => {
-    const { business_unit, role } = res.locals.userInfo;
+router.delete("/user/:id", privileges(Privileges.DELETE_USERS), async (req, res) => {
+    const { business_unit, role_id } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
-    const { id } = req.query;
+    const { id } = req.params;
 
     if (!id || typeof id !== "string" || Number.isNaN(parseInt(id))) {
         return res.status(400).json({ message: "Invalid or missing ID" });
@@ -209,8 +209,11 @@ router.delete("/user", privileges(Privileges.DELETE_USERS), async (req, res) => 
         return res.status(400).json({ message: "Invalid request" });
     }
 
+    // Check role...
+    const currentUserRole = await getRoleName(role_id);
+
     let userData;
-    if (role === "admin") {
+    if (currentUserRole === "admin") {
         userData = await pseudoDeleteUser(parseInt(id), business_unit_ids);
 
     } else {
@@ -225,7 +228,7 @@ router.delete("/user", privileges(Privileges.DELETE_USERS), async (req, res) => 
         return res.status(400).json({ message: "Not found or invalid request" });
     }
 
-    return res.sendStatus(204);
+    return res.status(200).json({ message: "Successfully deleted user" });
 });
 
 export default router;
