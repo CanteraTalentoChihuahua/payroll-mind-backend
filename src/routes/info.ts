@@ -35,4 +35,16 @@ router.get("/roles", async (req, res) => {
     return res.status(200).send(rolesData);
 });
 
+router.get("/salaries", async (req, res) => {
+    const salaryData = await getRoles();
+
+    if (!salaryData) {
+        return res.status(400).send("Invalid request.");
+    }
+
+    return res.status(200).send(salaryData);
+});
+
+
+
 export default router;
