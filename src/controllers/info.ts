@@ -1,8 +1,9 @@
 import db from "../database/database";
 const roles = require("../database/models/roles")(db);
 const salaries = require("../database/models/salaries")(db);
-const businessUnits = require("../database/models/salaries")(db);
+const businessUnits = require("../database/models/business_units")(db);
 const paymentPeriods = require("../database/models/payments_periods")(db);
+const payrollSchemas = require("../database/models/payroll_schemas")(db);
 
 
 export async function getPaymentPeriods() {
@@ -57,3 +58,15 @@ export async function getBusinessUnits() {
     return businessUnitsData;
 }
 
+export async function getPayrollSchemas() {
+    let payrollSchemaData;
+
+    try {
+        payrollSchemaData = await payrollSchemas.findAll();
+
+    } catch (error) {
+        return false;
+    }
+
+    return payrollSchemaData;
+}
