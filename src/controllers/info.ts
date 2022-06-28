@@ -1,20 +1,21 @@
 import db from "../database/database";
 const roles = require("../database/models/roles")(db);
 const salaries = require("../database/models/salaries")(db);
-const businessUnits = require("../database/models/payments_periods")(db);
+const businessUnits = require("../database/models/salaries")(db);
+const paymentPeriods = require("../database/models/payments_periods")(db);
 
 
 export async function getPaymentPeriods() {
-    let businessUnitData;
+    let paymentPeriodsData;
 
     try {
-        businessUnitData = await businessUnits.findAll();
+        paymentPeriodsData = await paymentPeriods.findAll();
 
     } catch (error) {
         return false;
     }
 
-    return businessUnitData;
+    return paymentPeriodsData;
 }
 
 export async function getRoles() {
@@ -42,3 +43,17 @@ export async function getSalaries() {
 
     return salaryData;
 }
+
+export async function getBusinessUnits() {
+    let businessUnitsData;
+
+    try {
+        businessUnitsData = await businessUnits.findAll();
+
+    } catch (error) {
+        return false;
+    }
+
+    return businessUnitsData;
+}
+

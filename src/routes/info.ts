@@ -16,13 +16,13 @@ router.get("/privileges", async (req, res) => {
 });
 
 router.get("/paymentperiods", async (req, res) => {
-    const businessUnitData = await getPaymentPeriods();
+    const paymentPeriodsData = await getPaymentPeriods();
 
-    if (!businessUnitData) {
+    if (!paymentPeriodsData) {
         return res.status(400).send("Invalid request.");
     }
 
-    return res.status(200).send(businessUnitData);
+    return res.status(200).send(paymentPeriodsData);
 });
 
 router.get("/roles", async (req, res) => {
@@ -45,6 +45,15 @@ router.get("/salaries", async (req, res) => {
     return res.status(200).send(salaryData);
 });
 
+router.get("/businessunits", async (req, res) => {
+    const businessUnitsData = await getRoles();
+
+    if (!businessUnitsData) {
+        return res.status(400).send("Invalid request.");
+    }
+
+    return res.status(200).send(businessUnitsData);
+});
 
 
 export default router;
