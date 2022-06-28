@@ -150,30 +150,30 @@ export async function createNewUser(userData: NewUserData, password: string) {
     return { successful: true };
 }
 
-// export async function editUser(id: number, userData: Partial<NewUserData>, businessUnits?: Array<number>) {
-//     let result;
-//     let condition;
+export async function editUser(id: number, userData: Partial<NewUserData>, businessUnits?: Array<number>) {
+    let result;
+    let condition;
 
-//     if (businessUnits) {
-//         const unitsList = createUnitsListCondition(businessUnits);
-//         condition = { id, [Op.or]: unitsList };
+    if (businessUnits) {
+        const unitsList = createUnitsListCondition(businessUnits);
+        condition = { id, [Op.or]: unitsList };
 
-//     } else {
-//         condition = { id };
-//     }
+    } else {
+        condition = { id };
+    }
 
-//     try {
-//         result = await user.update({
-//             ...userData,
-//             ...(userData.business_unit && { business_unit: { business_unit_ids: [userData.business_unit] } })
-//         }, { where: condition });
+    try {
+        result = await user.update({
+            ...userData,
+            ...(userData.business_unit_id && { business_unit: { business_unit_ids: [userData.business_unit_id] } })
+        }, { where: condition });
 
-//     } catch {
-//         return { successful: false, found: false };
-//     }
+    } catch {
+        return { successful: false, found: false };
+    }
 
-//     return { successful: true, found: result[0] === 1 };
-// }
+    return { successful: true, found: result[0] === 1 };
+}
 
 // No use of paranoid?
 export async function pseudoDeleteUser(id: number, businessUnits?: Array<number>) {

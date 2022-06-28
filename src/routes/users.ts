@@ -1,6 +1,6 @@
 import { Router } from "express";
 // import { sendPasswordEmail } from "../controllers/auth";
-import { createNewUser, getUserDetails, getUsersList, pseudoDeleteUser, checkIfEmailExists, getRoleName } from "../controllers/users";
+import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, checkIfEmailExists, getRoleName } from "../controllers/users";
 import { generatePassword } from "../controllers/auth";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
@@ -136,64 +136,106 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
 });
 
 // TO DO: Admin cannot change his own salary --- add superadmin validation in the future
+// Admin cannot change password...
 // NOTE: Superadmin salary is invalid anyway, modification won't matter
-// router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
-//     const { id, role } = res.locals.userInfo;
-//     let { business_unit } = res.locals.userInfo;
-//     const { business_unit_ids } = business_unit;
+router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
+    // Current user
+    const { role_id, business_unit } = res.locals.userInfo;
+    const { business_unit_ids } = business_unit;
+    const { id } = req.params;
 
-//     const { first_name, last_name, email, payment_period_id, salary, second_name, second_last_name } = req.body;
-//     const req_id = req.body.id;
-//     business_unit = req.body.business_unit;
+    // Optional 
+    const { first_name, second_name, last_name, second_last_name, birthday, email, phone_number, privileges, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id } = req.body;
+    const editUserRoleId = req.body.params;
+    const editUserId = req.body.id;
 
-//     if (!req_id) {
-//         return res.status(400).json({ message: "Missing required fields" });
-//     }
+    if (!editUserId) {
+        return res.status(400).json({ message: "Missing required fields" });
+    }
 
-//     if (Number.isNaN(parseInt(req_id))) {
-//         return res.status(400).json({ message: "Invalid data sent on some fields" });
-//     }
+    if (Number.isNaN(parseInt(editUserId))) {
+        return res.status(400).json({ message: "Invalid data sent on id. Must be integer." });
+    }
 
-//     if (salary) {
-//         if (Number.isNaN(parseFloat(salary))) {
-//             return res.status(400).json({ message: "Invalid data sent on some fields" });
-//         }
-//     }
+    // Check role...
+    const currentUserRole = await getRoleName(role_id);
+    let editUserRole;
 
-//     if (payment_period_id) {
-//         if (![1, 2].includes(parseInt(payment_period_id))) {
-//             return res.status(400).json({ message: "Invalid data sent on some fields" });
-//         }
-//     }
+    if (editUserRoleId) {
+        editUserRole = await getRoleName(editUserId);
+    }
 
-//     let userData;
-//     if (role === "admin") {
-//         // Cannot edit superadmin 
-//         if (req_id === 1) {
-//             return res.status(400).json({ message: "Invalid request" });
-//         }
+    // CURRENTLY HANDLES JUST A BUSINESS UNIT - Needs to check for array in case of assigning multiple bunits
+    if (business_unit_id) { 
+        if (Number.isNaN(parseInt(business_unit_id))) {
+            return res.status(400).json({ message: "Invalid data sent on business_unit. Must be integer or array." });
+        }
 
-//         // Cannot edit own salary as admin
-//         if (salary && id === req_id) {
-//             return res.status(400).json({ message: "Invalid request" });
-//         }
+        // New business unit must be within admin's
+        if (currentUserRole === "admin") {
+            if (!business_unit_ids.includes(business_unit_id) || editUserRole !== "collab") {
+                return res.status(400).json({ message: "Invalid request" });
+            }
+        }
+    }
 
-//         userData = await editUser(req_id, { first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name }, business_unit_ids);
+    // Invalid datatypes
+    if (salary_id) {
+        if (Number.isNaN(parseInt(salary_id))) {
+            return res.status(400).json({ message: "Invalid data sent on salary_id. Must be integer." });
+        }
+    }
 
-//     } else {
-//         userData = await editUser(req_id, { first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name });
-//     }
+    if (payment_period_id) {
+        if (Number.isNaN(parseInt(payment_period_id))) {
+            return res.status(400).json({ message: "Invalid data sent on payment_period_id. Must be integer." });
+        }
+    }
 
-//     if (!userData.successful) {
-//         return res.sendStatus(500);
-//     }
+    if (payroll_schema_id) {
+        if (Number.isNaN(parseInt(payroll_schema_id))) {
+            return res.status(400).json({ message: "Invalid data sent on payment_period_id. Must be integer." });
+        }
+    }
 
-//     if (!userData.found) {
-//         return res.sendStatus(404);
-//     }
+    // Handle active, on leave
 
-//     res.sendStatus(200);
-// });
+    // How to check privileges???
+    // if (privileges) {
+    //     if (Number.isNaN(parseFloat(privileges))) {
+    //         return res.status(400).json({ message: "Invalid data sent on privileges" });
+    //     }
+    // }
+
+    let userData;
+    if (currentUserRole === "admin") {
+        // Cannot edit superadmin 
+        if (editUserId === 1) {
+            return res.status(400).json({ message: "Invalid request" });
+        }
+
+        // Cannot edit own salary as admin
+        if (salary_id && id === editUserId) {
+            return res.status(400).json({ message: "Invalid request" });
+        }
+
+        // Redifine vars, thanks typescript
+        userData = await editUser(editUserId, { first_name, last_name, birthday, email, phone_number, role_id, payment_period_id, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, business_unit_ids);
+
+    } else {
+        userData = await editUser(editUserId, { first_name, last_name, birthday, email, phone_number, role_id, payment_period_id, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name });
+    }
+
+    if (!userData.successful) {
+        return res.sendStatus(500);
+    }
+
+    if (!userData.found) {
+        return res.sendStatus(404);
+    }
+
+    res.sendStatus(200);
+});
 
 router.delete("/user/:id", privileges(Privileges.DELETE_USERS), async (req, res) => {
     const { business_unit, role_id } = res.locals.userInfo;
