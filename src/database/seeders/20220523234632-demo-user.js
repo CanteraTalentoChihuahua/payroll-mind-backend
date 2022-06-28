@@ -24,7 +24,6 @@ module.exports = {
             salary_id: 2,
             bank: "Banco Gidon",
             CLABE: "2132123131132123",
-            token: "null",
             payroll_schema_id: 1
             // Currently, bulk inserting JSON is bugged and this is a workaround
             // https://github.com/sequelize/sequelize/issues/8310
@@ -51,7 +50,6 @@ module.exports = {
             bank: "Banco Branza",
             CLABE: "2132115615165153",
             salary_id: 1,
-            token: "null",
             payroll_schema_id: 2
         },
         {
@@ -76,7 +74,6 @@ module.exports = {
             salary_id: 3,
             bank: "Banco Media",
             CLABE: "165156465561514561",
-            token: "null",
             payroll_schema_id: 1
         },
         {
@@ -101,7 +98,6 @@ module.exports = {
             salary_id: 1,
             bank: "Banco Dicia",
             CLABE: "4564156465456545",
-            token: "null",
             payroll_schema_id: 2
         }],
             { timestamps: true },

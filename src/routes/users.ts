@@ -80,11 +80,6 @@ router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
     res.json(data.userDetails);
 });
 
-// router.get("/trial", async (req, res) => {
-//     const data = await getRoleObject(1);
-//     return res.send(data);
-// });
-
 // --FORMAT DATE?
 // FRONT MUST CALL /CHANGE AFTER CREATION DUE TO EMAIL
 // first_name, second_name, last_name, second_last_name
