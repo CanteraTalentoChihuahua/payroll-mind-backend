@@ -14,6 +14,11 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   payroll_schemas.init({
+    id: {
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
     name: Sequelize.STRING
   }, {
     sequelize,

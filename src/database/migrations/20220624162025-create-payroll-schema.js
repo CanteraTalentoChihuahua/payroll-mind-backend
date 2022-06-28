@@ -13,17 +13,17 @@ module.exports = {
         unique: true
       },
       createdAt: {
-        allowNull: true,
-        type: Sequelize.DATE
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: new Date()
       },
       updatedAt: {
         allowNull: true,
         type: Sequelize.DATE
       },
       deletedAt: {
-        allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: new Date()
+        allowNull: true,
+        type: Sequelize.DATE
       }
     });
   },

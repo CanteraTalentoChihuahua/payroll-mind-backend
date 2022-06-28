@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   salaries.init({
-    id: Sequelize.INTEGER,
+    id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     user_id: Sequelize.INTEGER,
     salary: Sequelize.DECIMAL,
     date: Sequelize.DATE

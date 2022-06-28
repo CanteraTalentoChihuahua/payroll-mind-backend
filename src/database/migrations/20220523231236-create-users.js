@@ -82,7 +82,7 @@ module.exports = {
             },
             token: {
                 type: Sequelize.STRING,
-                allowNull: false
+                allowNull: true
             },
             payroll_schema_id: {
                 type: Sequelize.INTEGER,
