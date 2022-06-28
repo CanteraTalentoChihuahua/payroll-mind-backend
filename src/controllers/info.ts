@@ -5,7 +5,6 @@ const businessUnits = require("../database/models/business_units")(db);
 const paymentPeriods = require("../database/models/payments_periods")(db);
 const payrollSchemas = require("../database/models/payroll_schemas")(db);
 
-
 export async function getPaymentPeriods() {
     let paymentPeriodsData;
 

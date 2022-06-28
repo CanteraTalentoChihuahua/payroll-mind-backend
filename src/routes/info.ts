@@ -1,4 +1,4 @@
-import { getBusinessUnits, getPaymentPeriods, getSalaries, getRoles } from "../controllers/info";
+import { getBusinessUnits, getPaymentPeriods, getSalaries, getPayrollSchemas, getRoles } from "../controllers/info";
 import { Privileges } from "../util/objects";
 import express from "express";
 
@@ -56,13 +56,13 @@ router.get("/businessunits", async (req, res) => {
 });
 
 router.get("/payrollschemas", async (req, res) => {
-    const businessUnitsData = await getPayrollSchemas();
+    const payrollSchemasData = await getPayrollSchemas();
 
-    if (!businessUnitsData) {
+    if (!payrollSchemasData) {
         return res.status(400).send("Invalid request.");
     }
 
-    return res.status(200).send(businessUnitsData);
+    return res.status(200).send(payrollSchemasData);
 });
 
 
