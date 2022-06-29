@@ -82,9 +82,6 @@ router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
 
 // --FORMAT DATE?
 // FRONT MUST CALL /CHANGE AFTER CREATION DUE TO EMAIL
-// first_name, second_name, last_name, second_last_name
-// birthday, email, phone_number, role_id, privileges, payment_period_id, business_unit, on_leave, active, salary_id, bank, CLABE, payroll_schema_id, 
-// MUST CREATE PAYROLL SCHEMA ENDPOINT
 // Privileges, password, on_leave, active are given
 router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     let { role_id } = res.locals.userInfo;
@@ -104,7 +101,6 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     }
 
     // Change business unit, add req data
-    console.log(business_unit_id, business_unit_ids);
     if (![1, 2].includes(payment_period_id) || !Array.isArray(business_unit_id)) {
         return res.status(400).json({ message: "Invalid data sent on some fields" });
     }
@@ -148,9 +144,6 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
 });
 
 // TO DO: Admin cannot change his own salary --- add superadmin validation in the future
-// Admin cannot change password...
-// NOTE: Superadmin salary is invalid anyway, modification won't matter
-// How specific should my errors be??? Or should I optimize for smaller code and ignore descriptive messages?
 router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
     // Current user
     const { role_id, business_unit } = res.locals.userInfo;
@@ -190,11 +183,15 @@ router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
             return res.status(400).json({ message: "Invalid data sent on business_unit. Must be array." });
         }
 
-        // New business unit must be within admin's
-        if (currentUserRole === "admin") {
-            if (!business_unit_ids.includes(business_unit_id)) {
-                return res.status(400).json({ message: "Invalid request. Out of scope business unit." });
+        let doesNotBelongToBusinessUnits;
+        business_unit_id.forEach((businessUnit: number) => {
+            if (!business_unit_ids.includes(businessUnit)) {
+                doesNotBelongToBusinessUnits = true;
             }
+        });
+
+        if (doesNotBelongToBusinessUnits) {
+            return res.status(400).json({ message: "Invalid request. Out of scope business unit." });
         }
     }
 
@@ -246,7 +243,7 @@ router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
     const objectToEdit = { first_name, last_name, birthday, email, phone_number, role_id, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name };
     if (currentUserRole === "admin") {
         // Cannot edit superadmin 
-        if (parseInt(editUserId) === 1) {
+        if (!["collab", "admin"].includes(editUserRole)) {
             return res.status(400).json({ message: "Invalid request. Cannot edit superadmin." });
         }
 

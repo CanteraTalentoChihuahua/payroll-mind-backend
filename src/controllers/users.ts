@@ -165,7 +165,7 @@ export async function editUser(id: number, userData: Partial<NewUserData>, busin
     try {
         result = await user.update({
             ...userData,
-            ...(userData.business_unit_id && { business_unit: { business_unit_ids: [userData.business_unit_id] } }),
+            ...(userData.business_unit_id && { business_unit: { business_unit_ids: userData.business_unit_id } }),
             privileges: { privileges: userData.privileges }
         }, { where: condition });
 
