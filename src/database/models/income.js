@@ -1,12 +1,12 @@
 "use strict";
 const {
-    Model
+    Model, Sequelize
 } = require("sequelize");
-module.exports = (sequelize, DataTypes) => {
+module.exports = (sequelize) => {
     class Income extends Model {
     /**
      * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
+     * This method is not a part of sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
         static associate(models) {
@@ -15,17 +15,17 @@ module.exports = (sequelize, DataTypes) => {
     }
     Income.init({
         id: {
-            type: DataTypes.INTEGER,
+            type: Sequelize.INTEGER,
             autoIncrement: true,
             primaryKey: true,
         },
-        name: DataTypes.STRING,
+        name: Sequelize.STRING,
         automatic: {
-            type: DataTypes.BOOLEAN,
+            type: Sequelize.BOOLEAN,
             allowNull: false
         },
         active: {
-            type: DataTypes.BOOLEAN,
+            type: Sequelize.BOOLEAN,
             defaultValue: true,
             allowNull: false
         }
