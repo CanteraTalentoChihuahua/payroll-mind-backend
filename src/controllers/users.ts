@@ -136,10 +136,10 @@ export async function createNewUser(userData: NewUserData, password: string) {
     try {
         await user.create({
             ...userData,
-            business_unit: { business_unit_ids: [userData.business_unit_id] },
+            business_unit: { business_unit_ids: userData.business_unit_id },
             on_leave: false,
             active: true,
-            privileges: { privileges: [1] },
+            privileges: { privileges: userData.privileges },
             password: await hash(password, 10)
         });
 
@@ -165,7 +165,8 @@ export async function editUser(id: number, userData: Partial<NewUserData>, busin
     try {
         result = await user.update({
             ...userData,
-            ...(userData.business_unit_id && { business_unit: { business_unit_ids: [userData.business_unit_id] } })
+            ...(userData.business_unit_id && { business_unit: { business_unit_ids: [userData.business_unit_id] } }),
+            privileges: { privileges: userData.privileges }
         }, { where: condition });
 
     } catch {

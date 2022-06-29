@@ -104,7 +104,8 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     }
 
     // Change business unit, add req data
-    if (![1, 2].includes(payment_period_id) || !business_unit_ids.includes(business_unit_id)) {
+    console.log(business_unit_id, business_unit_ids);
+    if (![1, 2].includes(payment_period_id) || !Array.isArray(business_unit_id)) {
         return res.status(400).json({ message: "Invalid data sent on some fields" });
     }
 
@@ -112,8 +113,16 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     const newUserRole = await getRoleName(role_id);
     const currentUserRole = await getRoleName(new_role_id);
 
+    // Correct it
     if (currentUserRole === "admin") {
-        if (!business_unit_ids.includes(business_unit_id) || newUserRole !== "collab") {
+        let doesNotBelongToBusinessUnits;
+        business_unit_id.forEach(businessUnit => {
+            if (!business_unit_ids.includes(businessUnit)) {
+                doesNotBelongToBusinessUnits = true;
+            }
+        });
+
+        if (doesNotBelongToBusinessUnits || ["collab", "admin"].includes(newUserRole)) {
             return res.status(400).json({ message: "Invalid request" });
         }
 
@@ -126,9 +135,10 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     // Initial password is generated automatically
     const newPass = await generatePassword(30);
 
+    // CHANGE PRIVILEGES
     role_id = new_role_id;
-    const on_leave = false, active = true;
-    const data = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
+    const on_leave = false, active = true, privileges = [1, 2, 3];
+    const data = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, privileges, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
 
     if (!data.successful) {
         return res.sendStatus(500);
@@ -174,10 +184,10 @@ router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
 
     }
 
-    // CURRENTLY HANDLES JUST A BUSINESS UNIT - Needs to check for array in case of assigning multiple bunits
+    // Must be array
     if (business_unit_id) {
-        if (Number.isNaN(parseInt(business_unit_id))) {
-            return res.status(400).json({ message: "Invalid data sent on business_unit. Must be integer or array." });
+        if (!Array.isArray(business_unit_id)) {
+            return res.status(400).json({ message: "Invalid data sent on business_unit. Must be array." });
         }
 
         // New business unit must be within admin's
@@ -225,15 +235,15 @@ router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
         }
     }
 
-    // Privileges must be array
-    // if (privileges) {
-    //     if () {
-
-    //     }
-    // }
+    // Must be array
+    if (privileges) {
+        if (!Array.isArray(privileges)) {
+            return res.status(400).json("Invalid data sent on privileges. Must be array.");
+        }
+    }
 
     let userData;
-    const objectToEdit = { first_name, last_name, birthday, email, phone_number, role_id, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }
+    const objectToEdit = { first_name, last_name, birthday, email, phone_number, role_id, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name };
     if (currentUserRole === "admin") {
         // Cannot edit superadmin 
         if (parseInt(editUserId) === 1) {
