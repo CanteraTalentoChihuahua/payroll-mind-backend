@@ -22,6 +22,8 @@ export type NewUserData = {
     phone_number: string,
     role_id: number,
     payment_period_id: number,
+    on_leave: boolean | undefined,
+    active: boolean | undefined,
     salary_id: number,
     business_unit_id: number,
     bank: string,

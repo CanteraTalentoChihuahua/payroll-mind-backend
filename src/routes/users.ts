@@ -124,9 +124,11 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
     }
 
     // Initial password is generated automatically
-    role_id = new_role_id;
     const newPass = await generatePassword(30);
-    const data = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, payment_period_id, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
+
+    role_id = new_role_id;
+    const on_leave = false, active = true;
+    const data = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
 
     if (!data.successful) {
         return res.sendStatus(500);
@@ -138,16 +140,17 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
 // TO DO: Admin cannot change his own salary --- add superadmin validation in the future
 // Admin cannot change password...
 // NOTE: Superadmin salary is invalid anyway, modification won't matter
+// How specific should my errors be??? Or should I optimize for smaller code and ignore descriptive messages?
 router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
     // Current user
     const { role_id, business_unit } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
-    const { id } = req.params;
+    const currentUserId = role_id;
 
     // Optional 
     const { first_name, second_name, last_name, second_last_name, birthday, email, phone_number, privileges, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id } = req.body;
-    const editUserRoleId = req.body.params;
-    const editUserId = req.body.id;
+    const editUserRoleId = req.body.role_id;
+    const editUserId = req.params.id;
 
     if (!editUserId) {
         return res.status(400).json({ message: "Missing required fields" });
@@ -157,24 +160,30 @@ router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
         return res.status(400).json({ message: "Invalid data sent on id. Must be integer." });
     }
 
-    // Check role...
-    const currentUserRole = await getRoleName(role_id);
+    // Check role of currentUser and editedUser, if exists...
+    const currentUserRole = await getRoleName(parseInt(currentUserId));
     let editUserRole;
 
     if (editUserRoleId) {
-        editUserRole = await getRoleName(editUserId);
+        editUserRole = await getRoleName(parseInt(editUserId));
+
+        // Vulnerability?
+        if (currentUserRole === "admin" || editUserRole !== "collab") {
+            return res.status(400).json({ message: "Invalid request. Cannot create superadmin." });
+        }
+
     }
 
     // CURRENTLY HANDLES JUST A BUSINESS UNIT - Needs to check for array in case of assigning multiple bunits
-    if (business_unit_id) { 
+    if (business_unit_id) {
         if (Number.isNaN(parseInt(business_unit_id))) {
             return res.status(400).json({ message: "Invalid data sent on business_unit. Must be integer or array." });
         }
 
         // New business unit must be within admin's
         if (currentUserRole === "admin") {
-            if (!business_unit_ids.includes(business_unit_id) || editUserRole !== "collab") {
-                return res.status(400).json({ message: "Invalid request" });
+            if (!business_unit_ids.includes(business_unit_id)) {
+                return res.status(400).json({ message: "Invalid request. Out of scope business unit." });
             }
         }
     }
@@ -183,6 +192,11 @@ router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
     if (salary_id) {
         if (Number.isNaN(parseInt(salary_id))) {
             return res.status(400).json({ message: "Invalid data sent on salary_id. Must be integer." });
+        }
+
+        // Cannot edit own salary as admin
+        if (currentUserId == editUserId) {
+            return res.status(400).json({ message: "Invalid request. Cannot edit own salary." });
         }
     }
 
@@ -198,32 +212,39 @@ router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
         }
     }
 
-    // Handle active, on leave
+    // MUST BE TEXT
+    if (active !== undefined) {
+        if (![false, true].includes(active)) {
+            return res.status(400).json("Invalid data sent on active. Must be true or false.");
+        }
+    }
 
-    // How to check privileges???
+    if (on_leave !== undefined) {
+        if (![false, true].includes(on_leave)) {
+            return res.status(400).json("Invalid data sent on on_leave. Must be true or false.");
+        }
+    }
+
+    // Check privileges type and FORMAT
     // if (privileges) {
-    //     if (Number.isNaN(parseFloat(privileges))) {
-    //         return res.status(400).json({ message: "Invalid data sent on privileges" });
+    //     (typeof privileges !== JSON) {
+
     //     }
     // }
 
     let userData;
+    const objectToEdit = { first_name, last_name, birthday, email, phone_number, role_id, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }
     if (currentUserRole === "admin") {
         // Cannot edit superadmin 
-        if (editUserId === 1) {
-            return res.status(400).json({ message: "Invalid request" });
-        }
-
-        // Cannot edit own salary as admin
-        if (salary_id && id === editUserId) {
-            return res.status(400).json({ message: "Invalid request" });
+        if (parseInt(editUserId) === 1) {
+            return res.status(400).json({ message: "Invalid request. Cannot edit superadmin." });
         }
 
         // Redifine vars, thanks typescript
-        userData = await editUser(editUserId, { first_name, last_name, birthday, email, phone_number, role_id, payment_period_id, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, business_unit_ids);
+        userData = await editUser(parseInt(editUserId), objectToEdit, business_unit_ids);
 
     } else {
-        userData = await editUser(editUserId, { first_name, last_name, birthday, email, phone_number, role_id, payment_period_id, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name });
+        userData = await editUser(parseInt(editUserId), objectToEdit);
     }
 
     if (!userData.successful) {
