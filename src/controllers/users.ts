@@ -54,7 +54,7 @@ export async function getUsersList(order: string, by: string, businessUnits?: Ar
         ["payment_period_id", "payment_period"],
         [sqlz.json("business_unit.business_unit_ids"), "business_units"],
         "on_leave",
-        "salary"
+        "salary_id"
     ];
     const orderSet = getOrder(order, by);
 
@@ -96,17 +96,24 @@ export async function getUsersList(order: string, by: string, businessUnits?: Ar
 export async function getUserDetails(id: number, businessUnits?: Array<number>): Promise<{ successful: boolean; found: boolean; userDetails: object | undefined; }> {
     let userDetails;
     const attributesList = [
+        "id",
         "first_name",
         "second_name",
         "last_name",
         "second_last_name",
+        "birthday",
         "email",
-        "role",
+        "phone_number",
+        "role_id",
+        "privileges",
         ["payment_period_id", "payment_period"],
         [sqlz.json("business_unit.business_unit_ids"), "business_units"],
         "on_leave",
         "active",
-        "salary"
+        "salary_id",
+        "bank",
+        "CLABE",
+        "payroll_schema_id"
     ];
 
     let condition;
