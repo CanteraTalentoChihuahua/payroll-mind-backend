@@ -165,11 +165,11 @@ router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
     let editUserRole;
 
     if (editUserRoleId) {
-        editUserRole = await getRoleName(parseInt(editUserId));
+        editUserRole = await getRoleName(parseInt(editUserRoleId));
 
         // Vulnerability?
-        if (currentUserRole === "admin" || editUserRole !== "collab") {
-            return res.status(400).json({ message: "Invalid request. Cannot create superadmin." });
+        if (currentUserRole === "admin" && !["collab", "admin"].includes(editUserRole)) {
+            return res.status(400).json({ message: "Invalid request. Cannot create superadmin or admin." });
         }
 
     }
@@ -225,9 +225,9 @@ router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
         }
     }
 
-    // Check privileges type and FORMAT
+    // Privileges must be array
     // if (privileges) {
-    //     (typeof privileges !== JSON) {
+    //     if () {
 
     //     }
     // }
@@ -255,7 +255,7 @@ router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
         return res.sendStatus(404);
     }
 
-    res.sendStatus(200);
+    res.status(200).json({ message: "User edited succesfully." });
 });
 
 router.delete("/user/:id", privileges(Privileges.DELETE_USERS), async (req, res) => {
