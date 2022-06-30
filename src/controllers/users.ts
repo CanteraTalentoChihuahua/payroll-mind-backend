@@ -8,6 +8,27 @@ const user = require("../database/models/users")(db);
 const roles = require("../database/models/roles")(db);
 const businessUnits = require("../database/models/business_units")(db);
 
+const attributesList = [
+    "id",
+    "first_name",
+    "second_name",
+    "last_name",
+    "second_last_name",
+    "birthday",
+    "email",
+    "phone_number",
+    "role_id",
+    "privileges",
+    ["payment_period_id", "payment_period"],
+    [sqlz.json("business_unit.business_unit_ids"), "business_units"],
+    "on_leave",
+    "active",
+    "salary_id",
+    "bank",
+    "CLABE",
+    "payroll_schema_id"
+];
+
 function getOrder(order: string, by: string) {
     switch (order) {
         case "name": return [
@@ -47,15 +68,6 @@ export async function checkIfEmailExists(email: string) {
 
 export async function getUsersList(order: string, by: string, businessUnits?: Array<number>): Promise<{ successful: boolean; userList: object[] | undefined; }> {
     let userList;
-    const attributesList = [
-        "id",
-        "first_name",
-        "last_name",
-        ["payment_period_id", "payment_period"],
-        [sqlz.json("business_unit.business_unit_ids"), "business_units"],
-        "on_leave",
-        "salary_id"
-    ];
     const orderSet = getOrder(order, by);
 
     if (businessUnits === undefined) {
@@ -95,28 +107,8 @@ export async function getUsersList(order: string, by: string, businessUnits?: Ar
 
 export async function getUserDetails(id: number, businessUnits?: Array<number>): Promise<{ successful: boolean; found: boolean; userDetails: object | undefined; }> {
     let userDetails;
-    const attributesList = [
-        "id",
-        "first_name",
-        "second_name",
-        "last_name",
-        "second_last_name",
-        "birthday",
-        "email",
-        "phone_number",
-        "role_id",
-        "privileges",
-        ["payment_period_id", "payment_period"],
-        [sqlz.json("business_unit.business_unit_ids"), "business_units"],
-        "on_leave",
-        "active",
-        "salary_id",
-        "bank",
-        "CLABE",
-        "payroll_schema_id"
-    ];
-
     let condition;
+
     try {
         if (businessUnits) {
             const unitsList = createUnitsListCondition(businessUnits);

@@ -47,10 +47,10 @@ router.get("/users", privileges(Privileges.READ_USERS), async (req, res) => {
     return res.json(data.userList);
 });
 
-router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
+router.get("/user/:id", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
     const { business_unit, role } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
-    const { id } = req.query;
+    const { id } = req.params;
 
     if (!id || typeof id !== "string" || Number.isNaN(parseInt(id))) {
         return res.status(400).json({ message: "Invalid or missing ID" });
@@ -155,8 +155,9 @@ router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
     const editUserRoleId = req.body.role_id;
     const editUserId = req.params.id;
 
-    if (!editUserId) {
-        return res.status(400).json({ message: "Missing required fields" });
+    // Must specify user to edit, cannot be superadmin
+    if (!editUserId || parseInt(editUserId) === 1) {
+        return res.status(400).json({ message: "Invalid request." });
     }
 
     if (Number.isNaN(parseInt(editUserId))) {
@@ -170,6 +171,7 @@ router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
     if (editUserRoleId) {
         editUserRole = await getRoleName(parseInt(editUserRoleId));
 
+        console.log(editUserRole);
         // Vulnerability?
         if (currentUserRole === "admin" && !["collab", "admin"].includes(editUserRole)) {
             return res.status(400).json({ message: "Invalid request. Cannot create superadmin or admin." });
@@ -241,15 +243,9 @@ router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
 
     let userData;
     const objectToEdit = { first_name, last_name, birthday, email, phone_number, role_id, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name };
+
     if (currentUserRole === "admin") {
-        // Cannot edit superadmin 
-        if (!["collab", "admin"].includes(editUserRole)) {
-            return res.status(400).json({ message: "Invalid request. Cannot edit superadmin." });
-        }
-
-        // Redifine vars, thanks typescript
         userData = await editUser(parseInt(editUserId), objectToEdit, business_unit_ids);
-
     } else {
         userData = await editUser(parseInt(editUserId), objectToEdit);
     }
