@@ -5,7 +5,29 @@ import { hash } from "bcrypt";
 const { Op } = require("sequelize");
 const sqlz = require("sequelize").Sequelize;
 const user = require("../database/models/users")(db);
-const businessUnits = require("../database/models/payments_periods")(db);
+const roles = require("../database/models/roles")(db);
+const businessUnits = require("../database/models/business_units")(db);
+
+const attributesList = [
+    "id",
+    "first_name",
+    "second_name",
+    "last_name",
+    "second_last_name",
+    "birthday",
+    "email",
+    "phone_number",
+    "role_id",
+    "privileges",
+    ["payment_period_id", "payment_period"],
+    [sqlz.json("business_unit.business_unit_ids"), "business_units"],
+    "on_leave",
+    "active",
+    "salary_id",
+    "bank",
+    "CLABE",
+    "payroll_schema_id"
+];
 
 function getOrder(order: string, by: string) {
     switch (order) {
@@ -46,15 +68,6 @@ export async function checkIfEmailExists(email: string) {
 
 export async function getUsersList(order: string, by: string, businessUnits?: Array<number>): Promise<{ successful: boolean; userList: object[] | undefined; }> {
     let userList;
-    const attributesList = [
-        "id",
-        "first_name",
-        "last_name",
-        ["payment_period_id", "payment_period"],
-        [sqlz.json("business_unit.business_unit_ids"), "business_units"],
-        "on_leave",
-        "salary"
-    ];
     const orderSet = getOrder(order, by);
 
     if (businessUnits === undefined) {
@@ -94,21 +107,8 @@ export async function getUsersList(order: string, by: string, businessUnits?: Ar
 
 export async function getUserDetails(id: number, businessUnits?: Array<number>): Promise<{ successful: boolean; found: boolean; userDetails: object | undefined; }> {
     let userDetails;
-    const attributesList = [
-        "first_name",
-        "second_name",
-        "last_name",
-        "second_last_name",
-        "email",
-        "role",
-        ["payment_period_id", "payment_period"],
-        [sqlz.json("business_unit.business_unit_ids"), "business_units"],
-        "on_leave",
-        "active",
-        "salary"
-    ];
-
     let condition;
+
     try {
         if (businessUnits) {
             const unitsList = createUnitsListCondition(businessUnits);
@@ -130,18 +130,19 @@ export async function getUserDetails(id: number, businessUnits?: Array<number>):
     return { successful: true, found: userDetails !== null, userDetails };
 }
 
+// ADD PRIVILEGES SELECTION DEPENDING ON USER SPECIFICATION
 export async function createNewUser(userData: NewUserData, password: string) {
     try {
         await user.create({
             ...userData,
-            business_unit: { business_unit_ids: [userData.business_unit] },
+            business_unit: { business_unit_ids: userData.business_unit_id },
             on_leave: false,
             active: true,
-            payment_period_id: userData.payment_period_id,
-            privileges: { privileges: [1] },
+            privileges: { privileges: userData.privileges },
             password: await hash(password, 10)
         });
-    } catch {
+
+    } catch (error) {
         return { successful: false };
     }
 
@@ -163,7 +164,8 @@ export async function editUser(id: number, userData: Partial<NewUserData>, busin
     try {
         result = await user.update({
             ...userData,
-            ...(userData.business_unit && { business_unit: { business_unit_ids: [userData.business_unit] } })
+            ...(userData.business_unit_id && { business_unit: { business_unit_ids: userData.business_unit_id } }),
+            privileges: { privileges: userData.privileges }
         }, { where: condition });
 
     } catch {
@@ -190,7 +192,6 @@ export async function pseudoDeleteUser(id: number, businessUnits?: Array<number>
         result = await user.update({ active: false }, {
             where: condition
         });
-        console.log(result);
 
     } catch (error) {
         return { successful: false, found: false };
@@ -210,4 +211,21 @@ export async function getPaymentPeriods() {
     }
 
     return businessUnitData;
+}
+
+export async function getRoleName(id: number) {
+    let roleName;
+
+    try {
+        roleName = await roles.findOne({
+            attributes: ["name"],
+            where: { id }
+        });
+
+    } catch (error) {
+        return null;
+    }
+
+    const { name } = roleName;
+    return name;
 }

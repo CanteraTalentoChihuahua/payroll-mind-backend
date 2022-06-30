@@ -18,6 +18,10 @@ module.exports = (sequelize) => {
             models.payments_periods.hasOne(users);
             users.belongsTo(models.roles, { foreignKey: "role_id", allowNull: false });
             models.roles.hasOne(users);
+            users.belongsTo(models.payroll_schemas, { foreignKey: "payroll_schema_id", allowNull: false });
+            models.payroll_schemas.hasOne(users);
+            users.belongsTo(models.salaries, { foreignKey: "salary_id", allowNull: false });
+            models.salaries.hasOne(users);
         }
     }
 
@@ -31,19 +35,23 @@ module.exports = (sequelize) => {
         second_name: Sequelize.STRING,
         last_name: Sequelize.STRING,
         second_last_name: Sequelize.STRING,
+        birthday: Sequelize.STRING,
         email: Sequelize.STRING,
-        password: Sequelize.STRING,
+        phone_number: Sequelize.STRING,
         role_id: Sequelize.STRING,
-        token: Sequelize.STRING,
-        privileges: Sequelize.JSONB,
         payment_period_id: Sequelize.INTEGER,
+        salary_id: Sequelize.INTEGER,
         business_unit: Sequelize.JSONB,
+        bank: Sequelize.STRING,
+        CLABE: Sequelize.STRING,
+        payroll_schema_id: Sequelize.INTEGER,
+        password: Sequelize.STRING,
+        privileges: Sequelize.JSONB,
         on_leave: Sequelize.BOOLEAN,
         active: Sequelize.BOOLEAN,
-        salary: Sequelize.DECIMAL
     }, {
         sequelize,
-        modelName: "user",
+        modelName: "users",
         timestamps: false
     });
     return users;

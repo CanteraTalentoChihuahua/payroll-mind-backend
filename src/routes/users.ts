@@ -1,17 +1,15 @@
 import { Router } from "express";
 // import { sendPasswordEmail } from "../controllers/auth";
-import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, checkIfEmailExists } from "../controllers/users";
+import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName } from "../controllers/users";
 import { generatePassword } from "../controllers/auth";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 
 // Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
 // TO DO: EMAIL SHOULD NOT BE REPEATED
-// Generate random password
-// Recibir email para cambiar password.
 const router = Router();
 
-router.get("/users", privileges(Privileges.READ_USERS), async (req, res) => {
+router.get("/users", privileges(Privileges.READ_USERS, Privileges.READ_COLLABORATORS), async (req, res) => {
     const { business_unit, role } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
@@ -49,20 +47,21 @@ router.get("/users", privileges(Privileges.READ_USERS), async (req, res) => {
     return res.json(data.userList);
 });
 
-router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
-    const { business_unit, role } = res.locals.userInfo;
+router.get("/user/:id", privileges(Privileges.READ_USERS, Privileges.READ_COLLABORATORS), async (req, res) => {
+    const { business_unit, role_id } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
-    const { id } = req.query;
+    const { id } = req.params;
 
     if (!id || typeof id !== "string" || Number.isNaN(parseInt(id))) {
         return res.status(400).json({ message: "Invalid or missing ID" });
     }
 
     let data;
-    if (role === "admin") {
+    const currentUserRole = await getRoleName(role_id);
+    if (currentUserRole === "admin") {
         // Admin can't query superuser data
         if (parseInt(id) === 1) {
-            return res.status(400).json({ message: "Invalid request" });
+            return res.status(400).json({ message: "Invalid request." });
         }
 
         data = await getUserDetails(parseInt(id), business_unit_ids);
@@ -82,50 +81,61 @@ router.get("/user", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
     res.json(data.userDetails);
 });
 
-router.get("/trial", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
-    const { email } = req.body;
-    console.log(await checkIfEmailExists(email));
-    return res.send();
-});
-
+// --FORMAT DATE?
 // FRONT MUST CALL /CHANGE AFTER CREATION DUE TO EMAIL
-router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
-    let { business_unit, role } = res.locals.userInfo;
+// Privileges, password, on_leave, active are given
+router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLLABORATORS, Privileges.REACTIVATE_COLLABORATORS, Privileges.REACTIVATE_ADMINS), async (req, res) => {
+    let { role_id } = res.locals.userInfo;
+    const { business_unit } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
-    const { first_name, last_name, email, payment_period_id, salary, second_name, second_last_name } = req.body;
-    const new_user_business_unit = req.body.business_unit;
-    const new_user_role = req.body.role;
+    // Required
+    const { first_name, last_name, birthday, email, phone_number, payment_period_id, salary_id, business_unit_id, bank, CLABE, payroll_schema_id } = req.body;
+    const new_role_id = req.body.role_id;
 
-    if (!first_name || !last_name || !email || !payment_period_id || !business_unit || !salary) {
+    // Optional
+    const { second_name, second_last_name } = req.body;
+
+    // Required validation
+    if (!first_name || !last_name || !email || !birthday || !email || !phone_number || !new_role_id || !payment_period_id || !salary_id || !business_unit_id || !bank || !CLABE || !payroll_schema_id) {
         return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const emailStatus = await checkIfEmailExists(email);
-    if (emailStatus) {
-        return res.status(400).json({ message: "Invalid request" });
-    }
-
-    if (![1, 2].includes(payment_period_id) || ![1, 2].includes(new_user_business_unit) || Number.isNaN(parseFloat(salary))) {
+    // Change business unit, add req data
+    if (![1, 2].includes(payment_period_id) || !Array.isArray(business_unit_id)) {
         return res.status(400).json({ message: "Invalid data sent on some fields" });
     }
 
-    if (role === "admin") {
-        if (!business_unit_ids.includes(new_user_business_unit) || new_user_role !== "collab") {
+    // Check role...
+    const newUserRole = await getRoleName(role_id);
+    const currentUserRole = await getRoleName(new_role_id);
+
+    // Correct it
+    if (currentUserRole === "admin") {
+        let doesNotBelongToBusinessUnits;
+        business_unit_id.forEach(businessUnit => {
+            if (!business_unit_ids.includes(businessUnit)) {
+                doesNotBelongToBusinessUnits = true;
+            }
+        });
+
+        if (doesNotBelongToBusinessUnits || ["collab", "admin"].includes(newUserRole)) {
             return res.status(400).json({ message: "Invalid request" });
         }
 
     } else {
-        if (new_user_role === "superadmin") {
+        if (newUserRole === "superadmin") {
             return res.status(400).json({ message: "Invalid request" });
         }
     }
 
     // Initial password is generated automatically
     const newPass = await generatePassword(30);
-    business_unit = new_user_business_unit;
-    role = new_user_role;
-    const data = await createNewUser({ first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name }, newPass);
+
+    // CHANGE PRIVILEGES
+    role_id = new_role_id;
+    const on_leave = false, active = true, privileges = [1, 2, 3];
+    const data = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, privileges, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
 
     if (!data.successful) {
         return res.sendStatus(500);
@@ -135,52 +145,110 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
 });
 
 // TO DO: Admin cannot change his own salary --- add superadmin validation in the future
-// NOTE: Superadmin salary is invalid anyway, modification won't matter
-router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
-    const { id, role } = res.locals.userInfo;
-    let { business_unit } = res.locals.userInfo;
+router.put("/user/:id", privileges(Privileges.EDIT_ADMINS, Privileges.EDIT_COLLABORATORS, Privileges.REACTIVATE_COLLABORATORS), async (req, res) => {
+    // Current user
+    const { role_id, business_unit } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
+    const currentUserId = role_id;
 
-    const { first_name, last_name, email, payment_period_id, salary, second_name, second_last_name } = req.body;
-    const req_id = req.body.id;
-    business_unit = req.body.business_unit;
+    // Optional 
+    const { first_name, second_name, last_name, second_last_name, birthday, email, phone_number, privileges, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id } = req.body;
+    const editUserRoleId = req.body.role_id;
+    const editUserId = req.params.id;
 
-    if (!req_id) {
-        return res.status(400).json({ message: "Missing required fields" });
+    // Must specify user to edit, cannot be superadmin
+    if (!editUserId || parseInt(editUserId) === 1) {
+        return res.status(400).json({ message: "Invalid request." });
     }
 
-    if (Number.isNaN(parseInt(req_id))) {
-        return res.status(400).json({ message: "Invalid data sent on some fields" });
+    if (Number.isNaN(parseInt(editUserId))) {
+        return res.status(400).json({ message: "Invalid data sent on id. Must be integer." });
     }
 
-    if (salary) {
-        if (Number.isNaN(parseFloat(salary))) {
-            return res.status(400).json({ message: "Invalid data sent on some fields" });
+    // Check role of currentUser and editedUser, if exists...
+    const currentUserRole = await getRoleName(parseInt(currentUserId));
+    let editUserRole;
+
+    if (editUserRoleId) {
+        editUserRole = await getRoleName(parseInt(editUserRoleId));
+
+        console.log(editUserRole);
+        // Vulnerability?
+        if (currentUserRole === "admin" && !["collab", "admin"].includes(editUserRole)) {
+            return res.status(400).json({ message: "Invalid request. Cannot create superadmin or admin." });
+        }
+
+    }
+
+    // Must be array
+    if (business_unit_id) {
+        if (!Array.isArray(business_unit_id)) {
+            return res.status(400).json({ message: "Invalid data sent on business_unit. Must be array." });
+        }
+
+        let doesNotBelongToBusinessUnits;
+        business_unit_id.forEach((businessUnit: number) => {
+            if (!business_unit_ids.includes(businessUnit)) {
+                doesNotBelongToBusinessUnits = true;
+            }
+        });
+
+        if (doesNotBelongToBusinessUnits) {
+            return res.status(400).json({ message: "Invalid request. Out of scope business unit." });
+        }
+    }
+
+    // Invalid datatypes
+    if (salary_id) {
+        if (Number.isNaN(parseInt(salary_id))) {
+            return res.status(400).json({ message: "Invalid data sent on salary_id. Must be integer." });
+        }
+
+        // Cannot edit own salary as admin
+        if (currentUserId == editUserId) {
+            return res.status(400).json({ message: "Invalid request. Cannot edit own salary." });
         }
     }
 
     if (payment_period_id) {
-        if (![1, 2].includes(parseInt(payment_period_id))) {
-            return res.status(400).json({ message: "Invalid data sent on some fields" });
+        if (Number.isNaN(parseInt(payment_period_id))) {
+            return res.status(400).json({ message: "Invalid data sent on payment_period_id. Must be integer." });
+        }
+    }
+
+    if (payroll_schema_id) {
+        if (Number.isNaN(parseInt(payroll_schema_id))) {
+            return res.status(400).json({ message: "Invalid data sent on payment_period_id. Must be integer." });
+        }
+    }
+
+    // MUST BE TEXT
+    if (active !== undefined) {
+        if (![false, true].includes(active)) {
+            return res.status(400).json("Invalid data sent on active. Must be true or false.");
+        }
+    }
+
+    if (on_leave !== undefined) {
+        if (![false, true].includes(on_leave)) {
+            return res.status(400).json("Invalid data sent on on_leave. Must be true or false.");
+        }
+    }
+
+    // Must be array
+    if (privileges) {
+        if (!Array.isArray(privileges)) {
+            return res.status(400).json("Invalid data sent on privileges. Must be array.");
         }
     }
 
     let userData;
-    if (role === "admin") {
-        // Cannot edit superadmin 
-        if (req_id === 1) {
-            return res.status(400).json({ message: "Invalid request" });
-        }
+    const objectToEdit = { first_name, last_name, birthday, email, phone_number, role_id, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name };
 
-        // Cannot edit own salary as admin
-        if (salary && id === req_id) {
-            return res.status(400).json({ message: "Invalid request" });
-        }
-
-        userData = await editUser(req_id, { first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name }, business_unit_ids);
-
+    if (currentUserRole === "admin") {
+        userData = await editUser(parseInt(editUserId), objectToEdit, business_unit_ids);
     } else {
-        userData = await editUser(req_id, { first_name, last_name, email, payment_period_id, business_unit, role, salary, second_name, second_last_name });
+        userData = await editUser(parseInt(editUserId), objectToEdit);
     }
 
     if (!userData.successful) {
@@ -191,13 +259,13 @@ router.put("/user", privileges(Privileges.EDIT_USERS), async (req, res) => {
         return res.sendStatus(404);
     }
 
-    res.sendStatus(200);
+    res.status(200).json({ message: "User edited succesfully." });
 });
 
-router.delete("/user", privileges(Privileges.DELETE_USERS), async (req, res) => {
-    const { business_unit, role } = res.locals.userInfo;
+router.delete("/user/:id", privileges(Privileges.DELETE_COLLABORATORS, Privileges.DELETE_ADMINS), async (req, res) => {
+    const { business_unit, role_id } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
-    const { id } = req.query;
+    const { id } = req.params;
 
     if (!id || typeof id !== "string" || Number.isNaN(parseInt(id))) {
         return res.status(400).json({ message: "Invalid or missing ID" });
@@ -208,8 +276,11 @@ router.delete("/user", privileges(Privileges.DELETE_USERS), async (req, res) => 
         return res.status(400).json({ message: "Invalid request" });
     }
 
+    // Check role...
+    const currentUserRole = await getRoleName(role_id);
+
     let userData;
-    if (role === "admin") {
+    if (currentUserRole === "admin") {
         userData = await pseudoDeleteUser(parseInt(id), business_unit_ids);
 
     } else {
@@ -224,7 +295,7 @@ router.delete("/user", privileges(Privileges.DELETE_USERS), async (req, res) => 
         return res.status(400).json({ message: "Not found or invalid request" });
     }
 
-    return res.sendStatus(204);
+    return res.status(200).json({ message: "Successfully deleted user" });
 });
 
 export default router;
