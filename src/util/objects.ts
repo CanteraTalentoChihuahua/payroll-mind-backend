@@ -19,7 +19,7 @@ export const Privileges = {
 
     CREATE_BONUSES: { id: 23, description: "Crear bonos" },
     READ_BONUSES: { id: 25, description: "Ver todos los bonos existentes" },
-    EDIT_BONUSES: {id:27, description: "Editar bonos"},
+    EDIT_BONUSES: { id: 27, description: "Editar bonos" },
     DELETE_BONUSES: { id: 24, description: "Borrar bonos" },
     ASSIGN_BONUSES: { id: 17, description: "Asignar bonos" },
 
