@@ -31,7 +31,7 @@ export const Privileges = {
 
     CREATE_REPORTS: { id: 21, description: "Crear reportes" },
     READ_REPORTS: { id: 16, description: "Ver reportes" },
-    READ_BUSINESS_UNITS: { id: 8, description: "Leer las unidades de negocio" },
+
     READ_USERS: { id: 11, description: "Leer los usuarios del sistema " }            // Specify business unit?
 };
 
