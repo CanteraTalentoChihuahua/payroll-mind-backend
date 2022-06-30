@@ -1,10 +1,9 @@
-import { Privileges } from "../util/objects";
 import express from "express";
-import {
-    logIn,
-    sendPasswordEmail,
-    restorePassword
-} from "../controllers/auth";
+import { checkIfEmailExists } from "../controllers/users";
+import { sendPasswordChangeEmail } from "../controllers/auth";
+import { logIn, sendPasswordRestoreEmail, restorePassword } from "../controllers/auth";
+
+// TO DO: ADD LOGIC SO THAT ID=1 EMAIL CANT BE CHANGED
 
 const router = express.Router();
 
@@ -36,9 +35,32 @@ router.post("/login", async (req, res) => {
 
 router.post("/forgot", async (req, res) => {
     const { email } = req.body;
-    const emailStatus = await sendPasswordEmail(email);
 
-    if (emailStatus!.isSuccessful === true) {
+    const userStatus = await checkIfEmailExists(email);
+    if (!userStatus) {
+        return res.sendStatus(404);
+    }
+
+    const emailStatus = await sendPasswordRestoreEmail(userStatus.id, email);
+    if (emailStatus!.isSuccessful) {
+        res.status(200).send("Email sent.");
+
+    } else {
+        res.status(500).send("Unable to send email.");
+    }
+});
+
+router.post("/change", async (req, res) => {
+    const { email } = req.body;
+
+    const userStatus = await checkIfEmailExists(email);
+    if (!userStatus) {
+        return res.sendStatus(404);
+    }
+
+    const emailStatus = await sendPasswordChangeEmail(userStatus.id, userStatus.password, email);
+
+    if (emailStatus!.isSuccessful) {
         res.status(200).send("Email sent.");
 
     } else {
@@ -60,15 +82,6 @@ router.post("/restore", async (req, res) => {
     }
 
     return res.status(200).json({ message: "Password changed correctly." });
-});
-
-router.get("/privileges", async (req, res) => {
-    try {
-        res.status(200).send(Privileges);
-    } catch (error) {
-        res.status(503).json({ message: "Unable to send privileges." });
-    }
-
 });
 
 export default router;

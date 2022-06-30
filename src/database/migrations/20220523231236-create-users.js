@@ -25,16 +25,26 @@ module.exports = {
                 type: Sequelize.STRING,
                 allowNull: true
             },
-            email: {
+            birthday: {
                 type: Sequelize.STRING,
                 allowNull: false
+            },
+            email: {
+                type: Sequelize.STRING,
+                allowNull: false,
+                unique: true
             },
             password: {
                 type: Sequelize.STRING,
                 allowNull: false
             },
-            role: {
+            phone_number: {
                 type: Sequelize.STRING,
+                allowNull: false,
+                unique: true
+            },
+            role_id: {
+                type: Sequelize.INTEGER,
                 allowNull: false
             },
             privileges: {
@@ -57,13 +67,26 @@ module.exports = {
                 type: Sequelize.BOOLEAN,
                 allowNull: false
             },
-            salary: {
-                type: Sequelize.DECIMAL,
+            salary_id: {
+                type: Sequelize.INTEGER,
                 allowNull: false
+            },
+            bank: {
+                type: Sequelize.STRING,
+                allowNull: false
+            },
+            CLABE: {
+                type: Sequelize.STRING,
+                allowNull: false,
+                unique: true
             },
             token: {
                 type: Sequelize.STRING,
                 allowNull: true
+            },
+            payroll_schema_id: {
+                type: Sequelize.INTEGER,
+                allowNull: false
             },
             createdAt: {
                 allowNull: false,
@@ -73,8 +96,8 @@ module.exports = {
             updatedAt: {
                 allowNull: true,
                 type: Sequelize.DATE
-            }      
-        },{});
+            }
+        }, {});
     },
     async down(queryInterface, Sequelize) {
         await queryInterface.dropTable("users");
