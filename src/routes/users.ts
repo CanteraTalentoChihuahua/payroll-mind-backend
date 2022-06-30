@@ -1,6 +1,6 @@
 import { Router } from "express";
 // import { sendPasswordEmail } from "../controllers/auth";
-import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, checkIfEmailExists, getRoleName } from "../controllers/users";
+import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName } from "../controllers/users";
 import { generatePassword } from "../controllers/auth";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
@@ -48,7 +48,7 @@ router.get("/users", privileges(Privileges.READ_USERS), async (req, res) => {
 });
 
 router.get("/user/:id", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
-    const { business_unit, role } = res.locals.userInfo;
+    const { business_unit, role_id } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
     const { id } = req.params;
 
@@ -57,10 +57,11 @@ router.get("/user/:id", privileges(Privileges.CREATE_ADMIN), async (req, res) =>
     }
 
     let data;
-    if (role === "admin") {
+    const currentUserRole = await getRoleName(role_id);
+    if (currentUserRole === "admin") {
         // Admin can't query superuser data
         if (parseInt(id) === 1) {
-            return res.status(400).json({ message: "Invalid request" });
+            return res.status(400).json({ message: "Invalid request." });
         }
 
         data = await getUserDetails(parseInt(id), business_unit_ids);
