@@ -9,7 +9,7 @@ import { Privileges } from "../util/objects";
 // TO DO: EMAIL SHOULD NOT BE REPEATED
 const router = Router();
 
-router.get("/users", privileges(Privileges.READ_USERS), async (req, res) => {
+router.get("/users", privileges(Privileges.READ_USERS, Privileges.READ_COLLABORATORS), async (req, res) => {
     const { business_unit, role } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
@@ -47,7 +47,7 @@ router.get("/users", privileges(Privileges.READ_USERS), async (req, res) => {
     return res.json(data.userList);
 });
 
-router.get("/user/:id", privileges(Privileges.CREATE_ADMIN), async (req, res) => {
+router.get("/user/:id", privileges(Privileges.READ_USERS, Privileges.READ_COLLABORATORS), async (req, res) => {
     const { business_unit, role_id } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
     const { id } = req.params;
@@ -84,7 +84,7 @@ router.get("/user/:id", privileges(Privileges.CREATE_ADMIN), async (req, res) =>
 // --FORMAT DATE?
 // FRONT MUST CALL /CHANGE AFTER CREATION DUE TO EMAIL
 // Privileges, password, on_leave, active are given
-router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
+router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLLABORATORS, Privileges.REACTIVATE_COLLABORATORS, Privileges.REACTIVATE_ADMINS), async (req, res) => {
     let { role_id } = res.locals.userInfo;
     const { business_unit } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
@@ -145,7 +145,7 @@ router.post("/user", privileges(Privileges.CREATE_USERS), async (req, res) => {
 });
 
 // TO DO: Admin cannot change his own salary --- add superadmin validation in the future
-router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
+router.put("/user/:id", privileges(Privileges.EDIT_ADMINS, Privileges.EDIT_COLLABORATORS, Privileges.REACTIVATE_COLLABORATORS), async (req, res) => {
     // Current user
     const { role_id, business_unit } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
@@ -262,7 +262,7 @@ router.put("/user/:id", privileges(Privileges.EDIT_USERS), async (req, res) => {
     res.status(200).json({ message: "User edited succesfully." });
 });
 
-router.delete("/user/:id", privileges(Privileges.DELETE_USERS), async (req, res) => {
+router.delete("/user/:id", privileges(Privileges.DELETE_COLLABORATORS, Privileges.DELETE_ADMINS), async (req, res) => {
     const { business_unit, role_id } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
     const { id } = req.params;
