@@ -14,8 +14,6 @@ export async function logIn(email: string, password: string) {
         return { loggedIn: false, token: null };
     }
 
-    console.log(userData.roles.name);
-
     const token = createSessionJWT({
         id: userData.dataValues.id,
         role: userData.dataValues.role
