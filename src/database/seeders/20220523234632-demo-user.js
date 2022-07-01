@@ -13,7 +13,7 @@ module.exports = {
             phone_number: "6622274321",
             role_id: 1,
             privileges: {
-                privileges: [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]
+                privileges: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]
             },
             payment_period_id: 1,
             business_unit: {
@@ -39,7 +39,7 @@ module.exports = {
             phone_number: "66222743282",
             role_id: 2,
             privileges: {
-                privileges: [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]
+                privileges: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]
             },
             payment_period_id: 1,
             business_unit: {

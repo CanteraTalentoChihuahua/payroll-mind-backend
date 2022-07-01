@@ -8,31 +8,31 @@ export const Privileges = {
     CREATE_COLLABORATORS: { id: 6, description: "Crear colaboradores" },
     READ_COLLABORATORS: { id: 7, description: "Ver todos los colaboradores" },
     EDIT_COLLABORATORS: { id: 8, description: "Editar colaboradores" },
-    DELETE_COLLABORATORS: { id: 10, description: "Borrar colaboradores" },
-    REACTIVATE_COLLABORATORS: { id: 11, description: "Reactivar colaboradores inactivos" },
+    DELETE_COLLABORATORS: { id: 9, description: "Borrar colaboradores" },
+    REACTIVATE_COLLABORATORS: { id: 10, description: "Reactivar colaboradores inactivos" },
 
-    CREATE_BUSINESS_UNITS: { id: 12, description: "Crear unidades de negocio" },
-    READ_BUSINESS_UNITS: { id: 13, description: "Leer las unidades de negocio" },
-    EDIT_BUSINESS_UNITS: { id: 14, description: "Editar las unidades de negocio" },
-    DELETE_BUSINESS_UNITS: { id: 15, description: "Remover las unidades de negocio" },
-    REACTIVATE_BUSINESS_UNITS: { id: 16, description: "Reactivar unidades de negocio inactivas" },
+    CREATE_BUSINESS_UNITS: { id: 11, description: "Crear unidades de negocio" },
+    READ_BUSINESS_UNITS: { id: 12, description: "Leer las unidades de negocio" },
+    EDIT_BUSINESS_UNITS: { id: 13, description: "Editar las unidades de negocio" },
+    DELETE_BUSINESS_UNITS: { id: 14, description: "Remover las unidades de negocio" },
+    REACTIVATE_BUSINESS_UNITS: { id: 15, description: "Reactivar unidades de negocio inactivas" },
 
-    CREATE_BONUSES: { id: 17, description: "Crear bonos" },
-    READ_BONUSES: { id: 18, description: "Ver todos los bonos existentes" },
-    EDIT_BONUSES: { id: 19, description: "Editar bonos" },
-    DELETE_BONUSES: { id: 20, description: "Borrar bonos" },
-    ASSIGN_BONUSES: { id: 21, description: "Asignar bonos" },
+    CREATE_BONUSES: { id: 16, description: "Crear bonos" },
+    READ_BONUSES: { id: 17, description: "Ver todos los bonos existentes" },
+    EDIT_BONUSES: { id: 18, description: "Editar bonos" },
+    DELETE_BONUSES: { id: 19, description: "Borrar bonos" },
+    ASSIGN_BONUSES: { id: 20, description: "Asignar bonos" },
 
-    GIVE_PRIVILEGES: { id: 22, description: "Asignar privilegios" },
-    REMOVE_PRIVILEGES: { id: 23, description: "Remover privilegios" },
+    GIVE_PRIVILEGES: { id: 21, description: "Asignar privilegios" },
+    REMOVE_PRIVILEGES: { id: 22, description: "Remover privilegios" },
 
-    CREATE_PAYROLL_RECEIPTS: { id: 24, description: "Generar recibos de nómina" },
-    EDIT_PAYROLL: { id: 25, description: "Editar datos de nómina" },
+    CREATE_PAYROLL_RECEIPTS: { id: 23, description: "Generar recibos de nómina" },
+    EDIT_PAYROLL: { id: 24, description: "Editar datos de nómina" },
 
-    CREATE_REPORTS: { id: 26, description: "Crear reportes" },
-    READ_REPORTS: { id: 27, description: "Ver reportes" },
+    CREATE_REPORTS: { id: 25, description: "Crear reportes" },
+    READ_REPORTS: { id: 26, description: "Ver reportes" },
 
-    READ_USERS: { id: 28, description: "Leer los usuarios del sistema " }            // Specify business unit?
+    READ_USERS: { id: 27, description: "Leer los usuarios del sistema " }            // Specify business unit?
 };
 
 export type Privilege = { id: number, description: string }
