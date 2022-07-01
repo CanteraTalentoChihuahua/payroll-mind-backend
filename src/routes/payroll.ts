@@ -1,7 +1,7 @@
 import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
-import { templateFunction, getIncomes } from "../controllers/payroll";
+import { templateFunction, getIncomes, getRoles } from "../controllers/payroll";
 
 const router = express.Router();
 
@@ -40,6 +40,13 @@ router.get("/payroll/:id", privileges(Privileges.READ_REPORTS), async (req, res)
     };
 
     return res.status(200).send(payrollObject);
+});
+
+router.get("/payroll/trial/:id", async (req, res) => {
+    const { id } = req.params;
+    const data = await getRoles(parseInt(id));
+
+    return res.status(200).send(data);
 });
 
 export default router;

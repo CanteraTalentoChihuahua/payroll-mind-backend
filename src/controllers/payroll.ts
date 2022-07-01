@@ -85,3 +85,11 @@ export async function getIncomes(userId: number) {
 
     return { successful: true, incomesObject };
 }
+
+export async function getRoles(userId: number) {
+    const userData = await users.findOne({
+        where: { id: userId }
+    });
+
+    return userData;
+}
