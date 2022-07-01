@@ -6,7 +6,7 @@ export const Privileges = {
     REACTIVATE_ADMINS: { id: 5, description: "Reactivar administradores inactivos" },
 
     CREATE_COLLABORATORS: { id: 6, description: "Crear colaboradores" },
-    READ_COLLABORATORS: {id: 7, description:"Ver todos los colaboradores"},
+    READ_COLLABORATORS: { id: 7, description: "Ver todos los colaboradores" },
     EDIT_COLLABORATORS: { id: 8, description: "Editar colaboradores" },
     DELETE_COLLABORATORS: { id: 10, description: "Borrar colaboradores" },
     REACTIVATE_COLLABORATORS: { id: 11, description: "Reactivar colaboradores inactivos" },
