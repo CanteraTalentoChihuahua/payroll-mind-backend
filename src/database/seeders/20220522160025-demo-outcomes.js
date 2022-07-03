@@ -17,7 +17,12 @@ module.exports = {
         name: "Fondo Aurrera La Campeona de los Precios Bajos",
         automatic: false,
         active: false
-      }
+      },
+      {
+        name: "Fondo de Bikini",
+        automatic: false,
+        active: true
+      },
     ]);
   },
 
