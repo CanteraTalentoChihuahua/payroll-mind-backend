@@ -1,8 +1,5 @@
 import express from "express";
-import { Privileges } from "../util/objects";
-import privileges from "../middleware/privileges";
 import { getUserData, getSalary, getIncomes, getOutcomes, calculatePayroll } from "../controllers/payroll";
-import incomes from "../database/models/incomes";
 
 const router = express.Router();
 
