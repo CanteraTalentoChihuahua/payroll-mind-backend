@@ -138,7 +138,7 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
     const data = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, privileges, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
 
     if (!data.successful) {
-        return res.sendStatus(500);
+        return res.status(500).json({ message: "Something went wrong. Fields might be duplicated." });
     }
 
     res.status(201).json({ message: "User created successfully" });
