@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import db from "../database/database";
 
 const users = require("../database/models/users")(db);
@@ -11,13 +12,13 @@ const outcomes = require("../database/models/incomes")(db);
 const outcomes_users = require("../database/models/outcomes_users")(db);
 
 
-const attributesList = ["active", "role_id", "payment_period_id", "salary_id", "payroll_schema_id"]
+const attributesList = ["active", "role_id", "payment_period_id", "salary_id", "payroll_schema_id"];
 
 // Would be easier with require...
 
 // Query incomes, outc
 // Queries only active collabs
-export async function templateFunction(id: number) {
+export async function getUserData(id: number) {
     let userData;
 
     // Cannot query id=1
@@ -30,58 +31,59 @@ export async function templateFunction(id: number) {
             }
         });
 
+        if (!userData) {
+            return { successful: false };
+        }
+
     } catch (error) {
         return { successful: false };
     }
-
-    if (!userData) {
-        return { successful: false };
-    }
-
-    // Extract salary 
-
 
     return { successful: true, userData };
 }
 
 // Queries need to be cycled
 export async function getIncomes(userId: number) {
-    let incomeUsersData;
-
-    // ADAPT TO MULTIPLE
-    try {
-        incomeUsersData = await incomes_users.findOne({
-            where: {
-                deletedAt: null,
-                user_id: userId
-            }
-        });
-
-        if (!incomeUsersData) {
-            return { successful: false, found: false };
-        }
-
-    } catch (error) {
-        return { successful: false };
-    }
-
-    const incomesData = await incomes.findOne({
+    // Query incomes_users directly -- MUST NOT BE DELETED
+    const incomesData = await incomes_users.findAll({
+        attributes: ["income_id", "counter", "amount"],
         where: {
-            id: incomeUsersData.id
-        }
+            user_id: userId,
+            deletedAt: null
+        },
+        raw: true
     });
 
-    // Check their name, if automatic and active
-    const { id, name, automatic, active } = incomesData;
+    // Create an id array for querying...
+    interface idQuery { id: number; }
+    const idList: idQuery[] = [];
 
-    if (!active) {
-        return { successful: true, active };
+    for (const incomesUsers in incomesData) {
+        idList.push({ "id": parseInt(incomesData[incomesUsers].income_id) });
     }
 
-    let incomesObject;
-    if (automatic) {
-        incomesObject = { id, name, automatic };
-    }
+    // Check their name via the id -- MUST BE ACTIVE
+    const activeIncomes = await incomes.findAll({
+        attributes: ["name", "automatic"],
+        where: {
+            [Op.or]: idList,
+            active: true
+        },
+        raw: true
+    });
 
-    return { successful: true, incomesObject };
+    // If it works... Create the incomes object -- JOIN ALL DATA
+    const incomesObject: unknown[] = [];
+    // Two objects : activeIncomes, incomesData
+
+    interface incomesRow { income_id: number, counter: number, amount: number; }
+    incomesData.forEach((activeIncome: incomesRow, index: number) => {
+        const incomesObjectElement = Object.assign(activeIncome, activeIncomes[index]);
+        incomesObject.push(incomesObjectElement);
+    });
+
+    // console.log(Object.assign(activeIncomes, incomesData));
+    return incomesObject;
+
+
 }
