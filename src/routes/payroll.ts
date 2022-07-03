@@ -1,7 +1,7 @@
 import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
-import { getUserData, getIncomes } from "../controllers/payroll";
+import { getUserData, getIncomes, getOutcomes } from "../controllers/payroll";
 import incomes from "../database/models/incomes";
 
 const router = express.Router();
@@ -20,10 +20,22 @@ router.get("/payroll/:id", async (req, res) => {
     const { userData } = userDataObject;
 
     // Query incomes-users
-    const incomesObject = await getIncomes(parseInt(id));
-    res.status(200).json(incomesObject);
+    const incomesDataObject = await getIncomes(parseInt(id));
+    const { incomesObject } = incomesDataObject;
+
+    if (!incomesDataObject.successful) {
+        return res.sendStatus(500);
+    }
 
     // Query outcomes-users
+    const outcomesDataObject = await getOutcomes(parseInt(id));
+    const { outcomesObject } = outcomesDataObject;
+
+    if (!outcomesDataObject.successful) {
+        return res.sendStatus(500);
+    }
+
+    res.status(200).send([incomesObject, outcomesObject]);
 
     // Sum total
 
