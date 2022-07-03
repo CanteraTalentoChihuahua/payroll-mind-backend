@@ -2,7 +2,6 @@ import { Op } from "sequelize";
 import db from "../database/database";
 
 const users = require("../database/models/users")(db);
-const roles = require("../database/models/roles")(db);
 const salaries = require("../database/models/salaries")(db);
 
 const incomes = require("../database/models/incomes")(db);
@@ -11,10 +10,23 @@ const incomes_users = require("../database/models/incomes_users")(db);
 const outcomes = require("../database/models/outcomes")(db);
 const outcomes_users = require("../database/models/outcomes_users")(db);
 
-
 const attributesList = ["active", "role_id", "payment_period_id", "salary_id", "payroll_schema_id"];
 
-// Would be easier with require...
+interface incomesObj {
+    "income_id": number | undefined,
+    "counter": number | undefined,
+    "amount": string | undefined,
+    "name": string | undefined,
+    "automatic": boolean | undefined
+}
+
+interface outcomesObj {
+    "outcome_id": number | undefined,
+    "counter": number | undefined,
+    "amount": string | undefined,
+    "name": string | undefined,
+    "automatic": boolean | undefined
+}
 
 // Query incomes, outc
 // Queries only active collabs
@@ -43,7 +55,6 @@ export async function getUserData(id: number) {
 }
 
 // Change return objects
-// Queries need to be cycled
 export async function getIncomes(userId: number) {
     let incomesData;
     try {
@@ -94,10 +105,9 @@ export async function getIncomes(userId: number) {
     }
 
     // If it works... Create the incomes object -- JOIN ALL DATA
-    const incomesObject: unknown[] = [];
-    interface incomesRow { income_id: number, counter: number, amount: number; }
+    const incomesObject: incomesObj[] = [];
 
-    incomesData.forEach((income: incomesRow, index: number) => {
+    incomesData.forEach((income: incomesObj, index: number) => {
         if (!activeIncomes[index]) {
             return;
         }
@@ -105,9 +115,9 @@ export async function getIncomes(userId: number) {
         incomesObject.push(incomesObjectElement);
     });
 
-    // console.log(Object.assign(activeIncomes, incomesData));
     return { successful: true, incomesObject };
 }
+
 
 export async function getOutcomes(userId: number) {
     let outcomesData;
@@ -125,8 +135,6 @@ export async function getOutcomes(userId: number) {
         if (!outcomesData) {
             return { successful: false };
         }
-
-        console.log(outcomesData);
 
     } catch (error) {
         return { successful: false };
@@ -152,8 +160,6 @@ export async function getOutcomes(userId: number) {
             raw: true
         });
 
-        console.log(activeOutcomes);
-
         if (!activeOutcomes) {
             return { successful: false };
         }
@@ -163,11 +169,9 @@ export async function getOutcomes(userId: number) {
     }
 
     // If it works... Create the incomes object -- JOIN ALL DATA
-    const outcomesObject: unknown[] = [];
-    // Two objects : activeIncomes, incomesData
+    const outcomesObject: outcomesObj[] = [];
 
-    interface outcomesRow { outcome_id: number, counter: number, amount: number; }
-    outcomesData.forEach((outcome: outcomesRow, index: number) => {
+    outcomesData.forEach((outcome: outcomesObj, index: number) => {
         if (!activeOutcomes[index]) {
             return;
         }
@@ -175,6 +179,47 @@ export async function getOutcomes(userId: number) {
         outcomesObject.push(outcomesObjectElement);
     });
 
-    // console.log(Object.assign(activeIncomes, incomesData));
     return { successful: true, outcomesObject };
+}
+
+// Check the most recent???
+export async function getSalary(userId: number) {
+    let salaryData;
+
+    try {
+        salaryData = await salaries.findAll({
+            attributes: ["salary"],
+            where: {
+                user_id: userId,
+                deletedAt: null
+            },
+            raw: true
+        });
+
+        if (!salaryData) {
+            return { successful: false };
+        }
+
+    } catch (error) {
+        return { successful: false };
+    }
+
+    return { successful: true, salaryData };
+}
+
+
+export async function calculatePayroll(incomes: incomesObj[] | undefined, outcomes: outcomesObj[] | undefined, salary: number) {
+    let payrollTotal: number = salary;
+
+    for (const incomeObj in incomes) {
+        const { counter, amount } = incomes[parseInt(incomeObj)];
+        payrollTotal += counter as number * parseFloat(amount!);
+    }
+
+    for (const outcomeObj in outcomes) {
+        const { counter, amount } = outcomes[parseInt(outcomeObj)];
+        payrollTotal -= counter as number * parseFloat(amount!);
+    }
+
+    return payrollTotal;
 }

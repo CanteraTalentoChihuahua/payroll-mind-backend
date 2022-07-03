@@ -1,7 +1,7 @@
 import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
-import { getUserData, getIncomes, getOutcomes } from "../controllers/payroll";
+import { getUserData, getSalary, getIncomes, getOutcomes, calculatePayroll } from "../controllers/payroll";
 import incomes from "../database/models/incomes";
 
 const router = express.Router();
@@ -17,44 +17,41 @@ router.get("/payroll/:id", async (req, res) => {
         return res.status(404).json({ message: "No user found." });
     }
 
-    const { userData } = userDataObject;
-
     // Query incomes-users
     const incomesDataObject = await getIncomes(parseInt(id));
-    const { incomesObject } = incomesDataObject;
-
     if (!incomesDataObject.successful) {
         return res.sendStatus(500);
     }
 
     // Query outcomes-users
     const outcomesDataObject = await getOutcomes(parseInt(id));
-    const { outcomesObject } = outcomesDataObject;
-
     if (!outcomesDataObject.successful) {
         return res.sendStatus(500);
     }
 
-    res.status(200).send([incomesObject, outcomesObject]);
+    // Query salary
+    const salaryDataObject = await getSalary(parseInt(id));
+    if (!salaryDataObject.successful) {
+        return res.sendStatus(500);
+    }
 
-    // Sum total
+    // Payroll sum total
+    const { incomesObject } = incomesDataObject;
+    const { outcomesObject } = outcomesDataObject;
+    const { salary } = salaryDataObject.salaryData[0];
 
-    // Build final object (id, name, amount for each entry ; sum total)
+    // Final payroll value
+    const payrollTotal = await calculatePayroll(incomesObject, outcomesObject, parseFloat(salary));
 
-    // Send final JSON 
+    // Build JSON object
+    const payrollObject = {
+        incomes: incomesObject,
+        outcomes: outcomesObject,
+        salary: parseFloat(salary),
+        total: payrollTotal
+    };
 
-    // if (!userDataObject.successful) {
-    //     return res.status(400).send("An error occured.");
-    // }
-
-    // const payrollObject = {
-    //     "incomes": {},
-    //     "outcomes": {},
-    //     "salary": {},
-    //     "sum_total": {}
-    // };
-
-    // return res.status(200).send(payrollObject);
+    res.status(200).send(payrollObject);
 });
 
 export default router;
