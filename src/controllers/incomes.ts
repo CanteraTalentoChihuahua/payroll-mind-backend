@@ -134,3 +134,8 @@ export async function getIncomesLength() {
     const data = await incomes.findAll()
     return parseInt(data.length);
 }
+
+export async function getOutcomesLength() {
+    const data = await outcomes.findAll()
+    return parseInt(data.length);
+}
