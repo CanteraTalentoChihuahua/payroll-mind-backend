@@ -2,9 +2,14 @@ import db from "../database/database";
 import { newIncomeData, newOutcomeData } from "../util/objects";
 
 const incomes_users = require("../database/models/incomes_users")(db);
-const outcomes_users = require("../database/models/incomes_users")(db);
+const outcomes_users = require("../database/models/outcomes_users")(db);
 const incomes = require("../database/models/incomes")(db);
-const outcomes = require("../database/models/incomes")(db);
+const outcomes = require("../database/models/outcomes")(db);
+
+const { sequelize } = require("sequelize");
+
+// What if an outcome / income is inactive? How to activate it?
+// Activate endpoint...
 
 interface entryObj {
     name: string, automatic: boolean, active: boolean
@@ -26,7 +31,7 @@ export async function createIncome(incomeData: entryObj) {
 
 export async function createOutcome(outcomeData: entryObj) {
     try {
-        await incomes.create({
+        await outcomes.create({
             ...outcomeData,
             createdAt: new Date()
         });
@@ -50,7 +55,7 @@ export async function createUserIncome(userId: number, incomeUserData: newIncome
                 active: true
             },
             raw: true
-        })
+        });
 
         if (!incomesData) {
             return { successful: false, found: false };
@@ -61,7 +66,7 @@ export async function createUserIncome(userId: number, incomeUserData: newIncome
     }
 
     // Income entry exist, check if incomeUsers exist
-    const updateObj = { counter: incomeUserData.counter, amount: incomeUserData.amount }
+    const updateObj = { counter: incomeUserData.counter, amount: incomeUserData.amount };
     const entryResult = await incomes_users.update(updateObj, {
         where: {
             income_id: incomeUserData.income_id,
@@ -78,7 +83,7 @@ export async function createUserIncome(userId: number, incomeUserData: newIncome
             updatedAt: null
         });
 
-        return { successful: true }
+        return { successful: true };
     }
 
     return { successful: true, updated: true };
@@ -87,7 +92,7 @@ export async function createUserIncome(userId: number, incomeUserData: newIncome
 export async function createUserOutcome(userId: number, outcomeUserData: newOutcomeData) {
     let outcomesData;
 
-    // Check if income exists
+    // Check if outcome exists
     try {
         outcomesData = await outcomes.findOne({
             attributes: ["name", "automatic"],
@@ -96,7 +101,7 @@ export async function createUserOutcome(userId: number, outcomeUserData: newOutc
                 active: true
             },
             raw: true
-        })
+        });
 
         if (!outcomesData) {
             return { successful: false, found: false };
@@ -106,8 +111,8 @@ export async function createUserOutcome(userId: number, outcomeUserData: newOutc
         return { successful: false };
     }
 
-    // Income entry exist, check if incomeUsers exist
-    const updateObj = { counter: outcomeUserData.counter, amount: outcomeUserData.amount }
+    // Outcome entry exist, check if outcomeUsers exist
+    const updateObj = { counter: outcomeUserData.counter, amount: outcomeUserData.amount };
     const entryResult = await outcomes_users.update(updateObj, {
         where: {
             outcome_id: outcomeUserData.outcome_id,
@@ -115,7 +120,7 @@ export async function createUserOutcome(userId: number, outcomeUserData: newOutc
         }
     });
 
-    // Does not exists, create incomeUsers entry
+    // Does not exists, create outcomeUsers entry
     if (entryResult[0] === 0) {
         await outcomes_users.create({
             user_id: userId,
@@ -124,18 +129,19 @@ export async function createUserOutcome(userId: number, outcomeUserData: newOutc
             updatedAt: null
         });
 
-        return { successful: true }
+        return { successful: true };
     }
 
     return { successful: true, updated: true };
 }
 
-export async function getIncomesLength() {
-    const data = await incomes.findAll()
-    return parseInt(data.length);
+// Must certainly be a more efficient way?
+export async function getNewIncomeId() {
+    const max = await incomes.max("id");
+    return parseInt(max);
 }
 
-export async function getOutcomesLength() {
-    const data = await outcomes.findAll()
-    return parseInt(data.length);
+export async function getNewOutcomeId() {
+    const max = await outcomes.max("id");
+    return parseInt(max);
 }

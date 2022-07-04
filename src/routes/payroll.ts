@@ -1,5 +1,5 @@
 import express from "express";
-import { createIncome, createOutcome, createUserIncome, createUserOutcome, getIncomesLength, getOutcomesLength } from "../controllers/incomes";
+import { createIncome, createOutcome, createUserIncome, createUserOutcome, getNewIncomeId, getNewOutcomeId } from "../controllers/incomes";
 import { getUserData, getSalary, getIncomes, getOutcomes, calculatePayroll } from "../controllers/payroll";
 
 const router = express.Router();
@@ -53,6 +53,8 @@ router.get("/:id", async (req, res) => {
 });
 
 // Dropdown con incomes
+// Does not edit AUTOMATIC column in outcomes when UPDATING
+// SENDING ID MEANS IMPLIES IT EXISTS, SENDING NAME IMPLIES IT DOES NOT
 router.post("/incomes/:id", async (req, res) => {
     // Income_id is optional...
     let { income_id } = req.body;
@@ -80,7 +82,8 @@ router.post("/incomes/:id", async (req, res) => {
             return res.status(400).json({ message: "Invalid request. Entry might be duplicate." });
         }
 
-        income_id = await getIncomesLength();
+        // income_id = await getIncomesLength();
+        income_id = await getNewIncomeId();
     }
 
     const newIncomeData = await createUserIncome(parseInt(id), { income_id, counter, amount, automatic });
@@ -97,8 +100,9 @@ router.post("/incomes/:id", async (req, res) => {
 });
 
 // Dropdown con outcomes
+// Hay manera de invalidar 
 router.post("/outcomes/:id", async (req, res) => {
-    // Income_id is optional...
+    // Outcome is optional...
     let { outcome_id } = req.body;
     const { counter, amount, name, automatic } = req.body;
     const { id } = req.params;
@@ -124,7 +128,8 @@ router.post("/outcomes/:id", async (req, res) => {
             return res.status(400).json({ message: "Invalid request. Entry might be duplicate." });
         }
 
-        outcome_id = await getOutcomesLength();
+        // POSSIBLE BREAK HERE---
+        outcome_id = await getNewOutcomeId();
     }
 
     const newOutcomeData = await createUserOutcome(parseInt(id), { outcome_id, counter, amount, automatic });
@@ -141,7 +146,8 @@ router.post("/outcomes/:id", async (req, res) => {
 });
 
 router.post("/trial", async (req, res) => {
-    getIncomesLength();
+    const data = await getNewIncomeId();
+    return res.status(200).json({ message: data });
 });
 
 export default router;
