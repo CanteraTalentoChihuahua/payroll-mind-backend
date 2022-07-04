@@ -17,6 +17,11 @@ module.exports = {
         name: "Bonomio",
         automatic: false,
         active: false
+      },
+      {
+        name: "Bono Lizard Wizard",
+        automatic: true,
+        active: true
       }
     ]);
   },
