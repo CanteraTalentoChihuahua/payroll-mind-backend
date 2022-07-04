@@ -1,13 +1,12 @@
 import express from "express";
+import { Privileges } from "../util/objects";
+import privileges from "../middleware/privileges";
 import { createIncome, createOutcome, createUserIncome, createUserOutcome, getNewIncomeId, getNewOutcomeId } from "../controllers/incomes";
 import { getUserData, getSalary, getIncomes, getOutcomes, calculatePayroll, incomesObj, outcomesObj } from "../controllers/payroll";
 
 const router = express.Router();
 
-// ADD PRIVILEGES
-
-// privileges(Privileges.READ_REPORTS)
-router.get("/:id", async (req, res) => {
+router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
     const { id } = req.params;
 
     // Query user and check activity
@@ -104,7 +103,7 @@ router.get("/:id", async (req, res) => {
 // Dropdown con incomes
 // Does not edit AUTOMATIC column in outcomes when UPDATING
 // SENDING ID MEANS IMPLIES IT EXISTS, SENDING NAME IMPLIES IT DOES NOT
-router.post("/incomes/:id", async (req, res) => {
+router.post("/incomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS), async (req, res) => {
     // Income_id is optional...
     let { income_id } = req.body;
     const { counter, amount, name, automatic } = req.body;
@@ -148,9 +147,10 @@ router.post("/incomes/:id", async (req, res) => {
     return res.status(200).json({ message: "Income was registered successfully." });
 });
 
+// Change privileges to better matching ones
 // Dropdown con outcomes
 // Hay manera de invalidar la casilla de name mientras la casilla income_id está habilitada y viceversa?
-router.post("/outcomes/:id", async (req, res) => {
+router.post("/outcomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS), async (req, res) => {
     // Outcome is optional...
     let { outcome_id } = req.body;
     const { counter, amount, name, automatic } = req.body;
@@ -194,9 +194,10 @@ router.post("/outcomes/:id", async (req, res) => {
     return res.status(200).json({ message: "Outcome was registered successfully." });
 });
 
-router.post("/trial", async (req, res) => {
-    const data = await getNewIncomeId();
-    return res.status(200).json({ message: data });
-});
+
+// router.post("/trial", async (req, res) => {
+//     const data = await getNewIncomeId();
+//     return res.status(200).json({ message: data });
+// });
 
 export default router;
