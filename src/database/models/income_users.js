@@ -1,6 +1,6 @@
 "use strict";
 const {
-    Model
+    Model, Sequelize
 } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
     class income_users extends Model {
@@ -15,19 +15,19 @@ module.exports = (sequelize, DataTypes) => {
     }
     income_users.init({
         user_id: {
-            type: DataTypes.INTEGER,
+            type: Sequelize.INTEGER,
             allowNull: false
         },
         income_id: {
-            type: DataTypes.INTEGER,
+            type: Sequelize.INTEGER,
             allowNull: false
         },
         counter: {
-            type: DataTypes.INTEGER,
+            type: Sequelize.INTEGER,
             allowNull: false
         },
         amount: {
-            type: DataTypes.DECIMAL,
+            type: Sequelize.DECIMAL,
             allowNull: false
         }
     }, {

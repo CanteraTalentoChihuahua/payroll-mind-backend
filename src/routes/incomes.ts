@@ -81,4 +81,37 @@ router.delete("/incomes", async (req, res) => {
     res.sendStatus(204);
 });
 
+router.post("/incomes/assign", async (req, res) => {
+    const {user_id, income_id, counter, amount, automatic} = req.body;
+
+    if (!user_id || Number.isNaN(parseInt(user_id))) {
+        return res.status(400).json({message:"Missing or invalid user id"});
+    }
+
+    if (!income_id || Number.isNaN(parseInt(income_id))) {
+        return res.status(400).json({message:"Missing or invalid income id"});
+    }
+
+    if (!counter || Number.isNaN(parseInt(counter))) {
+        return res.status(400).json({message:"Missing or invalid counter amount"});
+    }
+
+    if (!amount || Number.isNaN(parseFloat(amount))) {
+        return res.status(400).json({message:"Missing or invalid amount"});
+    }
+    
+    if (typeof automatic !== "boolean") {
+        return res.status(400).json({message:"Missing or invalid automatic value. Expecting a boolean here"});
+    }
+
+    try {
+        await c.assignIncome(user_id, income_id, counter, amount, automatic);
+    } catch(e) {
+        console.dir(e);
+        return res.status(500).send(e);
+    }
+
+    res.sendStatus(204);
+});
+
 export default router;
