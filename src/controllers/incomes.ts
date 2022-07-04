@@ -58,7 +58,8 @@ export async function createUserIncome(userId: number, incomeUserData: newIncome
         await incomes_users.create({
             user_id: userId,
             ...incomeUserData,
-            createdAt: new Date()
+            createdAt: new Date(),
+            updatedAt: null
         });
 
         return { successful: true }
