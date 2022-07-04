@@ -10,7 +10,7 @@ import { Privileges } from "../util/objects";
 const router = Router();
 
 router.get("/users", privileges(Privileges.READ_USERS, Privileges.READ_COLLABORATORS), async (req, res) => {
-    const { business_unit, role } = res.locals.userInfo;
+    const { business_unit, role_id } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
     const { order, by } = req.query;
@@ -33,6 +33,7 @@ router.get("/users", privileges(Privileges.READ_USERS, Privileges.READ_COLLABORA
     }
 
     let data;
+    const role = await getRoleName(role_id);
     if (role === "admin") {
         data = await getUsersList((order as string | undefined) ?? "name", ((by as string | undefined) ?? "asc").toUpperCase(), business_unit_ids);
 
