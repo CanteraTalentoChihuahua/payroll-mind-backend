@@ -1,5 +1,5 @@
 import express from "express";
-import { createIncome, createUserIncome, getIncomesLength } from "../controllers/incomes";
+import { createIncome, createOutcome, createUserIncome, createUserOutcome, getIncomesLength, getOutcomesLength } from "../controllers/incomes";
 import { getUserData, getSalary, getIncomes, getOutcomes, calculatePayroll } from "../controllers/payroll";
 
 const router = express.Router();
@@ -52,17 +52,6 @@ router.get("/:id", async (req, res) => {
     res.status(200).send(payrollObject);
 });
 
-// Create -- missing asign to user id
-// {
-//     "outcome_id": 1,
-//     "counter": 1,
-//     "amount": "17500",
-//     "name": "Fondo de reconstrucción facial",
-//     "automatic": false
-// }
-
-// Create via association
-
 // Dropdown con incomes
 router.post("/incomes/:id", async (req, res) => {
     // Income_id is optional...
@@ -101,12 +90,55 @@ router.post("/incomes/:id", async (req, res) => {
     }
 
     if (newIncomeData.updated) {
-        return res.status(200).json({ message: "Income was updated successfully." })
+        return res.status(200).json({ message: "Income was updated successfully." });
     }
 
     return res.status(200).json({ message: "Income was registered successfully." });
 });
 
+// Dropdown con outcomes
+router.post("/outcomes/:id", async (req, res) => {
+    // Income_id is optional...
+    let { outcome_id } = req.body;
+    const { counter, amount, name, automatic } = req.body;
+    const { id } = req.params;
+
+    if (!name && !outcome_id) {
+        return res.status(400).json({ message: "Missing either name or outcome_id." });
+    }
+
+    if (name && outcome_id) {
+        return res.status(400).json({ message: "Must not provide name and outcome_id simultaneously." });
+    }
+
+    // Required
+    if (!counter || !amount || !automatic) {
+        return res.status(400).json({ message: "Missing parameters." });
+    }
+
+    // Income entry does not exist, create it AND RETURN ITS ID
+    if (name) {
+        const newOutcomeData = await createOutcome({ name, automatic, active: true });
+
+        if (!newOutcomeData.successful) {
+            return res.status(400).json({ message: "Invalid request. Entry might be duplicate." });
+        }
+
+        outcome_id = await getOutcomesLength();
+    }
+
+    const newOutcomeData = await createUserOutcome(parseInt(id), { outcome_id, counter, amount, automatic });
+
+    if (!newOutcomeData.successful) {
+        return res.sendStatus(500);
+    }
+
+    if (newOutcomeData.updated) {
+        return res.status(200).json({ message: "Outcome was updated successfully." });
+    }
+
+    return res.status(200).json({ message: "Outcome was registered successfully." });
+});
 
 router.post("/trial", async (req, res) => {
     getIncomesLength();
