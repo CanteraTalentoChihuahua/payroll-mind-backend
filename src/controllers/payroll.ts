@@ -170,6 +170,7 @@ export async function getOutcomes(userId: number) {
     // If it works... Create the incomes object -- JOIN ALL DATA
     const outcomesObject: outcomesObj[] = [];
 
+
     outcomesData.forEach((outcome: outcomesObj, index: number) => {
         if (!activeOutcomes[index]) {
             return;
@@ -177,6 +178,7 @@ export async function getOutcomes(userId: number) {
         const outcomesObjectElement = Object.assign(outcome, activeOutcomes[index]);
         outcomesObject.push(outcomesObjectElement);
     });
+
 
     return { successful: true, outcomesObject, error: null };
 }
@@ -206,7 +208,7 @@ export async function getSalary(userId: number) {
     return { successful: true, salaryData };
 }
 
-export async function calculatePayroll(salary: number, incomes?: incomesObj[] | undefined, outcomes?: outcomesObj[] | undefined) {
+export async function calculatePayroll(salary: number, incomes?: incomesObj[], outcomes?: outcomesObj[]) {
     let payrollTotal: number = salary;
 
     if (incomes) {

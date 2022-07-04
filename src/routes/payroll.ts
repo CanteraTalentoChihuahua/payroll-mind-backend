@@ -25,14 +25,16 @@ router.get("/:id", async (req, res) => {
 
     // Query incomes-users
     const incomesDataObject = await getIncomes(parseInt(id));
-    let incomesObject: incomesObj[] = [];
+    let incomesList: incomesObj[] = [];
+
+    // No associated incomes found
     if (!incomesDataObject.successful) {
+        // Invalid query
         if (incomesDataObject.error) {
             return res.sendStatus(500);
         }
 
-        // No associated incomes found
-        incomesObject = [{
+        incomesList = [{
             income_id: undefined,
             counter: undefined,
             amount: undefined,
@@ -44,12 +46,14 @@ router.get("/:id", async (req, res) => {
     // Query outcomes-users
     const outcomesDataObject = await getOutcomes(parseInt(id));
     let outcomesObject: outcomesObj[] = [];
+
+    // No associated outcomes found
     if (!outcomesDataObject.successful) {
+        // Invalid query
         if (outcomesDataObject.error) {
             return res.sendStatus(500);
         }
 
-        // No associated outcomes found
         outcomesObject = [{
             outcome_id: undefined,
             counter: undefined,
@@ -68,14 +72,16 @@ router.get("/:id", async (req, res) => {
         return res.status(400).send("Invalid request. User salary is missing.");
     }
 
-    // if (!incomesObject.length) {
-    //     console.log(incomesDataObject);
-    //     res.sendStatus(500);
-    // }
+    // Associated incomes exist
+    if (!incomesList.length) {
+        incomesList = incomesDataObject.incomesObject;
+        return res.sendStatus(500);
+    }
 
-    // // if (!outcomesObject.length) {
-    // //     outcomesObject = outcomesDataObject.outcomesObject;
-    // // }
+    // Associated outcomes exist
+    if (!outcomesObject.length) {
+        outcomesObject = outcomesDataObject.outcomesObject;
+    }
 
     // Final payroll value
     const payrollTotal = await calculatePayroll(parseFloat(salary), incomesObject, outcomesObject);
