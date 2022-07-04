@@ -33,6 +33,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "tsc && node -r dotenv/config dist/server.js",
-    "server": "nodemon ./src/server.js"
+    "server": "nodemon ./src/server.js",
+    "redo": "tsc && npx sequelize-cli db:migrate:undo:all && npx sequelize-cli db:migrate && sequelize-cli --options-path './.sequelizerc.dev' db:seed:all && node -r dotenv/config dist/server.js"
   }
 }
