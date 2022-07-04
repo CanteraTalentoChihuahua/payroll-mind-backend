@@ -17,7 +17,13 @@ module.exports = {
         user_id: 1,
         salary: 40000,
         date: new Date()
-      }]);
+      },
+      {
+        user_id: 4,
+        salary: 8000,
+        date: new Date()
+      }
+    ]);
   },
 
   async down(queryInterface, Sequelize) {

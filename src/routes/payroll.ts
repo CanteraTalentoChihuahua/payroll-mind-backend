@@ -1,8 +1,9 @@
 import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
-import { createIncome, createOutcome, createUserIncome, createUserOutcome, getNewIncomeId, getNewOutcomeId } from "../controllers/incomes";
-import { getUserData, getSalary, getIncomes, getOutcomes, calculatePayroll, incomesObj, outcomesObj } from "../controllers/payroll";
+import { createIncome, createUserIncome, getNewIncomeId, getIncomes, incomesObj } from "../controllers/incomes";
+import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, outcomesObj } from "../controllers/outcomes";
+import { getUserData, getSalary, calculatePayroll } from "../controllers/payroll";
 
 const router = express.Router();
 
@@ -96,11 +97,17 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
 });
 
 // MASSIVE REQUEST OF DATA
-// router.get("/incomes", async (req, res) => {
+// Missing privileges to avoid collab getting into this route
+// Handles ADMIN ONLY FOR NOW
+router.get("/incomes", async (req, res) => {
+    // Check if admin
+    const { business_unit, role } = res.locals.userInfo;
+    const { business_unit_ids } = business_unit;
 
-// });
 
-// Dropdown con incomes
+});
+
+// Dropdown con incomes?
 // Does not edit AUTOMATIC column in outcomes when UPDATING
 // SENDING ID MEANS IMPLIES IT EXISTS, SENDING NAME IMPLIES IT DOES NOT
 router.post("/incomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS), async (req, res) => {
@@ -130,7 +137,6 @@ router.post("/incomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.REA
             return res.status(400).json({ message: "Invalid request. Entry might be duplicate." });
         }
 
-        // income_id = await getIncomesLength();
         income_id = await getNewIncomeId();
     }
 
@@ -148,7 +154,7 @@ router.post("/incomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.REA
 });
 
 // Change privileges to better matching ones
-// Dropdown con outcomes
+// Dropdown con outcomes?
 // Hay manera de invalidar la casilla de name mientras la casilla income_id está habilitada y viceversa?
 router.post("/outcomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS), async (req, res) => {
     // Outcome is optional...

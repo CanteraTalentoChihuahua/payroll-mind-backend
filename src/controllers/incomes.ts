@@ -1,12 +1,8 @@
+import { Op } from "sequelize";
 import db from "../database/database";
-import { newIncomeData, newOutcomeData } from "../util/objects";
-
-const incomes_users = require("../database/models/incomes_users")(db);
-const outcomes_users = require("../database/models/outcomes_users")(db);
+import { newIncomeData } from "../util/objects";
 const incomes = require("../database/models/incomes")(db);
-const outcomes = require("../database/models/outcomes")(db);
-
-const { sequelize } = require("sequelize");
+const incomes_users = require("../database/models/incomes_users")(db);
 
 // What if an outcome / income is inactive? How to activate it?
 // Activate endpoint...
@@ -15,24 +11,18 @@ interface entryObj {
     name: string, automatic: boolean, active: boolean
 }
 
+export interface incomesObj {
+    "income_id": number | undefined | null,
+    "counter": number | undefined | null,
+    "amount": string | undefined | null,
+    "name": string | undefined | null,
+    "automatic": boolean | undefined | null
+}
+
 export async function createIncome(incomeData: entryObj) {
     try {
         await incomes.create({
             ...incomeData,
-            createdAt: new Date()
-        });
-
-    } catch (error) {
-        return { successful: false };
-    }
-
-    return { successful: true };
-}
-
-export async function createOutcome(outcomeData: entryObj) {
-    try {
-        await outcomes.create({
-            ...outcomeData,
             createdAt: new Date()
         });
 
@@ -89,59 +79,72 @@ export async function createUserIncome(userId: number, incomeUserData: newIncome
     return { successful: true, updated: true };
 }
 
-export async function createUserOutcome(userId: number, outcomeUserData: newOutcomeData) {
-    let outcomesData;
-
-    // Check if outcome exists
-    try {
-        outcomesData = await outcomes.findOne({
-            attributes: ["name", "automatic"],
-            where: {
-                id: outcomeUserData.outcome_id,
-                active: true
-            },
-            raw: true
-        });
-
-        if (!outcomesData) {
-            return { successful: false, found: false };
-        }
-
-    } catch (error) {
-        return { successful: false };
-    }
-
-    // Outcome entry exist, check if outcomeUsers exist
-    const updateObj = { counter: outcomeUserData.counter, amount: outcomeUserData.amount };
-    const entryResult = await outcomes_users.update(updateObj, {
-        where: {
-            outcome_id: outcomeUserData.outcome_id,
-            user_id: userId
-        }
-    });
-
-    // Does not exists, create outcomeUsers entry
-    if (entryResult[0] === 0) {
-        await outcomes_users.create({
-            user_id: userId,
-            ...outcomeUserData,
-            createdAt: new Date(),
-            updatedAt: null
-        });
-
-        return { successful: true };
-    }
-
-    return { successful: true, updated: true };
-}
-
 // Must certainly be a more efficient way?
 export async function getNewIncomeId() {
     const max = await incomes.max("id");
     return parseInt(max);
 }
 
-export async function getNewOutcomeId() {
-    const max = await outcomes.max("id");
-    return parseInt(max);
+// Change return objects
+export async function getIncomes(userId: number) {
+    let incomesData;
+    try {
+        // Query incomes_users directly -- MUST NOT BE DELETED
+        incomesData = await incomes_users.findAll({
+            attributes: ["income_id", "counter", "amount"],
+            where: {
+                user_id: userId,
+                deletedAt: null
+            },
+            raw: true
+        });
+
+        if (!incomesData.length) {
+            return { successful: false };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Invalid query." };
+    }
+
+    // Create an id array for querying...
+    interface idQuery { id: number; }
+    const idList: idQuery[] = [];
+
+    for (const incomesUsers in incomesData) {
+        idList.push({ "id": parseInt(incomesData[incomesUsers].income_id) });
+    }
+
+    let activeIncomes: unknown[];
+    try {
+        // Check their name via the id -- MUST BE ACTIVE
+        activeIncomes = await incomes.findAll({
+            attributes: ["name", "automatic"],
+            where: {
+                [Op.or]: idList,
+                active: true
+            },
+            raw: true
+        });
+
+        if (!incomesData) {
+            return { successful: false };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Invalid query." };
+    }
+
+    // If it works... Create the incomes object -- JOIN ALL DATA
+    const incomesObject: incomesObj[] = [];
+
+    incomesData.forEach((income: incomesObj, index: number) => {
+        if (!activeIncomes[index]) {
+            return;
+        }
+        const incomesObjectElement = Object.assign(income, activeIncomes[index]);
+        incomesObject.push(incomesObjectElement);
+    });
+
+    return { successful: true, incomesObject, error: false };
 }
