@@ -1,4 +1,4 @@
-import { getBusinessUnits, getPaymentPeriods, getSalaries, getPayrollSchemas, getRoles } from "../controllers/info";
+import { getBusinessUnits, getPaymentPeriods, getSalaries, getPayrollSchemas, getRoles, getIncomes, getOutcomes } from "../controllers/info";
 import { Privileges } from "../util/objects";
 import express from "express";
 
@@ -67,13 +67,23 @@ router.get("/payrollschemas", async (req, res) => {
 
 // Incomes y Outcomes
 router.get("/incomes", async (req, res) => {
-    const payrollSchemasData = await getPayrollSchemas();
+    const incomes = await getIncomes();
 
-    if (!payrollSchemasData) {
+    if (!incomes) {
         return res.status(400).send("Invalid request.");
     }
 
-    return res.status(200).send(payrollSchemasData);
+    return res.status(200).send(incomes);
+});
+
+router.get("/outcomes", async (req, res) => {
+    const outcomes = await getOutcomes();
+
+    if (!outcomes) {
+        return res.status(400).send("Invalid request.");
+    }
+
+    return res.status(200).send(outcomes);
 });
 
 
