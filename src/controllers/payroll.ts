@@ -12,20 +12,20 @@ const outcomes_users = require("../database/models/outcomes_users")(db);
 
 const attributesList = ["active", "role_id", "payment_period_id", "salary_id", "payroll_schema_id"];
 
-interface incomesObj {
-    "income_id": number | undefined,
-    "counter": number | undefined,
-    "amount": string | undefined,
-    "name": string | undefined,
-    "automatic": boolean | undefined
+export interface incomesObj {
+    "income_id": number | undefined | null,
+    "counter": number | undefined | null,
+    "amount": string | undefined | null,
+    "name": string | undefined | null,
+    "automatic": boolean | undefined | null
 }
 
-interface outcomesObj {
-    "outcome_id": number | undefined,
-    "counter": number | undefined,
-    "amount": string | undefined,
-    "name": string | undefined,
-    "automatic": boolean | undefined
+export interface outcomesObj {
+    "outcome_id": number | undefined | null,
+    "counter": number | undefined | null,
+    "amount": string | undefined | null,
+    "name": string | undefined | null,
+    "automatic": boolean | undefined | null
 }
 
 // Query incomes, outc
@@ -68,12 +68,12 @@ export async function getIncomes(userId: number) {
             raw: true
         });
 
-        if (!incomesData) {
+        if (!incomesData.length) {
             return { successful: false };
         }
 
     } catch (error) {
-        return { successful: false };
+        return { successful: false, error: "Invalid query." };
     }
 
     // Create an id array for querying...
@@ -101,7 +101,7 @@ export async function getIncomes(userId: number) {
         }
 
     } catch (error) {
-        return { successful: false };
+        return { successful: false, error: "Invalid query." };
     }
 
     // If it works... Create the incomes object -- JOIN ALL DATA
@@ -115,9 +115,8 @@ export async function getIncomes(userId: number) {
         incomesObject.push(incomesObjectElement);
     });
 
-    return { successful: true, incomesObject };
+    return { successful: true, incomesObject, error: false };
 }
-
 
 export async function getOutcomes(userId: number) {
     let outcomesData;
@@ -132,7 +131,7 @@ export async function getOutcomes(userId: number) {
             raw: true
         });
 
-        if (!outcomesData) {
+        if (!outcomesData.length) {
             return { successful: false };
         }
 
@@ -179,7 +178,7 @@ export async function getOutcomes(userId: number) {
         outcomesObject.push(outcomesObjectElement);
     });
 
-    return { successful: true, outcomesObject };
+    return { successful: true, outcomesObject, error: null };
 }
 
 // Check the most recent???
@@ -196,7 +195,7 @@ export async function getSalary(userId: number) {
             raw: true
         });
 
-        if (!salaryData) {
+        if (!salaryData.length) {
             return { successful: false };
         }
 
@@ -207,18 +206,31 @@ export async function getSalary(userId: number) {
     return { successful: true, salaryData };
 }
 
-
-export async function calculatePayroll(incomes: incomesObj[] | undefined, outcomes: outcomesObj[] | undefined, salary: number) {
+export async function calculatePayroll(salary: number, incomes?: incomesObj[] | undefined, outcomes?: outcomesObj[] | undefined) {
     let payrollTotal: number = salary;
 
-    for (const incomeObj in incomes) {
-        const { counter, amount } = incomes[parseInt(incomeObj)];
-        payrollTotal += counter as number * parseFloat(amount!);
+    if (incomes) {
+        for (const incomeObj in incomes) {
+            const { counter, amount } = incomes[parseInt(incomeObj)];
+
+            if (!counter || !amount) {
+                continue;
+            } else {
+                payrollTotal += counter as number * parseFloat(amount!);
+            }
+        }
     }
 
-    for (const outcomeObj in outcomes) {
-        const { counter, amount } = outcomes[parseInt(outcomeObj)];
-        payrollTotal -= counter as number * parseFloat(amount!);
+    if (outcomes) {
+        for (const outcomeObj in outcomes) {
+            const { counter, amount } = outcomes[parseInt(outcomeObj)];
+
+            if (!counter || !amount) {
+                continue;
+            } else {
+                payrollTotal -= counter as number * parseFloat(amount!);
+            }
+        }
     }
 
     return payrollTotal;

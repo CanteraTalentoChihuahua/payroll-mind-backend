@@ -1,8 +1,10 @@
 import express from "express";
 import { createIncome, createOutcome, createUserIncome, createUserOutcome, getNewIncomeId, getNewOutcomeId } from "../controllers/incomes";
-import { getUserData, getSalary, getIncomes, getOutcomes, calculatePayroll } from "../controllers/payroll";
+import { getUserData, getSalary, getIncomes, getOutcomes, calculatePayroll, incomesObj, outcomesObj } from "../controllers/payroll";
 
 const router = express.Router();
+
+// ADD PRIVILEGES
 
 // privileges(Privileges.READ_REPORTS)
 router.get("/:id", async (req, res) => {
@@ -15,31 +17,68 @@ router.get("/:id", async (req, res) => {
         return res.status(404).json({ message: "No user found." });
     }
 
+    // Query salary
+    const salaryDataObject = await getSalary(parseInt(id));
+    if (!salaryDataObject.successful) {
+        return res.status(400).send("Invalid request. User is missing salary.");
+    }
+
     // Query incomes-users
     const incomesDataObject = await getIncomes(parseInt(id));
+    let incomesObject: incomesObj[] = [];
     if (!incomesDataObject.successful) {
-        return res.sendStatus(500);
+        if (incomesDataObject.error) {
+            return res.sendStatus(500);
+        }
+
+        // No associated incomes found
+        incomesObject = [{
+            income_id: undefined,
+            counter: undefined,
+            amount: undefined,
+            name: undefined,
+            automatic: undefined
+        }];
     }
 
     // Query outcomes-users
     const outcomesDataObject = await getOutcomes(parseInt(id));
+    let outcomesObject: outcomesObj[] = [];
     if (!outcomesDataObject.successful) {
-        return res.sendStatus(500);
+        if (outcomesDataObject.error) {
+            return res.sendStatus(500);
+        }
+
+        // No associated outcomes found
+        outcomesObject = [{
+            outcome_id: undefined,
+            counter: undefined,
+            amount: undefined,
+            name: undefined,
+            automatic: undefined
+        }];
     }
 
-    // Query salary
-    const salaryDataObject = await getSalary(parseInt(id));
-    if (!salaryDataObject.successful) {
-        return res.sendStatus(500);
+    // Payroll sum total --SALARY IS REQUIRED
+    let salary;
+    try {
+        salary = salaryDataObject.salaryData[0].salary;
+
+    } catch (error) {
+        return res.status(400).send("Invalid request. User salary is missing.");
     }
 
-    // Payroll sum total
-    const { incomesObject } = incomesDataObject;
-    const { outcomesObject } = outcomesDataObject;
-    const { salary } = salaryDataObject.salaryData[0];
+    // if (!incomesObject.length) {
+    //     console.log(incomesDataObject);
+    //     res.sendStatus(500);
+    // }
+
+    // // if (!outcomesObject.length) {
+    // //     outcomesObject = outcomesDataObject.outcomesObject;
+    // // }
 
     // Final payroll value
-    const payrollTotal = await calculatePayroll(incomesObject, outcomesObject, parseFloat(salary));
+    const payrollTotal = await calculatePayroll(parseFloat(salary), incomesObject, outcomesObject);
 
     // Build JSON object
     const payrollObject = {
@@ -51,6 +90,11 @@ router.get("/:id", async (req, res) => {
 
     res.status(200).send(payrollObject);
 });
+
+// MASSIVE REQUEST OF DATA
+// router.get("/incomes", async (req, res) => {
+
+// });
 
 // Dropdown con incomes
 // Does not edit AUTOMATIC column in outcomes when UPDATING
@@ -100,7 +144,7 @@ router.post("/incomes/:id", async (req, res) => {
 });
 
 // Dropdown con outcomes
-// Hay manera de invalidar 
+// Hay manera de invalidar la casilla de name mientras la casilla income_id está habilitada y viceversa?
 router.post("/outcomes/:id", async (req, res) => {
     // Outcome is optional...
     let { outcome_id } = req.body;
