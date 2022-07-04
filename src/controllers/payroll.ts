@@ -223,3 +223,11 @@ export async function calculatePayroll(incomes: incomesObj[] | undefined, outcom
 
     return payrollTotal;
 }
+
+export async function getRoles(userId: number) {
+    const userData = await users.findOne({
+        where: { id: userId }
+    });
+
+    return userData;
+}

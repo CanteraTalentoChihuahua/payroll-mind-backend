@@ -65,5 +65,16 @@ router.get("/payrollschemas", async (req, res) => {
     return res.status(200).send(payrollSchemasData);
 });
 
+// Incomes y Outcomes
+router.get("/incomes", async (req, res) => {
+    const payrollSchemasData = await getPayrollSchemas();
+
+    if (!payrollSchemasData) {
+        return res.status(400).send("Invalid request.");
+    }
+
+    return res.status(200).send(payrollSchemasData);
+});
+
 
 export default router;

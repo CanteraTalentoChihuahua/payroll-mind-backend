@@ -112,4 +112,11 @@ router.post("/trial", async (req, res) => {
     getIncomesLength();
 });
 
+router.get("/payroll/trial/:id", async (req, res) => {
+    const { id } = req.params;
+    const data = await getRoles(parseInt(id));
+
+    return res.status(200).send(data);
+});
+
 export default router;
