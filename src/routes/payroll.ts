@@ -25,7 +25,7 @@ router.get("/:id", async (req, res) => {
 
     // Query incomes-users
     const incomesDataObject = await getIncomes(parseInt(id));
-    let incomesList: incomesObj[] = [];
+    let incomesList: incomesObj[] | undefined = [];
 
     // No associated incomes found
     if (!incomesDataObject.successful) {
@@ -45,7 +45,7 @@ router.get("/:id", async (req, res) => {
 
     // Query outcomes-users
     const outcomesDataObject = await getOutcomes(parseInt(id));
-    let outcomesObject: outcomesObj[] = [];
+    let outcomesList: outcomesObj[] | undefined = [];
 
     // No associated outcomes found
     if (!outcomesDataObject.successful) {
@@ -54,7 +54,7 @@ router.get("/:id", async (req, res) => {
             return res.sendStatus(500);
         }
 
-        outcomesObject = [{
+        outcomesList = [{
             outcome_id: undefined,
             counter: undefined,
             amount: undefined,
@@ -75,21 +75,20 @@ router.get("/:id", async (req, res) => {
     // Associated incomes exist
     if (!incomesList.length) {
         incomesList = incomesDataObject.incomesObject;
-        return res.sendStatus(500);
     }
 
     // Associated outcomes exist
-    if (!outcomesObject.length) {
-        outcomesObject = outcomesDataObject.outcomesObject;
+    if (!outcomesList.length) {
+        outcomesList = outcomesDataObject.outcomesObject;
     }
 
     // Final payroll value
-    const payrollTotal = await calculatePayroll(parseFloat(salary), incomesObject, outcomesObject);
+    const payrollTotal = await calculatePayroll(parseFloat(salary), incomesList, outcomesList);
 
     // Build JSON object
     const payrollObject = {
-        incomes: incomesObject,
-        outcomes: outcomesObject,
+        incomes: incomesList,
+        outcomes: outcomesList,
         salary: parseFloat(salary),
         total: payrollTotal
     };
