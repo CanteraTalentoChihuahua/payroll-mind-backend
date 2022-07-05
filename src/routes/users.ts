@@ -123,12 +123,14 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
             }
         });
 
-        if (doesNotBelongToBusinessUnits || ["collab", "admin"].includes(newUserRole)) {
+        if (doesNotBelongToBusinessUnits) {
+            console.log("asdfdsfds");
             return res.status(400).json({ message: "Invalid request" });
         }
 
     } else {
         if (newUserRole === "superadmin") {
+            console.log("cACA")
             return res.status(400).json({ message: "Invalid request" });
         }
     }
