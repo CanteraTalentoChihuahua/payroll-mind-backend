@@ -94,8 +94,6 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
     // Required
     const { first_name, last_name, birthday, email, phone_number, payment_period_id, salary_id, business_unit_id, bank, CLABE, payroll_schema_id } = req.body;
     const new_role_id = req.body.role_id;
-
-    console.log(first_name, last_name, birthday, email, phone_number, payment_period_id, salary_id, business_unit_id, bank, CLABE, payroll_schema_id);
     
     // Optional
     const { second_name, second_last_name } = req.body;
@@ -124,13 +122,11 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
         });
 
         if (doesNotBelongToBusinessUnits) {
-            console.log("asdfdsfds");
             return res.status(400).json({ message: "Invalid request" });
         }
 
     } else {
         if (newUserRole === "superadmin") {
-            console.log("cACA")
             return res.status(400).json({ message: "Invalid request" });
         }
     }
