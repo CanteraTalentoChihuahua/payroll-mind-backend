@@ -56,3 +56,4 @@ export type NewUserData = {
     second_name: string | undefined,
     second_last_name: string | undefined
 }
+
