@@ -59,14 +59,14 @@ export async function getSalary(userId: number) {
             raw: true
         });
 
-        if (!salaryData.length) {
+        if (!salaryData) {
             return { successful: false };
         }
 
     } catch (error) {
         return { successful: false };
     }
-
+    
     return { successful: true, salaryData };
 }
 

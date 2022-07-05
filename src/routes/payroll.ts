@@ -23,7 +23,7 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     if (!salaryDataObject.successful) {
         return res.status(400).send("Invalid request. User is missing salary.");
     }
-
+    
     // Query incomes-users
     const incomesDataObject = await getIncomes(parseInt(id));
     let incomesList: incomesObj[] | undefined = [];
@@ -67,7 +67,7 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     // Payroll sum total --SALARY IS REQUIRED
     let salary;
     try {
-        salary = salaryDataObject.salaryData[0].salary;
+        salary = salaryDataObject.salaryData.salary;
 
     } catch (error) {
         return res.status(400).send("Invalid request. User salary is missing.");

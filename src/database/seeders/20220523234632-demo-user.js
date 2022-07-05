@@ -49,7 +49,7 @@ module.exports = {
             active: true,
             bank: "Banco Branza",
             CLABE: "2132115615165153",
-            salary_id: 1,
+            salary_id: 4,
             payroll_schema_id: 2
         },
         {
