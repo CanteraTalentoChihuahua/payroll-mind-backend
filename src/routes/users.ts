@@ -10,7 +10,7 @@ import { Privileges } from "../util/objects";
 const router = Router();
 
 router.get("/users", privileges(Privileges.READ_USERS, Privileges.READ_COLLABORATORS), async (req, res) => {
-    const { business_unit, role } = res.locals.userInfo;
+    const { business_unit, role_id } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
     const { order, by } = req.query;
@@ -33,6 +33,7 @@ router.get("/users", privileges(Privileges.READ_USERS, Privileges.READ_COLLABORA
     }
 
     let data;
+    const role = await getRoleName(role_id);
     if (role === "admin") {
         data = await getUsersList((order as string | undefined) ?? "name", ((by as string | undefined) ?? "asc").toUpperCase(), business_unit_ids);
 
@@ -138,7 +139,7 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
     const data = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, privileges, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
 
     if (!data.successful) {
-        return res.sendStatus(500);
+        return res.status(500).json({ message: "Something went wrong. Fields might be duplicated." });
     }
 
     res.status(201).json({ message: "User created successfully" });

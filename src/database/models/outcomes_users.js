@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   outcomes_users.init({
     user_id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-    income_id: Sequelize.INTEGER,
+    outcome_id: Sequelize.INTEGER,
     counter: Sequelize.INTEGER,
     amount: Sequelize.DECIMAL
   }, {

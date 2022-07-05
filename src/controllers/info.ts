@@ -1,9 +1,37 @@
 import db from "../database/database";
 const roles = require("../database/models/roles")(db);
+const incomes = require("../database/models/incomes")(db);
+const outcomes = require("../database/models/outcomes")(db);
 const salaries = require("../database/models/salaries")(db);
 const businessUnits = require("../database/models/business_units")(db);
 const paymentPeriods = require("../database/models/payments_periods")(db);
 const payrollSchemas = require("../database/models/payroll_schemas")(db);
+
+export async function getIncomes() {
+    let incomesData;
+
+    try {
+        incomesData = await incomes.findAll();
+
+    } catch (error) {
+        return false;
+    }
+
+    return incomesData;
+}
+
+export async function getOutcomes() {
+    let outcomesData;
+
+    try {
+        outcomesData = await outcomes.findAll();
+
+    } catch (error) {
+        return false;
+    }
+
+    return outcomesData;
+}
 
 export async function getPaymentPeriods() {
     let paymentPeriodsData;
