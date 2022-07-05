@@ -148,3 +148,75 @@ export async function getIncomes(userId: number) {
 
     return { successful: true, incomesObject, error: false };
 }
+
+
+
+// Massive methods-----------------
+export async function getMassiveIncomes(idList: Array<number>) {
+    let incomesData;
+    const idQueryList: { user_id: number }[] = [];
+
+    for (const id in idList) {
+        idQueryList.push({ "user_id": idList[parseInt(id)] });
+    }
+
+    try {
+        // Query incomes_users directly -- MUST NOT BE DELETED
+        incomesData = await incomes_users.findAll({
+            attributes: ["income_id", "counter", "amount"],
+            where: {
+                [Op.or]: idQueryList,
+                deletedAt: null
+            },
+            raw: true
+        });
+
+        if (!incomesData.length) {
+            return { successful: false };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Invalid query." };
+    }
+
+    // Create an id array for querying...
+    const nextIdQueryList: { id: number }[] = [];
+
+    for (const incomesUsers in incomesData) {
+        nextIdQueryList.push({ "id": parseInt(incomesData[incomesUsers].income_id) });
+    }
+
+    let activeIncomes: unknown[];
+    try {
+        // Check their name via the id -- MUST BE ACTIVE
+        activeIncomes = await incomes.findAll({
+            attributes: ["name", "automatic"],
+            where: {
+                [Op.or]: nextIdQueryList,
+                active: true
+            },
+            raw: true
+        });
+
+        if (!incomesData) {
+            return { successful: false };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Invalid query." };
+    }
+
+    // If it works... Create the incomes object -- JOIN ALL DATA
+    const incomesObject: incomesObj[] = [];
+
+    incomesData.forEach((income: incomesObj, index: number) => {
+        if (!activeIncomes[index]) {
+            return;
+        }
+        const incomesObjectElement = Object.assign(income, activeIncomes[index]);
+        incomesObject.push(incomesObjectElement);
+    });
+
+    return { successful: true, incomesObject, error: false };
+}
+

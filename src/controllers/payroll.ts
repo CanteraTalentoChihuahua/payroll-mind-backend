@@ -9,6 +9,16 @@ const salaries = require("../database/models/salaries")(db);
 
 const attributesList = ["active", "role_id", "payment_period_id", "salary_id", "payroll_schema_id"];
 
+export function createList(listWithObjects: Array<{ id: number }> | undefined) {
+    const finalList: Array<number> = [];
+
+    for (const element in listWithObjects) {
+        finalList.push(listWithObjects[parseInt(element)].id);
+    }
+
+    return finalList;
+}
+
 // Query incomes, outc
 // Queries only active collabs
 export async function getUserData(id: number) {
@@ -40,7 +50,7 @@ export async function getSalary(userId: number) {
     let salaryData;
 
     try {
-        salaryData = await salaries.findAll({
+        salaryData = await salaries.findOne({
             attributes: ["salary"],
             where: {
                 user_id: userId,
@@ -98,7 +108,7 @@ export async function getRoles(userId: number) {
     return userData;
 }
 
-export async function getIdsUnderBusinessUnit(businessUnits?: Array<number>): Promise<{ successful: boolean; userList: object[] | undefined; }> {
+export async function getIdsUnderBusinessUnit(businessUnits?: Array<number>): Promise<{ successful: boolean; userList: Array<{ id: number }> | undefined }> {
     let userList;
 
     if (businessUnits) {
@@ -124,7 +134,8 @@ export async function getIdsUnderBusinessUnit(businessUnits?: Array<number>): Pr
 
     try {
         userList = await users.findAll({
-            attributes: ["id"]
+            attributes: ["id"],
+            raw: true
         });
 
     } catch (error) {
@@ -132,4 +143,67 @@ export async function getIdsUnderBusinessUnit(businessUnits?: Array<number>): Pr
     }
 
     return { successful: true, userList };
+}
+
+
+// Massive methods-----------------
+export async function getMassiveUserData(idList: Array<number>) {
+    let userData;
+
+    // Create an id array for querying... CAN BE FACTORED INTO A FUNC
+    const idQueryList: { id: number }[] = [];
+
+    for (const id in idList) {
+        idQueryList.push({ "id": idList[parseInt(id)] });
+    }
+
+    // Cannot query id=1
+    try {
+        userData = await users.findAll({
+            attributes: attributesList,
+            where: {
+                [Op.or]: idQueryList,
+                active: true
+            }
+        });
+
+        if (!userData) {
+            return { successful: false };
+        }
+
+    } catch (error) {
+        return { successful: false };
+    }
+
+    return { successful: true, userData };
+}
+
+export async function getMassiveSalary(idList: Array<number>) {
+    let salaryData;
+
+    const idQueryList: { user_id: number }[] = [];
+
+    for (const id in idList) {
+        idQueryList.push({ "user_id": idList[parseInt(id)] });
+    }
+
+    try {
+        salaryData = await salaries.findAll({
+            attributes: ["salary"],
+            where: {
+                [Op.or]: idQueryList,
+                deletedAt: null
+            },
+            raw: true
+        });
+
+        if (!salaryData.length) {
+            return { successful: false };
+        }
+
+    } catch (error) {
+        return { successful: false };
+    }
+
+    return { successful: true, salaryData };
 }

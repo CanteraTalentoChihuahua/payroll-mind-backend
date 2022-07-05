@@ -1,9 +1,9 @@
 import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
-import { createIncome, createUserIncome, getNewIncomeId, getIncomes, incomesObj } from "../controllers/incomes";
+import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getMassiveIncomes, incomesObj } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, outcomesObj } from "../controllers/outcomes";
-import { getUserData, getSalary, getIdsUnderBusinessUnit, calculatePayroll, } from "../controllers/payroll";
+import { createList, getUserData, getSalary, getMassiveSalary, getIdsUnderBusinessUnit, getMassiveUserData, calculatePayroll } from "../controllers/payroll";
 import { getRoleName } from "../controllers/users";
 
 const router = express.Router();
@@ -107,20 +107,43 @@ router.get("/attempt/trial", privileges(Privileges.READ_REPORTS), async (req, re
 
     const role = await getRoleName(role_id);
 
-    // Get all user_ids
+    // Get all user_ids under current user business unit
     let userIdData;
     if (role === "admin") {
         userIdData = await getIdsUnderBusinessUnit(business_unit_ids);
-
     } else {
         userIdData = await getIdsUnderBusinessUnit();
     }
 
-    const { userList } = userIdData;
+    const userList = createList(userIdData.userList);
 
-    // Loop through userList
+    // Query user and check activity
+    const userData = await getMassiveUserData(userList);
 
-    return res.status(200).send(userList);
+    // Query salary
+    const salaryDataObject = await getMassiveSalary(userList);
+
+    // Query incomes-users
+    const incomesDataObject = await getMassiveIncomes(userList);
+    // let incomesList: incomesObj[] | undefined = [];
+
+    // No associated incomes found
+    // if (!incomesDataObject.successful) {
+    //     // Invalid query
+    //     if (incomesDataObject.error) {
+    //         return res.sendStatus(500);
+    //     }
+
+    //     incomesList = [{
+    //         income_id: undefined,
+    //         counter: undefined,
+    //         amount: undefined,
+    //         name: undefined,
+    //         automatic: undefined
+    //     }];
+    // }
+
+    return res.status(200).send(incomesDataObject);
 });
 
 
