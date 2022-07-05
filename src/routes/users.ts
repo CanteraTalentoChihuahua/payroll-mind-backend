@@ -107,11 +107,10 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
         return res.status(400).json({ message: "Invalid data sent on some fields" });
     }
 
-    // Check role...
-    const newUserRole = await getRoleName(role_id);
-    const currentUserRole = await getRoleName(new_role_id);
+    // Check roles
+    const newUserRole = await getRoleName(new_role_id);
+    const currentUserRole = await getRoleName(role_id);
 
-    // Correct it
     if (currentUserRole === "admin") {
         let doesNotBelongToBusinessUnits;
         business_unit_id.forEach(businessUnit => {
@@ -120,13 +119,14 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
             }
         });
 
+        // Possible break here
         if (doesNotBelongToBusinessUnits || ["collab", "admin"].includes(newUserRole)) {
-            return res.status(400).json({ message: "Invalid request" });
+            return res.status(400).json({ message: "Business unit of scope OR attempting to create superadmin." });
         }
 
     } else {
         if (newUserRole === "superadmin") {
-            return res.status(400).json({ message: "Invalid request" });
+            return res.status(400).json({ message: "Superadmin cannot create superadmin." });
         }
     }
 
@@ -142,7 +142,7 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
         return res.status(500).json({ message: "Something went wrong. Fields might be duplicated." });
     }
 
-    res.status(201).json({ message: "User created successfully" });
+    res.status(201).json({ message: "User created successfully." });
 });
 
 // TO DO: Admin cannot change his own salary --- add superadmin validation in the future
