@@ -9,7 +9,7 @@ module.exports = {
         active: true
       },
       {
-        name: "Bono Vacacional",
+        name: "Aguinaldo",
         automatic: true,
         active: true
       },
