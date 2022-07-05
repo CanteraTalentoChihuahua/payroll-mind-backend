@@ -16,6 +16,9 @@
     },
     {
       "name": "Business unit management"
+    },
+    {
+      "name": "Incomes and outcomes"
     }
   ],
   "components": {
@@ -290,6 +293,96 @@
             "type": "string"
           }
         }
+      },
+      "IncomeListItemResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "automatic": {
+            "type": "boolean"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "NewIncomeRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "automatic": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "automatic"
+        ]
+      },
+      "EditIncomeRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "automatic": {
+            "type": "boolean"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "DeleteIncomeRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "AssignIncomeRequest": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "number"
+          },
+          "income_id": {
+            "type": "number"
+          },
+          "counter": {
+            "type": "number"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "automatic": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "user_id",
+          "income_id",
+          "counter",
+          "amount",
+          "automatic"
+        ]
       }
     },
     "securitySchemes": {
@@ -1068,6 +1161,294 @@
             "BearerAuth": []
           }
         ]
+      }
+    },
+    "/api/incomes": {
+      "get": {
+        "tags": [
+          "Incomes and outcomes"
+        ],
+        "summary": "Get all incomes available",
+        "responses": {
+          "200": {
+            "description": "Returns a list with the information of all incomes available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IncomeListItemResponse"
+                  },
+                  "example": [
+                    {
+                      "id": 1,
+                      "name": "Example income",
+                      "automatic": false,
+                      "active": true
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Incomes and outcomes"
+        ],
+        "summary": "Creates a new income",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewIncomeRequest"
+              },
+              "example": {
+                "name": "New income",
+                "automatic": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "An income was created"
+          },
+          "400": {
+            "description": "You sent invalid data or missing required properties"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Incomes and outcomes"
+        ],
+        "summary": "Change properties of an existing income",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditIncomeRequest"
+              },
+              "examples": {
+                "Edit name and automatic": {
+                  "value": {
+                    "id": 1,
+                    "name": "Updated income",
+                    "automatic": true
+                  }
+                },
+                "Edit active only": {
+                  "value": {
+                    "id": 1,
+                    "active": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "The specified income was edited"
+          },
+          "400": {
+            "description": "You sent invalid data or missing required properties"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Incomes and outcomes"
+        ],
+        "summary": "Delete an income",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteIncomeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "The specified income was edited"
+          },
+          "400": {
+            "description": "You sent invalid data or missing required properties"
+          }
+        }
+      }
+    },
+    "/api/incomes/assign": {
+      "post": {
+        "tags": [
+          "Incomes and outcomes"
+        ],
+        "summary": "Assign an income to a user",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignIncomeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "The specified income was edited"
+          },
+          "400": {
+            "description": "You sent invalid data or missing required properties"
+          }
+        }
+      }
+    },
+    "/api/outcomes": {
+      "get": {
+        "tags": [
+          "Incomes and outcomes"
+        ],
+        "summary": "Get all outcomes available",
+        "responses": {
+          "200": {
+            "description": "Returns a list with the information of all outcomes available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IncomeListItemResponse"
+                  },
+                  "example": [
+                    {
+                      "id": 1,
+                      "name": "Example outcome",
+                      "automatic": false,
+                      "active": true
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Incomes and outcomes"
+        ],
+        "summary": "Creates a new outcome",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewIncomeRequest"
+              },
+              "example": {
+                "name": "New outcome",
+                "automatic": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "An outcome was created"
+          },
+          "400": {
+            "description": "You sent invalid data or missing required properties"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Incomes and outcomes"
+        ],
+        "summary": "Change properties of an existing outcome",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditIncomeRequest"
+              },
+              "examples": {
+                "Edit name and automatic": {
+                  "value": {
+                    "id": 1,
+                    "name": "Updated outcome",
+                    "automatic": true
+                  }
+                },
+                "Edit active only": {
+                  "value": {
+                    "id": 1,
+                    "active": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "The specified outcome was edited"
+          },
+          "400": {
+            "description": "You sent invalid data or missing required properties"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Incomes and outcomes"
+        ],
+        "summary": "Delete an outcome",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteIncomeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "The specified outcome was edited"
+          },
+          "400": {
+            "description": "You sent invalid data or missing required properties"
+          }
+        }
+      }
+    },
+    "/api/outcomes/assign": {
+      "post": {
+        "tags": [
+          "Incomes and outcomes"
+        ],
+        "summary": "Assign an outcome to a user",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignIncomeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "The specified outcome was edited"
+          },
+          "400": {
+            "description": "You sent invalid data or missing required properties"
+          }
+        }
       }
     }
   }
