@@ -1,6 +1,9 @@
 import db from "../database/database";
 import { incomesObj } from "../controllers/incomes";
 import { outcomesObj } from "../controllers/outcomes";
+import { createUnitsListCondition } from "../controllers/users";
+
+const { Op } = require("sequelize");
 const users = require("../database/models/users")(db);
 const salaries = require("../database/models/salaries")(db);
 
@@ -93,4 +96,40 @@ export async function getRoles(userId: number) {
     });
 
     return userData;
+}
+
+export async function getIdsUnderBusinessUnit(businessUnits?: Array<number>): Promise<{ successful: boolean; userList: object[] | undefined; }> {
+    let userList;
+
+    if (businessUnits) {
+        try {
+            const unitsList = createUnitsListCondition(businessUnits);
+
+            userList = await users.findAll({
+                attributes: ["id"],
+                where: {
+                    [Op.or]: unitsList,
+                    id: {
+                        [Op.ne]: 1
+                    }
+                }
+            });
+
+        } catch {
+            return { successful: false, userList: undefined };
+        }
+
+        return { successful: true, userList };
+    }
+
+    try {
+        userList = await users.findAll({
+            attributes: ["id"]
+        });
+
+    } catch (error) {
+        return { successful: false, userList: undefined };
+    }
+
+    return { successful: true, userList };
 }

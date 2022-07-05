@@ -3,7 +3,8 @@ import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
 import { createIncome, createUserIncome, getNewIncomeId, getIncomes, incomesObj } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, outcomesObj } from "../controllers/outcomes";
-import { getUserData, getSalary, calculatePayroll } from "../controllers/payroll";
+import { getUserData, getSalary, getIdsUnderBusinessUnit, calculatePayroll, } from "../controllers/payroll";
+import { getRoleName } from "../controllers/users";
 
 const router = express.Router();
 
@@ -86,26 +87,45 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     const payrollTotal = await calculatePayroll(parseFloat(salary), incomesList, outcomesList);
 
     // Build JSON object
-    const payrollObject = {
+    const payrollObject: unknown = {
         incomes: incomesList,
         outcomes: outcomesList,
         salary: parseFloat(salary),
         total: payrollTotal
     };
 
-    res.status(200).send(payrollObject);
+    return res.status(200).send(payrollObject);
 });
 
-// MASSIVE REQUEST OF DATA
-// Missing privileges to avoid collab getting into this route
-// Handles ADMIN ONLY FOR NOW
-router.get("/incomes", async (req, res) => {
-    // Check if admin
-    const { business_unit, role } = res.locals.userInfo;
+
+// MASSIVE PAYROLL REQUEST
+// Limit via query and business units
+router.get("/attempt/trial", privileges(Privileges.READ_REPORTS), async (req, res) => {
+    // Get all business units from user
+    const { business_unit, role_id } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
 
+    const role = await getRoleName(role_id);
 
+    // Get all user_ids
+    let userIdData;
+    if (role === "admin") {
+        userIdData = await getIdsUnderBusinessUnit(business_unit_ids);
+
+    } else {
+        userIdData = await getIdsUnderBusinessUnit();
+    }
+
+    const { userList } = userIdData;
+
+    // Loop through userList
+
+    return res.status(200).send(userList);
 });
+
+
+
+
 
 // Dropdown con incomes?
 // Does not edit AUTOMATIC column in outcomes when UPDATING
@@ -201,9 +221,9 @@ router.post("/outcomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.RE
 });
 
 
-// router.post("/trial", async (req, res) => {
-//     const data = await getNewIncomeId();
-//     return res.status(200).json({ message: data });
-// });
+router.post("/trial", async (req, res) => {
+    const data = await getNewIncomeId();
+    return res.status(200).json({ message: data });
+});
 
 export default router;

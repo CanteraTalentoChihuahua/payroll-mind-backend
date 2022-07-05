@@ -42,7 +42,7 @@ function getOrder(order: string, by: string) {
     }
 }
 
-function createUnitsListCondition(businessUnits: Array<number>) {
+export function createUnitsListCondition(businessUnits: Array<number>) {
     const unitsList = [{ "business_unit.business_unit_ids": `[${String(businessUnits).replace(/,/g, ", ")}]` }];
 
     for (const i in businessUnits) {
