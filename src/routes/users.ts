@@ -85,6 +85,8 @@ router.get("/user/:id", privileges(Privileges.READ_USERS, Privileges.READ_COLLAB
 // FRONT MUST CALL /CHANGE AFTER CREATION DUE TO EMAIL
 // Privileges, password, on_leave, active are given
 router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLLABORATORS, Privileges.REACTIVATE_COLLABORATORS, Privileges.REACTIVATE_ADMINS), async (req, res) => {
+    console.log(req.body);
+    
     let { role_id } = res.locals.userInfo;
     const { business_unit } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;
@@ -93,6 +95,8 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
     const { first_name, last_name, birthday, email, phone_number, payment_period_id, salary_id, business_unit_id, bank, CLABE, payroll_schema_id } = req.body;
     const new_role_id = req.body.role_id;
 
+    console.log(first_name, last_name, birthday, email, phone_number, payment_period_id, salary_id, business_unit_id, bank, CLABE, payroll_schema_id);
+    
     // Optional
     const { second_name, second_last_name } = req.body;
 
