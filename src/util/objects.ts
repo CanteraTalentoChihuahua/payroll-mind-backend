@@ -1,3 +1,5 @@
+import { DecimalDataType } from "sequelize/types";
+
 export const Privileges = {
     CREATE_ADMINS: { id: 1, description: "Crear administradores" },
     READ_ADMINS: { id: 2, description: "Ver todos los administradores" },
@@ -55,4 +57,18 @@ export type NewUserData = {
     payroll_schema_id: number,
     second_name: string | undefined,
     second_last_name: string | undefined
+}
+
+export type newIncomeData = {
+    income_id: number,
+    counter: number,
+    amount: DecimalDataType,
+    automatic: boolean
+}
+
+export type newOutcomeData = {
+    outcome_id: number,
+    counter: number,
+    amount: DecimalDataType,
+    automatic: boolean
 }
