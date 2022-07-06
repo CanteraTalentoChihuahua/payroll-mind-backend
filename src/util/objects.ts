@@ -50,7 +50,6 @@ export type NewUserData = {
     payment_period_id: number,
     on_leave: boolean | undefined,
     active: boolean | undefined,
-    salary_id: number,
     business_unit_id: Array<number>,
     bank: string,
     CLABE: string,

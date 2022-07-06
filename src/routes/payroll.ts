@@ -1,10 +1,9 @@
 import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
-import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getMassiveIncomes, incomesObj } from "../controllers/incomes";
+import { createIncome, createUserIncome, getNewIncomeId, getIncomes, incomesObj } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, outcomesObj } from "../controllers/outcomes";
-import { createList, getUserData, getSalary, getMassiveSalary, getIdsUnderBusinessUnit, getMassiveUserData, calculatePayroll } from "../controllers/payroll";
-import { getRoleName } from "../controllers/users";
+import { getUserData, getSalary, calculatePayroll } from "../controllers/payroll";
 
 const router = express.Router();
 
@@ -23,7 +22,7 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     if (!salaryDataObject.successful) {
         return res.status(400).send("Invalid request. User is missing salary.");
     }
-    
+
     // Query incomes-users
     const incomesDataObject = await getIncomes(parseInt(id));
     let incomesList: incomesObj[] | undefined = [];
@@ -65,13 +64,7 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     }
 
     // Payroll sum total --SALARY IS REQUIRED
-    let salary;
-    try {
-        salary = salaryDataObject.salaryData.salary;
-
-    } catch (error) {
-        return res.status(400).send("Invalid request. User salary is missing.");
-    }
+    const salary = salaryDataObject.salaryData.salary;
 
     // Associated incomes exist
     if (!incomesList.length) {
@@ -97,60 +90,6 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     return res.status(200).send(payrollObject);
 });
 
-
-// MASSIVE PAYROLL REQUEST
-// Limit via query and business units
-router.get("/attempt/trial", privileges(Privileges.READ_REPORTS), async (req, res) => {
-    // Get all business units from user
-    const { business_unit, role_id } = res.locals.userInfo;
-    const { business_unit_ids } = business_unit;
-
-    const role = await getRoleName(role_id);
-
-    // Get all user_ids under current user business unit
-    let userIdData;
-    if (role === "admin") {
-        userIdData = await getIdsUnderBusinessUnit(business_unit_ids);
-    } else {
-        userIdData = await getIdsUnderBusinessUnit();
-    }
-
-    const userList = createList(userIdData.userList);
-
-    // Query user and check activity
-    const userData = await getMassiveUserData(userList);
-
-    // Query salary
-    const salaryDataObject = await getMassiveSalary(userList);
-
-    // Query incomes-users
-    const incomesDataObject = await getMassiveIncomes(userList);
-    // let incomesList: incomesObj[] | undefined = [];
-
-    // No associated incomes found
-    // if (!incomesDataObject.successful) {
-    //     // Invalid query
-    //     if (incomesDataObject.error) {
-    //         return res.sendStatus(500);
-    //     }
-
-    //     incomesList = [{
-    //         income_id: undefined,
-    //         counter: undefined,
-    //         amount: undefined,
-    //         name: undefined,
-    //         automatic: undefined
-    //     }];
-    // }
-
-    return res.status(200).send(incomesDataObject);
-});
-
-
-
-
-
-// Dropdown con incomes?
 // Does not edit AUTOMATIC column in outcomes when UPDATING
 // SENDING ID MEANS IMPLIES IT EXISTS, SENDING NAME IMPLIES IT DOES NOT
 router.post("/incomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS), async (req, res) => {
@@ -244,9 +183,54 @@ router.post("/outcomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.RE
 });
 
 
-router.post("/trial", async (req, res) => {
-    const data = await getNewIncomeId();
-    return res.status(200).json({ message: data });
-});
+// MASSIVE PAYROLL REQUEST
+// Limit via query and business units
+// router.get("/attempt/trial", privileges(Privileges.READ_REPORTS), async (req, res) => {
+//     // Get all business units from user
+//     const { business_unit, role_id } = res.locals.userInfo;
+//     const { business_unit_ids } = business_unit;
+
+//     const role = await getRoleName(role_id);
+
+//     // Get all user_ids under current user business unit
+//     let userIdData;
+//     if (role === "admin") {
+//         userIdData = await getIdsUnderBusinessUnit(business_unit_ids);
+//     } else {
+//         userIdData = await getIdsUnderBusinessUnit();
+//     }
+
+//     const userList = createList(userIdData.userList);
+
+//     // Query user and check activity
+//     const userData = await getMassiveUserData(userList);
+
+//     // Query salary
+//     const salaryDataObject = await getMassiveSalary(userList);
+
+//     // Query incomes-users
+//     const incomesDataObject = await getMassiveIncomes(userList);
+//     // let incomesList: incomesObj[] | undefined = [];
+
+//     // No associated incomes found
+//     // if (!incomesDataObject.successful) {
+//     //     // Invalid query
+//     //     if (incomesDataObject.error) {
+//     //         return res.sendStatus(500);
+//     //     }
+
+//     //     incomesList = [{
+//     //         income_id: undefined,
+//     //         counter: undefined,
+//     //         amount: undefined,
+//     //         name: undefined,
+//     //         automatic: undefined
+//     //     }];
+//     // }
+
+//     return res.status(200).send(incomesDataObject);
+// });
+
+
 
 export default router;

@@ -4,22 +4,22 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.bulkInsert("incomes", [
       {
-        name: "Bono Pride",
+        name: "Bono de Desempeño",
         automatic: false,
         active: true
       },
       {
-        name: "Bono de U2",
+        name: "Aguinaldo",
         automatic: true,
         active: true
       },
       {
-        name: "Bonomio",
+        name: "Bonificación Sample 1",
         automatic: false,
         active: false
       },
       {
-        name: "Bono Lizard Wizard",
+        name: "Bonificación Sample 2",
         automatic: true,
         active: true
       }

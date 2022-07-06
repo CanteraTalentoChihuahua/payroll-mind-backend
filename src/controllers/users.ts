@@ -229,3 +229,8 @@ export async function getRoleName(id: number) {
     const { name } = roleName;
     return name;
 }
+
+export async function getNewUserId() {
+    const max = await user.max("id");
+    return parseInt(max);
+}

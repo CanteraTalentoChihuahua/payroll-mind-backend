@@ -4,22 +4,22 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.bulkInsert("outcomes", [
       {
-        name: "Fondo de reconstrucción facial",
-        automatic: false,
-        active: true
-      },
-      {
-        name: "Dotación de Ricolino",
+        name: "Fondo de ahorro",
         automatic: true,
         active: true
       },
       {
-        name: "Fondo Aurrera La Campeona de los Precios Bajos",
+        name: "Seguro de gastos medicos",
+        automatic: true,
+        active: true
+      },
+      {
+        name: "Impuesto Sample 1",
         automatic: false,
         active: false
       },
       {
-        name: "Fondo de Bikini",
+        name: "Impuesto Sample 2",
         automatic: false,
         active: true
       },
