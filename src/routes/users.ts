@@ -1,4 +1,4 @@
-import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName } from "../controllers/users";
+import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName, getNewUserId } from "../controllers/users";
 import { generatePassword } from "../controllers/auth";
 import { createSalary } from "../controllers/payroll";
 import privileges from "../middleware/privileges";
@@ -133,16 +133,17 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
     // Initial password is generated automatically
     const newPass = await generatePassword(30);
 
+    // Create user... CHANGE PRIVILEGES?
+    role_id = new_role_id;
+    const on_leave = false, active = true, privileges: Array<number> = [];
+    const data = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, privileges, payment_period_id, on_leave, active, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
+
     // Create salary entry --- MUST EXTRACT USER ID --- MUST BE AFTER CREATENEWUSER
-    const salaryData = await createSalary(role_id, salary);
+    const newUserId = await getNewUserId();
+    const salaryData = await createSalary(newUserId, salary);
     if (!salaryData.successful) {
         return res.status(500).send("Something went wrong. Unable to create salary.");
     }
-
-    // Create user... CHANGE PRIVILEGES?
-    role_id = new_role_id;
-    const on_leave = false, active = true, salary_id = 1, privileges: Array<number> = [];
-    const data = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, privileges, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
 
     if (!data.successful) {
         return res.status(500).json({ message: "Something went wrong. Fields might be duplicated." });
