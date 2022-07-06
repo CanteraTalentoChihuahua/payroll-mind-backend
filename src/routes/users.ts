@@ -1,4 +1,5 @@
 import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName, getNewUserId } from "../controllers/users";
+import { sendPasswordChangeEmail } from "../controllers/auth";
 import { generatePassword } from "../controllers/auth";
 import { createSalary } from "../controllers/payroll";
 import privileges from "../middleware/privileges";
@@ -81,7 +82,6 @@ router.get("/user/:id", privileges(Privileges.READ_USERS, Privileges.READ_COLLAB
     res.json(data.userDetails);
 });
 
-// FRONT MUST CALL /CHANGE AFTER CREATION DUE TO EMAIL
 // Privileges, password, on_leave, active are given
 router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLLABORATORS, Privileges.REACTIVATE_COLLABORATORS, Privileges.REACTIVATE_ADMINS), async (req, res) => {
     console.log(req.body);
@@ -136,20 +136,23 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
     // Create user... CHANGE PRIVILEGES?
     role_id = new_role_id;
     const on_leave = false, active = true, privileges: Array<number> = [];
-    const data = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, privileges, payment_period_id, on_leave, active, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
+    const userData = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, privileges, payment_period_id, on_leave, active, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
+
+    if (!userData.successful) {
+        return res.status(500).json({ message: "Unable to create user. Fields might be duplicated." });
+    }
 
     // Create salary entry --- MUST EXTRACT USER ID --- MUST BE AFTER CREATENEWUSER
     const newUserId = await getNewUserId();
     const salaryData = await createSalary(newUserId, salary);
     if (!salaryData.successful) {
-        return res.status(500).send("Something went wrong. Unable to create salary.");
+        return res.status(500).send("Unable to create salary.");
     }
 
-    if (!data.successful) {
-        return res.status(500).json({ message: "Something went wrong. Fields might be duplicated." });
-    }
+    // User is created and password change email is sent to user
+    await sendPasswordChangeEmail(newUserId, newPass, email);
 
-    res.status(201).json({ message: "User created successfully." });
+    return res.status(201).json({ message: "User created successfully." });
 });
 
 // TO DO: Admin cannot change his own salary --- add superadmin validation in the future
