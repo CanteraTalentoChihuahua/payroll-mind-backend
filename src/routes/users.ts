@@ -6,7 +6,6 @@ import { Privileges } from "../util/objects";
 import { Router } from "express";
 
 // Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
-// TO DO: EMAIL SHOULD NOT BE REPEATED
 const router = Router();
 
 router.get("/users", privileges(Privileges.READ_USERS, Privileges.READ_COLLABORATORS), async (req, res) => {
@@ -82,7 +81,6 @@ router.get("/user/:id", privileges(Privileges.READ_USERS, Privileges.READ_COLLAB
     res.json(data.userDetails);
 });
 
-// --FORMAT DATE?
 // FRONT MUST CALL /CHANGE AFTER CREATION DUE TO EMAIL
 // Privileges, password, on_leave, active are given
 router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLLABORATORS, Privileges.REACTIVATE_COLLABORATORS, Privileges.REACTIVATE_ADMINS), async (req, res) => {
@@ -99,7 +97,7 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
 
     // Required validation
     if (!first_name || !last_name || !email || !birthday || !email || !phone_number || !new_role_id || !payment_period_id || !salary || !business_unit_id || !bank || !CLABE || !payroll_schema_id) {
-        return res.status(400).json({ message: "Missing required fields" });
+        return res.status(400).json({ message: "Missing required fields." });
     }
 
     // Change business unit, add req data
@@ -120,7 +118,7 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
         });
 
         // Possible break here
-        if (doesNotBelongToBusinessUnits || ["collab", "admin"].includes(newUserRole)) {
+        if (doesNotBelongToBusinessUnits || !["collab", "admin"].includes(newUserRole)) {
             return res.status(400).json({ message: "Business unit of scope OR attempting to create superadmin." });
         }
 
