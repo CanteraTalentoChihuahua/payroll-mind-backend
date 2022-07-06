@@ -9,6 +9,7 @@ const router = express.Router();
 
 router.post("/login", async (req, res) => {
     const { email, password } = req.body;
+    
     if (!email || !password) {
         return res.status(401).json({
             message: "Invalid credentials"
