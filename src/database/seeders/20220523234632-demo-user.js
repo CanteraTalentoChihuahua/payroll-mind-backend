@@ -1,3 +1,5 @@
+import bcrypt from "bcrypt";
+
 "use strict";
 
 // Currently, bulk inserting JSON is bugged and this is a workaround
@@ -13,7 +15,7 @@ module.exports = {
                 second_last_name: "Moe",
                 birthday: new Date(1995, 1, 24),
                 email: "johnwayne@arkus.com",
-                password: "secret_password",
+                password: await bcrypt.hash("secret_password", 10),
                 phone_number: "6142274321",
                 role_id: 1,
                 privileges: {
@@ -37,7 +39,7 @@ module.exports = {
                 second_last_name: "Macias",
                 birthday: new Date(1999, 7, 11),
                 email: "abrahamgmacias@arkus.com",
-                password: "secret_password",
+                password: await bcrypt.hash("secret_password", 10),
                 phone_number: "6622274328",
                 role_id: 2,
                 privileges: {
@@ -61,7 +63,7 @@ module.exports = {
                 second_last_name: "del Villar",
                 birthday: new Date(1997, 5, 17),
                 email: "elmontes@arkus.com",
-                password: "secret_password",
+                password: await bcrypt.hash("secret_password", 10),
                 phone_number: "6622275173",
                 role_id: 3,
                 privileges: {
@@ -85,7 +87,7 @@ module.exports = {
                 second_last_name: "Ramirez",
                 birthday: new Date(2001, 2, 27),
                 email: "jperezrojas@arkus.com",
-                password: "secret_password",
+                password: await bcrypt.hash("secret_password", 10),
                 phone_number: "6142274123",
                 role_id: 3,
                 privileges: {
@@ -109,7 +111,7 @@ module.exports = {
                 second_last_name: "Rojas",
                 birthday: new Date(2001, 2, 27),
                 email: "adreanar@arkus.com",
-                password: "secret_password",
+                password: await bcrypt.hash("secret_password", 10),
                 phone_number: "6142456729",
                 role_id: 3,
                 privileges: {
@@ -133,7 +135,7 @@ module.exports = {
                 second_last_name: "Güero",
                 birthday: new Date(1980, 7, 8),
                 email: "epigmeniocruz@arkus.com",
-                password: "secret_password",
+                password: await bcrypt.hash("secret_password", 10),
                 phone_number: "61471774935",
                 role_id: 3,
                 privileges: {
