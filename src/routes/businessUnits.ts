@@ -1,12 +1,11 @@
-import db from "../database/database";
-import express, { query, response } from "express";
+import express from "express";
 import {
     saveBusinessUnit,
     findAllBusinessUnits,
     findBusinessUnitById,
     findBusinessUnitByName
 } from "../controllers/businessUnits";
-const businessUnits = require("../database/models/business_units")(db);
+const {business_units: businessUnits} = require("../database/models/index");
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 

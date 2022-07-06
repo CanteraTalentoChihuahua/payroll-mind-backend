@@ -1,5 +1,4 @@
-import db from "../database/database";
-const users = require("../database/models/users")(db);
+const { users } = require("../database/models/index");
 import { sign, verify, JsonWebTokenError, JwtPayload } from "jsonwebtoken";
 import transporter from "../config/mailer";
 import bcrypt from "bcrypt";

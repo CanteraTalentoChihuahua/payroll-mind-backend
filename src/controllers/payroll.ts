@@ -1,11 +1,9 @@
-import db from "../database/database";
 import { incomesObj } from "../controllers/incomes";
 import { outcomesObj } from "../controllers/outcomes";
 import { createUnitsListCondition } from "../controllers/users";
 
 const { Op } = require("sequelize");
-const users = require("../database/models/users")(db);
-const salaries = require("../database/models/salaries")(db);
+const {users, salaries} = require("../database/models/index");
 
 const attributesList = ["active", "role_id", "payment_period_id", "salary_id", "payroll_schema_id"];
 

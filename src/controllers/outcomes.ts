@@ -1,8 +1,6 @@
 import { Op } from "sequelize";
-import db from "../database/database";
 import { newOutcomeData } from "../util/objects";
-const outcomes = require("../database/models/outcomes")(db);
-const outcomes_users = require("../database/models/outcomes_users")(db);
+const {outcomes, outcomes_users} = require("../database/models/index");
 
 interface entryObj {
     name: string, automatic: boolean, active: boolean

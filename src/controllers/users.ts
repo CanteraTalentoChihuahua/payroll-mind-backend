@@ -1,12 +1,9 @@
-import db from "../database/database";
 import { NewUserData } from "../util/objects";
 import { hash } from "bcrypt";
 
 const { Op } = require("sequelize");
 const sqlz = require("sequelize").Sequelize;
-const user = require("../database/models/users")(db);
-const roles = require("../database/models/roles")(db);
-const businessUnits = require("../database/models/business_units")(db);
+const {users: user, roles, business_units: businessUnits} = require("../database/models/index");
 
 const attributesList = [
     "id",
@@ -31,14 +28,14 @@ const attributesList = [
 
 function getOrder(order: string, by: string) {
     switch (order) {
-        case "name": return [
-            ["first_name", by],
-            ["last_name", by]
-        ];
-        case "salary": return [
-            ["salary", by]
-        ];
-        default: return [];
+    case "name": return [
+        ["first_name", by],
+        ["last_name", by]
+    ];
+    case "salary": return [
+        ["salary", by]
+    ];
+    default: return [];
     }
 }
 
