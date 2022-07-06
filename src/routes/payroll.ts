@@ -1,6 +1,7 @@
 import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
+import { createSalary } from "../controllers/payroll";
 import { createIncome, createUserIncome, getNewIncomeId, getIncomes, incomesObj } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, outcomesObj } from "../controllers/outcomes";
 import { getUserData, getSalary, calculatePayroll } from "../controllers/payroll";
@@ -77,14 +78,20 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     }
 
     // Final payroll value
-    const payrollTotal = await calculatePayroll(parseFloat(salary), incomesList, outcomesList);
+    const { payrollTotal, incomesTotal, outcomesTotal } = await calculatePayroll(parseFloat(salary), incomesList, outcomesList);
 
     // Build JSON object
+    const { payment_period_id } = userDataObject.userData;
     const payrollObject: unknown = {
+        payment_period_id,
         incomes: incomesList,
         outcomes: outcomesList,
         salary: parseFloat(salary),
-        total: payrollTotal
+        total: {
+            incomesTotal,
+            outcomesTotal,
+            payrollTotal
+        }
     };
 
     return res.status(200).send(payrollObject);
@@ -133,6 +140,20 @@ router.post("/incomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.REA
     }
 
     return res.status(200).json({ message: "Income was registered successfully." });
+});
+
+router.post("/salary/:id", async (req, res) => {
+    const { salary } = req.body;
+    const { id } = req.params;
+
+    try {
+        await createSalary(parseInt(id), parseFloat(salary));
+
+    } catch (error) {
+        return res.status(400).json({ message: "Unable to update salary." });
+    }
+
+    return res.status(200).send({ message: "Successfully changed salary."});
 });
 
 // Change privileges to better matching ones

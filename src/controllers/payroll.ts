@@ -123,6 +123,8 @@ export async function createSalary(userId: number, salary: number) {
 
 export async function calculatePayroll(salary: number, incomes?: incomesObj[], outcomes?: outcomesObj[]) {
     let payrollTotal: number = salary;
+    let incomesTotal = 0;
+    let outcomesTotal = 0;
 
     if (incomes) {
         for (const incomeObj in incomes) {
@@ -131,7 +133,8 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
             if (!counter || !amount) {
                 continue;
             } else {
-                payrollTotal += counter as number * parseFloat(amount!);
+                payrollTotal += parseFloat(amount!);
+                incomesTotal += parseFloat(amount!);
             }
         }
     }
@@ -143,12 +146,13 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
             if (!counter || !amount) {
                 continue;
             } else {
-                payrollTotal -= counter as number * parseFloat(amount!);
+                payrollTotal -= parseFloat(amount!);
+                outcomesTotal += parseFloat(amount!);
             }
         }
     }
 
-    return payrollTotal;
+    return { payrollTotal, incomesTotal, outcomesTotal };
 }
 
 export async function getRoles(userId: number) {
