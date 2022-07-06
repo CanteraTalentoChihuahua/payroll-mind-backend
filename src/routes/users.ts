@@ -135,7 +135,13 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
 
     // Create user... CHANGE PRIVILEGES?
     role_id = new_role_id;
-    const on_leave = false, active = true, privileges: Array<number> = [];
+    const on_leave = false, active = true;
+    let privileges: Array<number> = [];
+
+    if (newUserRole === "admin") {
+        privileges = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27];
+    }
+
     const userData = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, privileges, payment_period_id, on_leave, active, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
 
     if (!userData.successful) {
