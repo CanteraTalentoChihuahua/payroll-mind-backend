@@ -1,8 +1,6 @@
 "use strict";
-const payments_periods = require ("./payments_periods");
-
 const {
-    Model, Sequelize
+    Model
 } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
     class payments extends Model {
@@ -13,19 +11,19 @@ module.exports = (sequelize, DataTypes) => {
      */
         
         static associate(models) {
-           
+            payments.belongsTo(models.payments_periods);
         }
 
     }
     payments.init({
-        id: {type:Sequelize.INTEGER,primaryKey:true,autoIncrement: true},
-        user_id: Sequelize.INTEGER,
-        total_amount: Sequelize.DECIMAL,
-        automated_bonuses: Sequelize.JSONB,
-        manual_bonuses: Sequelize.JSONB,
-        substracted_amount: Sequelize.DECIMAL,
-        payment_period_id: Sequelize.INTEGER,
-        payment_date_id: Sequelize.INTEGER
+        id: {type:DataTypes.INTEGER,primaryKey:true,autoIncrement: true},
+        user_id: DataTypes.INTEGER,
+        total_amount: DataTypes.DECIMAL,
+        automated_bonuses: DataTypes.JSONB,
+        manual_bonuses: DataTypes.JSONB,
+        substracted_amount: DataTypes.DECIMAL,
+        payment_period_id: DataTypes.INTEGER,
+        payment_date_id: DataTypes.INTEGER
     }, {
         sequelize,
         modelName: "payments",

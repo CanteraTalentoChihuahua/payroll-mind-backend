@@ -1,27 +1,27 @@
-'use strict';
+"use strict";
 const {
-  Model, Sequelize
-} = require('sequelize');
+    Model
+} = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
-  class incomes extends Model {
+    class incomes extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-    static associate(models) {
-      // define association here
+        static associate(models) {
+            incomes.hasMany(models.incomes_users);
+        }
     }
-  }
-  incomes.init({
-    id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-    name: Sequelize.STRING,
-    automatic: Sequelize.BOOLEAN,
-    active: Sequelize.BOOLEAN
-  }, {
-    sequelize,
-    modelName: 'incomes',
-    paranoid: true
-  });
-  return incomes;
+    incomes.init({
+        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        name: DataTypes.STRING,
+        automatic: DataTypes.BOOLEAN,
+        active: DataTypes.BOOLEAN
+    }, {
+        sequelize,
+        modelName: "incomes",
+        paranoid: true
+    });
+    return incomes;
 };

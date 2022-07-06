@@ -1,12 +1,8 @@
 "use strict";
-const payments_periods = require("./payments_periods");
-const business_units = require("./business_units");
-const roles = require("./roles");
-
 const {
-    Model, Sequelize
+    Model
 } = require("sequelize");
-module.exports = (sequelize) => {
+module.exports = (sequelize, DataTypes) => {
     class users extends Model {
         /**
          * Helper method for defining associations.
@@ -15,40 +11,36 @@ module.exports = (sequelize) => {
          */
         static associate(models) {
             users.belongsTo(models.payments_periods, { foreignKey: "payment_period_id", allowNull: false });
-            models.payments_periods.hasOne(users);
             users.belongsTo(models.roles, { foreignKey: "role_id", allowNull: false });
-            models.roles.hasOne(users);
             users.belongsTo(models.payroll_schemas, { foreignKey: "payroll_schema_id", allowNull: false });
-            models.payroll_schemas.hasOne(users);
             users.belongsTo(models.salaries, { foreignKey: "salary_id", allowNull: false });
-            models.salaries.hasOne(users);
         }
     }
 
     users.init({
         id: {
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
-        first_name: Sequelize.STRING,
-        second_name: Sequelize.STRING,
-        last_name: Sequelize.STRING,
-        second_last_name: Sequelize.STRING,
-        birthday: Sequelize.STRING,
-        email: Sequelize.STRING,
-        phone_number: Sequelize.STRING,
-        role_id: Sequelize.STRING,
-        payment_period_id: Sequelize.INTEGER,
-        salary_id: Sequelize.INTEGER,
-        business_unit: Sequelize.JSONB,
-        bank: Sequelize.STRING,
-        CLABE: Sequelize.STRING,
-        payroll_schema_id: Sequelize.INTEGER,
-        password: Sequelize.STRING,
-        privileges: Sequelize.JSONB,
-        on_leave: Sequelize.BOOLEAN,
-        active: Sequelize.BOOLEAN,
+        first_name: DataTypes.STRING,
+        second_name: DataTypes.STRING,
+        last_name: DataTypes.STRING,
+        second_last_name: DataTypes.STRING,
+        birthday: DataTypes.STRING,
+        email: DataTypes.STRING,
+        phone_number: DataTypes.STRING,
+        role_id: DataTypes.STRING,
+        payment_period_id: DataTypes.INTEGER,
+        salary_id: DataTypes.INTEGER,
+        business_unit: DataTypes.JSONB,
+        bank: DataTypes.STRING,
+        CLABE: DataTypes.STRING,
+        payroll_schema_id: DataTypes.INTEGER,
+        password: DataTypes.STRING,
+        privileges: DataTypes.JSONB,
+        on_leave: DataTypes.BOOLEAN,
+        active: DataTypes.BOOLEAN,
     }, {
         sequelize,
         modelName: "users",

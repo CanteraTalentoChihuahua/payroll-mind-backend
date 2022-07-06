@@ -1,10 +1,6 @@
-
 "use strict";
-const users = require ("./users");
-const payments = require ("./payments");
-
 const {
-    Model, Sequelize
+    Model
 } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
     class payments_periods extends Model {
@@ -16,13 +12,13 @@ module.exports = (sequelize, DataTypes) => {
        
         static associate(models) {
             payments_periods.hasMany(models.payments, {foreignKey:"payment_period_id", allowNull: false});
-            models.payments.belongsTo(payments_periods);
+            payments_periods.hasOne(models.users);
         }
 
     }
     payments_periods.init({
-        id: {type:Sequelize.INTEGER,primaryKey:true,autoIncrement: true},
-        name: Sequelize.STRING
+        id: {type:DataTypes.INTEGER,primaryKey:true,autoIncrement: true},
+        name: DataTypes.STRING
     }, {
         sequelize,
         modelName: "payments_periods",
