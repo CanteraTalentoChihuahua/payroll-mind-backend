@@ -1,9 +1,9 @@
-import { Router } from "express";
-// import { sendPasswordEmail } from "../controllers/auth";
 import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName } from "../controllers/users";
 import { generatePassword } from "../controllers/auth";
+import { createSalary } from "../controllers/payroll";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
+import { Router } from "express";
 
 // Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
 // TO DO: EMAIL SHOULD NOT BE REPEATED
@@ -91,14 +91,14 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
     const { business_unit_ids } = business_unit;
 
     // Required
-    const { first_name, last_name, birthday, email, phone_number, payment_period_id, salary_id, business_unit_id, bank, CLABE, payroll_schema_id } = req.body;
+    const { first_name, last_name, birthday, email, phone_number, payment_period_id, salary, business_unit_id, bank, CLABE, payroll_schema_id } = req.body;
     const new_role_id = req.body.role_id;
 
     // Optional
     const { second_name, second_last_name } = req.body;
 
     // Required validation
-    if (!first_name || !last_name || !email || !birthday || !email || !phone_number || !new_role_id || !payment_period_id || !salary_id || !business_unit_id || !bank || !CLABE || !payroll_schema_id) {
+    if (!first_name || !last_name || !email || !birthday || !email || !phone_number || !new_role_id || !payment_period_id || !salary || !business_unit_id || !bank || !CLABE || !payroll_schema_id) {
         return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -133,9 +133,15 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
     // Initial password is generated automatically
     const newPass = await generatePassword(30);
 
-    // CHANGE PRIVILEGES
+    // Create salary entry --- MUST EXTRACT USER ID --- MUST BE AFTER CREATENEWUSER
+    const salaryData = await createSalary(role_id, salary);
+    if (!salaryData.successful) {
+        return res.status(500).send("Something went wrong. Unable to create salary.");
+    }
+
+    // Create user... CHANGE PRIVILEGES?
     role_id = new_role_id;
-    const on_leave = false, active = true, privileges = [1, 2, 3];
+    const on_leave = false, active = true, salary_id = 1, privileges: Array<number> = [];
     const data = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, privileges, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
 
     if (!data.successful) {
@@ -297,6 +303,17 @@ router.delete("/user/:id", privileges(Privileges.DELETE_COLLABORATORS, Privilege
     }
 
     return res.status(200).json({ message: "Successfully deleted user" });
+});
+
+router.post("/trial", async (req, res) => {
+    const { user_id, salary } = req.body;
+
+    const salaryData = await createSalary(user_id, salary);
+    if (!salaryData.successful) {
+        return res.status(500).send("Something went wrong. Unable to create salary.");
+    }
+
+    return res.status(200).send("Works");
 });
 
 export default router;
