@@ -1,15 +1,15 @@
 const { users } = require("../database/models/index");
-import { sign, verify, JsonWebTokenError, JwtPayload } from "jsonwebtoken";
-import transporter from "../config/mailer";
 import bcrypt from "bcrypt";
+import transporter from "../config/mailer";
 import { createSessionJWT } from "../util/jwt";
+import { sign, verify, JsonWebTokenError, JwtPayload } from "jsonwebtoken";
 
 export async function logIn(email: string, password: string) {
     const userData = await users.findOne({
         where: { email }
     });
-
-    if (userData === null || userData.dataValues.password !== password) {
+    
+    if (userData === null || !(await bcrypt.compare(password, userData.dataValues.password))) {
         return { loggedIn: false, token: null };
     }
 

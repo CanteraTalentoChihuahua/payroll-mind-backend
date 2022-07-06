@@ -69,7 +69,7 @@ module.exports = {
             },
             salary_id: {
                 type: Sequelize.INTEGER,
-                allowNull: false
+                allowNull: true
             },
             bank: {
                 type: Sequelize.STRING,

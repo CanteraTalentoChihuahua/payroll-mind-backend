@@ -57,7 +57,7 @@ export async function getSalary(userId: number) {
             raw: true
         });
 
-        if (!salaryData.length) {
+        if (!salaryData) {
             return { successful: false };
         }
 
@@ -66,6 +66,57 @@ export async function getSalary(userId: number) {
     }
 
     return { successful: true, salaryData };
+}
+
+export async function getNewSalaryId() {
+    const max = await salaries.max("id");
+    return parseInt(max);
+}
+
+export async function createSalary(userId: number, salary: number) {
+    // Check if salary exists... 
+    let salaryQueryResult;
+
+    try {
+        salaryQueryResult = await salaries.findOne({
+            attributes: ["id"],
+            where: {
+                user_id: userId,
+                deletedAt: null
+            }
+        });
+
+    } catch (error) {
+        return { successful: false, error: "Invalid query." };
+    }
+
+    // If it does, update-delete it...
+    if (salaryQueryResult) {
+        // Update salary table
+        await salaries.destroy({
+            where: { id: salaryQueryResult.id }
+        });
+    }
+
+    // Otherwise, or consequently, create it
+    try {
+        await salaries.create({
+            user_id: userId,
+            salary,
+            date: new Date()
+        });
+
+        // Update user table
+        const newSalaryId = await getNewSalaryId();
+        await users.update({ salary_id: newSalaryId }, {
+            where: { id: userId }
+        });
+
+    } catch (error) {
+        return { successful: false, error: "Either unable to create salary entry OR unable to update users table." };
+    }
+
+    return { successful: true };
 }
 
 export async function calculatePayroll(salary: number, incomes?: incomesObj[], outcomes?: outcomesObj[]) {

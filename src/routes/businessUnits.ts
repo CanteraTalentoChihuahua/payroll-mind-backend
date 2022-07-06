@@ -1,13 +1,8 @@
 import express from "express";
-import {
-    saveBusinessUnit,
-    findAllBusinessUnits,
-    findBusinessUnitById,
-    findBusinessUnitByName
-} from "../controllers/businessUnits";
-const {business_units: businessUnits} = require("../database/models/index");
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
+import { saveBusinessUnit, findAllBusinessUnits, findBusinessUnitById, findBusinessUnitByName } from "../controllers/businessUnits";
+const {business_units: businessUnits} = require("../database/models/index");
 
 const businessUnitRouter = express.Router();
 
@@ -28,7 +23,7 @@ businessUnitRouter.get("/list/:id", privileges(Privileges.READ_BUSINESS_UNITS), 
         res.status(200).send(businessUnitsData);
 });
 
-businessUnitRouter.put("/edit/:id", privileges(Privileges.EDIT_BUSINESS_UNITS), async (req, res) => {
+businessUnitRouter.put("/edit/:id", privileges(Privileges.EDIT_BUSINESS_UNITS, Privileges.REACTIVATE_BUSINESS_UNITS), async (req, res) => {
     const { id } = req.params;
     const { newName } = req.body;
 

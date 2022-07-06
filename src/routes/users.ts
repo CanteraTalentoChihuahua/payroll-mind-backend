@@ -1,12 +1,12 @@
-import { Router } from "express";
-// import { sendPasswordEmail } from "../controllers/auth";
-import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName } from "../controllers/users";
+import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName, getNewUserId } from "../controllers/users";
+import { sendPasswordChangeEmail } from "../controllers/auth";
 import { generatePassword } from "../controllers/auth";
+import { createSalary } from "../controllers/payroll";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
+import { Router } from "express";
 
 // Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
-// TO DO: EMAIL SHOULD NOT BE REPEATED
 const router = Router();
 
 router.get("/users", privileges(Privileges.READ_USERS, Privileges.READ_COLLABORATORS), async (req, res) => {
@@ -82,8 +82,6 @@ router.get("/user/:id", privileges(Privileges.READ_USERS, Privileges.READ_COLLAB
     res.json(data.userDetails);
 });
 
-// --FORMAT DATE?
-// FRONT MUST CALL /CHANGE AFTER CREATION DUE TO EMAIL
 // Privileges, password, on_leave, active are given
 router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLLABORATORS, Privileges.REACTIVATE_COLLABORATORS, Privileges.REACTIVATE_ADMINS), async (req, res) => {
     let { role_id } = res.locals.userInfo;
@@ -91,15 +89,15 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
     const { business_unit_ids } = business_unit;
 
     // Required
-    const { first_name, last_name, birthday, email, phone_number, payment_period_id, salary_id, business_unit_id, bank, CLABE, payroll_schema_id } = req.body;
+    const { first_name, last_name, birthday, email, phone_number, payment_period_id, salary, business_unit_id, bank, CLABE, payroll_schema_id } = req.body;
     const new_role_id = req.body.role_id;
 
     // Optional
     const { second_name, second_last_name } = req.body;
 
     // Required validation
-    if (!first_name || !last_name || !email || !birthday || !email || !phone_number || !new_role_id || !payment_period_id || !salary_id || !business_unit_id || !bank || !CLABE || !payroll_schema_id) {
-        return res.status(400).json({ message: "Missing required fields" });
+    if (!first_name || !last_name || !email || !birthday || !email || !phone_number || !new_role_id || !payment_period_id || !salary || !business_unit_id || !bank || !CLABE || !payroll_schema_id) {
+        return res.status(400).json({ message: "Missing required fields." });
     }
 
     // Change business unit, add req data
@@ -107,11 +105,10 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
         return res.status(400).json({ message: "Invalid data sent on some fields" });
     }
 
-    // Check role...
-    const newUserRole = await getRoleName(role_id);
-    const currentUserRole = await getRoleName(new_role_id);
+    // Check roles
+    const newUserRole = await getRoleName(new_role_id);
+    const currentUserRole = await getRoleName(role_id);
 
-    // Correct it
     if (currentUserRole === "admin") {
         let doesNotBelongToBusinessUnits;
         business_unit_id.forEach(businessUnit => {
@@ -120,29 +117,45 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
             }
         });
 
-        if (doesNotBelongToBusinessUnits || ["collab", "admin"].includes(newUserRole)) {
-            return res.status(400).json({ message: "Invalid request" });
+        // Possible break here
+        if (doesNotBelongToBusinessUnits || !["collab", "admin"].includes(newUserRole)) {
+            return res.status(400).json({ message: "Business unit of scope OR attempting to create superadmin." });
         }
 
     } else {
         if (newUserRole === "superadmin") {
-            return res.status(400).json({ message: "Invalid request" });
+            return res.status(400).json({ message: "Superadmin cannot create superadmin." });
         }
     }
 
     // Initial password is generated automatically
     const newPass = await generatePassword(30);
 
-    // CHANGE PRIVILEGES
+    // Create user... CHANGE PRIVILEGES?
     role_id = new_role_id;
-    const on_leave = false, active = true, privileges = [1, 2, 3];
-    const data = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, privileges, payment_period_id, on_leave, active, salary_id, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
+    const on_leave = false, active = true, privileges: Array<number> = [];
+    const userData = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, privileges, payment_period_id, on_leave, active, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
 
-    if (!data.successful) {
-        return res.status(500).json({ message: "Something went wrong. Fields might be duplicated." });
+    if (!userData.successful) {
+        return res.status(500).json({ message: "Unable to create user. Fields might be duplicated." });
     }
 
-    res.status(201).json({ message: "User created successfully" });
+    // Create salary entry --- MUST EXTRACT USER ID --- MUST BE AFTER CREATENEWUSER
+    const newUserId = await getNewUserId();
+    const salaryData = await createSalary(newUserId, salary);
+    if (!salaryData.successful) {
+        return res.status(500).send("Unable to create salary.");
+    }
+
+    // User is created and password change email is sent to user
+    try {
+        console.log(newPass)
+        await sendPasswordChangeEmail(newUserId, newPass, email);
+    } catch (error) {
+        return res.status(201).json({ message: "User created successfully. Unable to send email." });
+    }
+            
+    return res.status(201).json({ message: "User created successfully." });
 });
 
 // TO DO: Admin cannot change his own salary --- add superadmin validation in the future
@@ -297,6 +310,17 @@ router.delete("/user/:id", privileges(Privileges.DELETE_COLLABORATORS, Privilege
     }
 
     return res.status(200).json({ message: "Successfully deleted user" });
+});
+
+router.post("/trial", async (req, res) => {
+    const { user_id, salary } = req.body;
+
+    const salaryData = await createSalary(user_id, salary);
+    if (!salaryData.successful) {
+        return res.status(500).send("Something went wrong. Unable to create salary.");
+    }
+
+    return res.status(200).send("Works");
 });
 
 export default router;
