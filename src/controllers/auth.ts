@@ -10,8 +10,8 @@ export async function logIn(email: string, password: string) {
     const userData = await users.findOne({
         where: { email }
     });
-
-    if (userData === null || userData.dataValues.password !== password) {
+    
+    if (userData === null || !(await bcrypt.compare(password, userData.dataValues.password))) {
         return { loggedIn: false, token: null };
     }
 

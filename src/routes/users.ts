@@ -149,6 +149,7 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
 
     // User is created and password change email is sent to user
     try {
+        console.log(newPass)
         await sendPasswordChangeEmail(newUserId, newPass, email);
     } catch (error) {
         return res.status(201).json({ message: "User created successfully. Unable to send email." });
