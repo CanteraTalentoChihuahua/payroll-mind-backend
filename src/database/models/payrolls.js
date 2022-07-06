@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
 
         static associate(models) {
-            payrolls.belongsTo(models.business_units, {foreignKey: "business_unit_id", allowNull: false});
+            payrolls.belongsTo(models.business_units, { foreignKey: "business_unit_id" });
         }
         
     }

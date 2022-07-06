@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
         static associate(models) {
-            salaries.hasOne(models.users);
+            salaries.hasOne(models.users, { foreignKey: "salary_id" });
         }
     }
     salaries.init({

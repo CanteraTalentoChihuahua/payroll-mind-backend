@@ -10,10 +10,10 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            users.belongsTo(models.payments_periods, { foreignKey: "payment_period_id", allowNull: false });
-            users.belongsTo(models.roles, { foreignKey: "role_id", allowNull: false });
-            users.belongsTo(models.payroll_schemas, { foreignKey: "payroll_schema_id", allowNull: false });
-            users.belongsTo(models.salaries, { foreignKey: "salary_id", allowNull: false });
+            //users.belongsTo(models.payments, { foreignKey: "user_id" });
+            users.belongsTo(models.roles, { foreignKey: "role_id" });
+            users.belongsTo(models.payroll_schemas, { foreignKey: "payroll_schema_id" });
+            users.belongsTo(models.salaries, { foreignKey: "salary_id" });
         }
     }
 
