@@ -155,12 +155,11 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
 
     // User is created and password change email is sent to user
     try {
-        console.log(newPass)
         await sendPasswordChangeEmail(newUserId, newPass, email);
     } catch (error) {
         return res.status(201).json({ message: "User created successfully. Unable to send email." });
     }
-            
+
     return res.status(201).json({ message: "User created successfully." });
 });
 
@@ -192,7 +191,6 @@ router.put("/user/:id", privileges(Privileges.EDIT_ADMINS, Privileges.EDIT_COLLA
     if (editUserRoleId) {
         editUserRole = await getRoleName(parseInt(editUserRoleId));
 
-        console.log(editUserRole);
         // Vulnerability?
         if (currentUserRole === "admin" && !["collab", "admin"].includes(editUserRole)) {
             return res.status(400).json({ message: "Invalid request. Cannot create superadmin or admin." });
