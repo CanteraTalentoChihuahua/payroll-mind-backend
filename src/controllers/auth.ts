@@ -10,7 +10,7 @@ export async function logIn(email: string, password: string) {
     const userData = await users.findOne({
         where: { email }
     });
-    
+
     if (userData === null || !(await bcrypt.compare(password, userData.dataValues.password))) {
         return { loggedIn: false, token: null };
     }
@@ -110,15 +110,27 @@ export async function invalidateToken(userId: string) {
 
 // Data contains token and new_password
 export async function restorePassword(token: string, newPassword: string) {
-    const payload = verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    let payload;
+    try {
+        payload = verify(token, process.env.JWT_SECRET!) as JwtPayload;
+
+    } catch (error) {
+        return { successful: false, message: "Unable to verify token." };
+    }
 
     if (!payload.purpose || payload.purpose !== "forgot") {
         throw new JsonWebTokenError("Token not valid");
     }
 
-    const user = await users.findAll({
-        where: { id: payload.userId }
-    });
+    let user;
+    try {
+        user = await users.findAll({
+            where: { id: payload.userId }
+        });
+
+    } catch (error) {
+        return { successful: false, message: "No user found." };
+    }
 
     if (token !== user[0].dataValues.token) {
         return { isSuccessful: true, result: false };
@@ -126,15 +138,18 @@ export async function restorePassword(token: string, newPassword: string) {
 
     const hash = await bcrypt.hash(newPassword, 10);
 
-    await users.update({ password: hash }, {
-        where: { id: payload.userId }
-    });
+    try {
+        await users.update({ password: hash }, {
+            where: { id: payload.userId }
+        });
+
+    } catch (error) {
+        return { isSuccessful: false, message: "Error updating password." };
+    }
 
     const invalidateStatus = await invalidateToken(payload.userId);
-
     if (invalidateStatus === true) {
         return { isSuccessful: true, result: true };
-
     } else {
         return { isSuccessful: true, result: false };
     }

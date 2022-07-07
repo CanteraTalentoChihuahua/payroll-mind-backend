@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post("/login", async (req, res) => {
     const { email, password } = req.body;
-    
+
     if (!email || !password) {
         return res.status(401).json({
             message: "Invalid credentials"
@@ -44,10 +44,10 @@ router.post("/forgot", async (req, res) => {
 
     const emailStatus = await sendPasswordRestoreEmail(userStatus.id, email);
     if (emailStatus!.isSuccessful) {
-        res.status(200).send("Email sent.");
+        return res.status(200).send({ message: "Email sent." });
 
     } else {
-        res.status(500).send("Unable to send email.");
+        return res.status(500).send({ message: "Unable to send email." });
     }
 });
 
@@ -75,7 +75,7 @@ router.post("/restore", async (req, res) => {
     const restore = await restorePassword(token, newPassword);
 
     if (!restore.isSuccessful) {
-        return res.status(500).json({ message: "Unable to change password. Try again later..." });
+        return res.status(500).json(restore.message);
     }
 
     if (!restore.result) {
