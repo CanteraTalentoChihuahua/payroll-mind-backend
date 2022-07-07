@@ -84,8 +84,6 @@ router.get("/user/:id", privileges(Privileges.READ_USERS, Privileges.READ_COLLAB
 
 // Privileges, password, on_leave, active are given
 router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLLABORATORS, Privileges.REACTIVATE_COLLABORATORS, Privileges.REACTIVATE_ADMINS), async (req, res) => {
-    console.log(req.body);
-
     let { role_id } = res.locals.userInfo;
     const { business_unit } = res.locals.userInfo;
     const { business_unit_ids } = business_unit;

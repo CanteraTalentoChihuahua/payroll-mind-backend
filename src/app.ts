@@ -22,7 +22,7 @@ app.use(function (req, res, next) {
 
 // Routes
 app.get("/", (_req, res) => {
-    res.send("Works!");
+    res.send("Works... For now.");
 });
 
 // Should we add /users to users? Got to eliminate the from the route
