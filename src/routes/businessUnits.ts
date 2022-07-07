@@ -57,7 +57,13 @@ businessUnitRouter.post("/save", privileges(Privileges.CREATE_BUSINESS_UNITS), a
     const { name } = req.body;
 
     const BusinessUnitName = await findBusinessUnitByName(name);
-    if (BusinessUnitName) return res.status(409).json({ message: `Business unit "${name}" already exists.` });
+    if (!BusinessUnitName.successful) {
+        if (BusinessUnitName.error) {
+            return res.status(409).json(BusinessUnitName.error);
+        }
+
+        return res.status(409).json({ message: "Business unit already exists." });
+    }
 
     try {
         await saveBusinessUnit(name);
