@@ -142,20 +142,6 @@ router.post("/incomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.REA
     return res.status(200).json({ message: "Income was registered successfully." });
 });
 
-router.post("/salary/:id", async (req, res) => {
-    const { salary } = req.body;
-    const { id } = req.params;
-
-    try {
-        await createSalary(parseInt(id), parseFloat(salary));
-
-    } catch (error) {
-        return res.status(400).json({ message: "Unable to update salary." });
-    }
-
-    return res.status(200).send({ message: "Successfully changed salary."});
-});
-
 // Change privileges to better matching ones
 // Dropdown con outcomes?
 // Hay manera de invalidar la casilla de name mientras la casilla income_id está habilitada y viceversa?
@@ -201,6 +187,20 @@ router.post("/outcomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.RE
     }
 
     return res.status(200).json({ message: "Outcome was registered successfully." });
+});
+
+router.post("/salary/:id", async (req, res) => {
+    const { salary } = req.body;
+    const { id } = req.params;
+
+    try {
+        await createSalary(parseInt(id), parseFloat(salary));
+
+    } catch (error) {
+        return res.status(400).json({ message: "Unable to update salary." });
+    }
+
+    return res.status(200).send({ message: "Successfully changed salary." });
 });
 
 

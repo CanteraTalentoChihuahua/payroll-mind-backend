@@ -8,10 +8,21 @@ async function saveBusinessUnit(name: string) {
 }
 
 async function findBusinessUnitByName(name: string) {
-    const businessUnit = await businessUnits.findOne({
-        where: { name }
-    });
-    return businessUnit;
+    let businessUnit;
+    try {
+        businessUnit = await businessUnits.findOne({
+            where: { name }
+        });
+
+        if (!businessUnit) {
+            return { successful: false };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Invalid query parameter." };
+    }
+
+    return { successful: true, businessUnit };
 }
 
 async function findBusinessUnitById(id: string) {
@@ -24,8 +35,10 @@ async function findBusinessUnitById(id: string) {
 async function findAllBusinessUnits() {
     const businessUnitsData = await businessUnits.findAll();
     return businessUnitsData;
-} 
+}
 
 
-export { saveBusinessUnit, findBusinessUnitByName,
-    findBusinessUnitById, findAllBusinessUnits };
+export {
+    saveBusinessUnit, findBusinessUnitByName,
+    findBusinessUnitById, findAllBusinessUnits
+};
