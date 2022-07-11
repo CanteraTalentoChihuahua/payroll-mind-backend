@@ -1,11 +1,9 @@
-import db from "../database/database";
 import { incomesObj } from "../controllers/incomes";
 import { outcomesObj } from "../controllers/outcomes";
 import { createUnitsListCondition } from "../controllers/users";
 
 const { Op } = require("sequelize");
-const users = require("../database/models/users")(db);
-const salaries = require("../database/models/salaries")(db);
+const {users, salaries} = require("../database/models/index");
 
 const attributesList = ["active", "role_id", "payment_period_id", "salary_id", "payroll_schema_id"];
 
@@ -123,8 +121,6 @@ export async function createSalary(userId: number, salary: number) {
 
 export async function calculatePayroll(salary: number, incomes?: incomesObj[], outcomes?: outcomesObj[]) {
     let payrollTotal: number = salary;
-    let incomesTotal = 0;
-    let outcomesTotal = 0;
 
     if (incomes) {
         for (const incomeObj in incomes) {
@@ -133,8 +129,7 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
             if (!counter || !amount) {
                 continue;
             } else {
-                payrollTotal += parseFloat(amount!);
-                incomesTotal += parseFloat(amount!);
+                payrollTotal += counter as number * parseFloat(amount!);
             }
         }
     }
@@ -146,13 +141,12 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
             if (!counter || !amount) {
                 continue;
             } else {
-                payrollTotal -= parseFloat(amount!);
-                outcomesTotal += parseFloat(amount!);
+                payrollTotal -= counter as number * parseFloat(amount!);
             }
         }
     }
 
-    return { payrollTotal, incomesTotal, outcomesTotal };
+    return payrollTotal;
 }
 
 export async function getRoles(userId: number) {

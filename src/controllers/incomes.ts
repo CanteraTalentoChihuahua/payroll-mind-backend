@@ -1,8 +1,6 @@
 import { Op } from "sequelize";
-import db from "../database/database";
 import { newIncomeData } from "../util/objects";
-const incomes = require("../database/models/incomes")(db);
-const incomes_users = require("../database/models/incomes_users")(db);
+const {incomes, incomes_users} = require("../database/models/index");
 
 // What if an outcome / income is inactive? How to activate it?
 // Activate endpoint...

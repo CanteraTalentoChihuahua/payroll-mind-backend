@@ -1,5 +1,4 @@
-import db from "../database/database";
-const businessUnits = require("../database/models/business_units")(db);
+const {business_units: businessUnits} = require("../database/models/index");
 //Se necesita una token para jwt
 
 async function saveBusinessUnit(name: string) {

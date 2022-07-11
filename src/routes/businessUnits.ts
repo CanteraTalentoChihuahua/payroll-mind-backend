@@ -1,9 +1,8 @@
 import express from "express";
-import db from "../database/database";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 import { saveBusinessUnit, findAllBusinessUnits, findBusinessUnitById, findBusinessUnitByName } from "../controllers/businessUnits";
-const businessUnits = require("../database/models/business_units")(db);
+const {business_units: businessUnits} = require("../database/models/index");
 
 const businessUnitRouter = express.Router();
 
@@ -57,13 +56,7 @@ businessUnitRouter.post("/save", privileges(Privileges.CREATE_BUSINESS_UNITS), a
     const { name } = req.body;
 
     const BusinessUnitName = await findBusinessUnitByName(name);
-    if (!BusinessUnitName.successful) {
-        if (BusinessUnitName.error) {
-            return res.status(409).json(BusinessUnitName.error);
-        }
-
-        return res.status(409).json({ message: "Business unit already exists." });
-    }
+    if (BusinessUnitName) return res.status(409).json({ message: `Business unit "${name}" already exists.` });
 
     try {
         await saveBusinessUnit(name);

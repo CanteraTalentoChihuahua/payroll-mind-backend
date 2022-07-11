@@ -1,10 +1,8 @@
+const { users } = require("../database/models/index");
 import bcrypt from "bcrypt";
-import db from "../database/database";
 import transporter from "../config/mailer";
 import { createSessionJWT } from "../util/jwt";
 import { sign, verify, JsonWebTokenError, JwtPayload } from "jsonwebtoken";
-
-const users = require("../database/models/users")(db);
 
 export async function logIn(email: string, password: string) {
     const userData = await users.findOne({

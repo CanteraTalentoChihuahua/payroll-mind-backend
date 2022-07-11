@@ -1,9 +1,6 @@
 "use strict";
-const users = require("./users");
-const payrolls = require("./payrolls");
-
 const {
-    Model, Sequelize
+    Model
 } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
     class business_units extends Model {
@@ -13,15 +10,14 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
 
-        static associate(business_units) {
-            business_units.hasOne(users);
-            business_units.hasOne(payrolls);
+        static associate(models) {
+            business_units.hasOne(models.payrolls, { foreignKey: "business_unit_id" });
         }
 
     }
     business_units.init({
-        id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-        name: Sequelize.STRING
+        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        name: DataTypes.STRING
     }, {
         sequelize,
         paranoid: true,
