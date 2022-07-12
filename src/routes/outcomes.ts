@@ -5,19 +5,19 @@ const router = Router();
 
 router.post("/outcomes", async (req, res) => {
     const { name, automatic } = req.body;
+    const data = { name, automatic, active: true };
 
     if (!name || typeof automatic !== "boolean") {
-        return res.sendStatus(400);
+        return res.status(400).send("Either missing name or automatic is not boolean.");
     }
 
-    try {
-        await c.createOutcomeDated(name, automatic);
-    } catch (e) {
-        console.dir(e);
-        return res.sendStatus(500);
+    const incomeObject = await c.createOutcome(data);
+
+    if (!incomeObject.successful) {
+        return res.status(500).send("Unable to create outcome.");
     }
 
-    return res.sendStatus(201);
+    return res.sendStatus(200);
 });
 
 router.get("/outcomes", async (_req, res) => {

@@ -143,7 +143,6 @@ router.post("/incomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.REA
 });
 
 // Change privileges to better matching ones
-// Dropdown con outcomes?
 // Hay manera de invalidar la casilla de name mientras la casilla income_id está habilitada y viceversa?
 router.post("/outcomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS), async (req, res) => {
     // Outcome is optional...

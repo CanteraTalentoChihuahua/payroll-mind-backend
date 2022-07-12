@@ -5,7 +5,7 @@ const { incomes, incomes_users } = require("../database/models/index");
 // What if an outcome / income is inactive? How to activate it?
 // Activate endpoint...
 
-interface entryObj {
+export interface entryObj {
     name: string, automatic: boolean, active: boolean
 }
 
@@ -147,6 +147,49 @@ export async function getIncomes(userId: number) {
     return { successful: true, incomesObject, error: false };
 }
 
+export async function createIncomeDated(name: string, automatic: boolean): Promise<void> {
+    await incomes.create({
+        name,
+        automatic
+    });
+}
+
+export async function getAllIncomes(): Promise<unknown[]> {
+    return await incomes.findAll({
+        attributes: [
+            "id",
+            "name",
+            "automatic",
+            "active"
+        ], where: { deletedAt: null }
+    });
+}
+
+export async function editIncome(id: number, name: string | undefined, automatic: boolean | undefined, active: boolean | undefined): Promise<void> {
+    await incomes.update({
+        name,
+        automatic,
+        active
+    }, {
+        where: { id }
+    });
+}
+
+export async function deleteIncome(id: number): Promise<void> {
+    await incomes.destroy({
+        where: { id }
+    });
+}
+
+export async function assignIncome(user_id: number, income_id: number, counter: number, amount: number, automatic: boolean): Promise<void> {
+    await incomes_users.create({
+        user_id,
+        income_id,
+        counter,
+        amount,
+        automatic
+    });
+}
 
 
 // Massive methods-----------------
@@ -216,48 +259,4 @@ export async function getMassiveIncomes(idList: Array<number>) {
     });
 
     return { successful: true, incomesObject, error: false };
-}
-
-export async function createIncomeDated(name: string, automatic: boolean): Promise<void> {
-    await incomes.create({
-        name,
-        automatic
-    });
-}
-
-export async function getAllIncomes(): Promise<unknown[]> {
-    return await incomes.findAll({
-        attributes: [
-            "id",
-            "name",
-            "automatic",
-            "active"
-        ], where: { deletedAt: null }
-    });
-}
-
-export async function editIncome(id: number, name: string | undefined, automatic: boolean | undefined, active: boolean | undefined): Promise<void> {
-    await incomes.update({
-        name,
-        automatic,
-        active
-    }, {
-        where: { id }
-    });
-}
-
-export async function deleteIncome(id: number): Promise<void> {
-    await incomes.destroy({
-        where: { id }
-    });
-}
-
-export async function assignIncome(user_id: number, income_id: number, counter: number, amount: number, automatic: boolean): Promise<void> {
-    await incomes_users.create({
-        user_id,
-        income_id,
-        counter,
-        amount,
-        automatic
-    });
 }
