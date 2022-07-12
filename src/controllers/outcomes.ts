@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { newOutcomeData } from "../util/objects";
-const {outcomes, outcomes_users} = require("../database/models/index");
+const { outcomes, outcomes_users } = require("../database/models/index");
 
 interface entryObj {
     name: string, automatic: boolean, active: boolean
@@ -144,3 +144,46 @@ export async function getOutcomes(userId: number) {
     return { successful: true, outcomesObject, error: null };
 }
 
+export async function createOutcomeDated(name: string, automatic: boolean): Promise<void> {
+    await outcomes.create({
+        name,
+        automatic
+    });
+}
+
+export async function getAllOutcomes(): Promise<unknown[]> {
+    return await outcomes.findAll({
+        attributes: [
+            "id",
+            "name",
+            "automatic",
+            "active"
+        ], where: { deletedAt: null }
+    });
+}
+
+export async function editOutcome(id: number, name: string | undefined, automatic: boolean | undefined, active: boolean | undefined): Promise<void> {
+    await outcomes.update({
+        name,
+        automatic,
+        active
+    }, {
+        where: { id }
+    });
+}
+
+export async function deleteOutcome(id: number): Promise<void> {
+    await outcomes.destroy({
+        where: { id }
+    });
+}
+
+export async function assignOutcome(user_id: number, outcome_id: number, counter: number, amount: number, automatic: boolean): Promise<void> {
+    await outcomes_users.create({
+        user_id,
+        outcome_id,
+        counter,
+        amount,
+        automatic
+    });
+}
