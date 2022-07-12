@@ -3,9 +3,19 @@ import { outcomesObj } from "../controllers/outcomes";
 import { createUnitsListCondition } from "../controllers/users";
 
 const { Op } = require("sequelize");
-const {users, salaries} = require("../database/models/index");
+const { users, salaries } = require("../database/models/index");
 
 const attributesList = ["active", "role_id", "payment_period_id", "salary_id", "payroll_schema_id"];
+
+export async function trialFunction(userId: number) {
+    const data = await users.findOne({
+        where: { id: userId },
+        include: { model: salaries },
+        raw: true
+    });
+
+    return data;
+}
 
 export function createList(listWithObjects: Array<{ id: number }> | undefined) {
     const finalList: Array<number> = [];
@@ -121,6 +131,9 @@ export async function createSalary(userId: number, salary: number) {
 
 export async function calculatePayroll(salary: number, incomes?: incomesObj[], outcomes?: outcomesObj[]) {
     let payrollTotal: number = salary;
+    let incomesTotal = 0;
+    let outcomesTotal = 0;
+    let currentVal;
 
     if (incomes) {
         for (const incomeObj in incomes) {
@@ -129,7 +142,9 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
             if (!counter || !amount) {
                 continue;
             } else {
-                payrollTotal += counter as number * parseFloat(amount!);
+                currentVal = counter as number * parseFloat(amount!);
+                payrollTotal += currentVal;
+                incomesTotal += currentVal;
             }
         }
     }
@@ -141,12 +156,14 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
             if (!counter || !amount) {
                 continue;
             } else {
-                payrollTotal -= counter as number * parseFloat(amount!);
+                currentVal = counter as number * parseFloat(amount!);
+                payrollTotal -= currentVal;
+                outcomesTotal += currentVal;
             }
         }
     }
 
-    return payrollTotal;
+    return { payrollTotal, outcomesTotal, incomesTotal };
 }
 
 export async function getRoles(userId: number) {
