@@ -3,9 +3,19 @@ import { outcomesObj } from "../controllers/outcomes";
 import { createUnitsListCondition } from "../controllers/users";
 
 const { Op } = require("sequelize");
-const {users, salaries} = require("../database/models/index");
+const { users, salaries } = require("../database/models/index");
 
 const attributesList = ["active", "role_id", "payment_period_id", "salary_id", "payroll_schema_id"];
+
+export async function trialFunction(userId: number) {
+    const data = await users.findOne({
+        where: { id: userId },
+        include: { model: salaries },
+        raw: true
+    });
+
+    return data;
+}
 
 export function createList(listWithObjects: Array<{ id: number }> | undefined) {
     const finalList: Array<number> = [];
@@ -153,7 +163,7 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
         }
     }
 
-    return {payrollTotal, outcomesTotal, incomesTotal};
+    return { payrollTotal, outcomesTotal, incomesTotal };
 }
 
 export async function getRoles(userId: number) {

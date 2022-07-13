@@ -1,7 +1,7 @@
 import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
-import { createSalary } from "../controllers/payroll";
+import { createSalary, trialFunction } from "../controllers/payroll";
 import { createIncome, createUserIncome, getNewIncomeId, getIncomes, incomesObj } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, outcomesObj } from "../controllers/outcomes";
 import { getUserData, getSalary, calculatePayroll } from "../controllers/payroll";
@@ -202,6 +202,14 @@ router.post("/salary/:id", async (req, res) => {
     return res.status(200).send({ message: "Successfully changed salary." });
 });
 
+
+router.get("/works/:id", async (req, res) => {
+    const { id } = req.params;
+
+    const data = await trialFunction(parseInt(id));
+
+    return res.status(200).send(data);
+});
 
 // MASSIVE PAYROLL REQUEST
 // Limit via query and business units
