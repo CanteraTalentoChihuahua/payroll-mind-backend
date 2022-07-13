@@ -88,10 +88,16 @@ export async function getIncomes(userId: number) {
 
     try {
         incomesData = await incomes_users.findAll({
+            attributes: ["income_id", "counter", "amount"],
             where: {
                 user_id: userId,
                 deletedAt: null
-            }
+            },
+            include: {
+                attributes: ["name", "automatic", "active", "deletedAt"],
+                model: incomes
+            },
+            raw: true
         });
 
         if (!incomesData) {
@@ -105,69 +111,19 @@ export async function getIncomes(userId: number) {
     return { successful: true, incomesData };
 }
 
-// Change return objects
-// export async function getIncomes(userId: number) {
-//     let incomesData;
-//     try {
-//         // Query incomes_users directly -- MUST NOT BE DELETED
-//         incomesData = await incomes_users.findAll({
-//             attributes: ["income_id", "counter", "amount"],
-//             where: {
-//                 user_id: userId,
-//                 deletedAt: null
-//             },
-//             raw: true
-//         });
 
-//         if (!incomesData.length) {
-//             return { successful: false, error: "Incomes not found." };
-//         }
 
-//     } catch (error) {
-//         return { successful: false, error: "Query error." };
-//     }
 
-//     // Create an id array for querying...
-//     interface idQuery { id: number; }
-//     const idList: idQuery[] = [];
 
-//     for (const incomesUsers in incomesData) {
-//         idList.push({ "id": parseInt(incomesData[incomesUsers].income_id) });
-//     }
 
-//     let activeIncomes: unknown[];
-//     try {
-//         // Check their name via the id -- MUST BE ACTIVE
-//         activeIncomes = await incomes.findAll({
-//             attributes: ["name", "automatic"],
-//             where: {
-//                 [Op.or]: idList,
-//                 active: true
-//             },
-//             raw: true
-//         });
 
-//         if (!incomesData) {
-//             return { successful: false };
-//         }
 
-//     } catch (error) {
-//         return { successful: false, error: "Invalid query." };
-//     }
 
-//     // If it works... Create the incomes object -- JOIN ALL DATA
-//     const incomesObject: incomesObj[] = [];
 
-//     incomesData.forEach((income: incomesObj, index: number) => {
-//         if (!activeIncomes[index]) {
-//             return;
-//         }
-//         const incomesObjectElement = Object.assign(income, activeIncomes[index]);
-//         incomesObject.push(incomesObjectElement);
-//     });
 
-//     return { successful: true, incomesObject, error: false };
-// }
+
+
+
 
 export async function createIncomeDated(name: string, automatic: boolean): Promise<void> {
     await incomes.create({

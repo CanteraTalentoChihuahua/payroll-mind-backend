@@ -18,7 +18,7 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     }
 
     const { userData } = userObject;
-    
+
     // Query income
     const incomesObject = await getIncomes(parseInt(id));
 
