@@ -1,7 +1,7 @@
 import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
-import { createSalary, trialFunction } from "../controllers/payroll";
+import { createSalary } from "../controllers/payroll";
 import { createIncome, createUserIncome, getNewIncomeId, getIncomes, incomesObj } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, outcomesObj } from "../controllers/outcomes";
 import { getUserData, getSalary, calculatePayroll } from "../controllers/payroll";
@@ -14,13 +14,19 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     // Query user and check activity
     const userObject = await getUserData(parseInt(id));
     if (!userObject.successful) {
-        return res.status(400).send(userObject.error);
+        return res.status(400).send({ message: userObject.error });
     }
 
     const { userData } = userObject;
-    return res.status(200).json({ message: userData });
+    
+    // Query income
+    const incomesObject = await getIncomes(parseInt(id));
 
-    // Query incomes-users
+    if (!incomesObject.successful) {
+        return res.status(400).send({ message: incomesObject.error });
+    }
+
+    return res.status(200).send(incomesObject);
 
     // No associated incomes found
 
@@ -143,17 +149,6 @@ router.post("/salary/:id", async (req, res) => {
 
     return res.status(200).send({ message: "Successfully changed salary." });
 });
-
-
-router.get("/works/:id", async (req, res) => {
-    const { id } = req.params;
-
-    const data = await trialFunction(parseInt(id));
-
-    return res.status(200).send(data);
-});
-
-
 
 
 export default router;

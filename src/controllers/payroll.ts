@@ -31,7 +31,6 @@ export async function getUserData(id: number) {
                 { attributes: ["id", "salary"], model: salaries },
                 { attributes: ["id", "name"], model: payroll_schemas },
                 { attributes: ["id", "name"], model: payments_periods }
-                // { model: incomes }
             ]
         });
 
@@ -40,12 +39,20 @@ export async function getUserData(id: number) {
         }
 
     } catch (error) {
-        console.log(error);
         return { successful: false, error: "Query error." };
     }
 
     return { successful: true, userData };
 }
+
+
+
+
+
+
+
+
+
 
 // Check the most recent???
 export async function getSalary(userId: number) {
@@ -206,12 +213,3 @@ export async function getIdsUnderBusinessUnit(businessUnits?: Array<number>): Pr
 }
 
 
-export async function trialFunction(userId: number) {
-    const data = await users.findOne({
-        where: { id: userId },
-        include: { model: salaries },
-        raw: true
-    });
-
-    return data;
-}
