@@ -1,4 +1,4 @@
-const {roles, incomes, outcomes, salaries, business_units: businessUnits, payments_periods: paymentPeriods, payroll_schemas: payrollSchemas} = require("../database/models/index");
+const { roles, incomes, outcomes, salaries, business_units: businessUnits, payments_periods: paymentPeriods, payroll_schemas: payrollSchemas } = require("../database/models/index");
 
 export async function getIncomes() {
     let incomesData;

@@ -12,89 +12,34 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     const { id } = req.params;
 
     // Query user and check activity
-    const userDataObject = await getUserData(parseInt(id));
-
-    if (!userDataObject.successful) {
-        return res.status(404).json({ message: "No user found." });
+    const userObject = await getUserData(parseInt(id));
+    if (!userObject.successful) {
+        return res.status(400).send(userObject.error);
     }
+
+    const { userData } = userObject;
+    return res.status(200).json({ message: userData });
 
     // Query salary
-    const salaryDataObject = await getSalary(parseInt(id));
-    if (!salaryDataObject.successful) {
-        return res.status(400).send("Invalid request. User is missing salary.");
-    }
+
 
     // Query incomes-users
-    const incomesDataObject = await getIncomes(parseInt(id));
-    let incomesList: incomesObj[] | undefined = [];
 
     // No associated incomes found
-    if (!incomesDataObject.successful) {
-        // Invalid query
-        if (incomesDataObject.error) {
-            return res.sendStatus(500);
-        }
-
-        incomesList = [{
-            income_id: undefined,
-            counter: undefined,
-            amount: undefined,
-            name: undefined,
-            automatic: undefined
-        }];
-    }
 
     // Query outcomes-users
-    const outcomesDataObject = await getOutcomes(parseInt(id));
-    let outcomesList: outcomesObj[] | undefined = [];
 
     // No associated outcomes found
-    if (!outcomesDataObject.successful) {
-        // Invalid query
-        if (outcomesDataObject.error) {
-            return res.sendStatus(500);
-        }
-
-        outcomesList = [{
-            outcome_id: undefined,
-            counter: undefined,
-            amount: undefined,
-            name: undefined,
-            automatic: undefined
-        }];
-    }
 
     // Payroll sum total --SALARY IS REQUIRED
-    const salary = salaryDataObject.salaryData.salary;
 
     // Associated incomes exist
-    if (!incomesList.length) {
-        incomesList = incomesDataObject.incomesObject;
-    }
 
     // Associated outcomes exist
-    if (!outcomesList.length) {
-        outcomesList = outcomesDataObject.outcomesObject;
-    }
 
     // Final payroll value
-    const { payrollTotal, incomesTotal, outcomesTotal } = await calculatePayroll(parseFloat(salary), incomesList, outcomesList);
 
     // Build JSON object
-    const { payment_period_id } = userDataObject.userData;
-    const payrollObject: unknown = {
-        payment_period_id,
-        incomes: incomesList,
-        outcomes: outcomesList,
-        salary: parseFloat(salary),
-        total: {
-            incomesTotal,
-            outcomesTotal,
-            payrollTotal
-        }
-    };
-
-    return res.status(200).send(payrollObject);
 });
 
 // Does not edit AUTOMATIC column in outcomes when UPDATING
@@ -211,53 +156,6 @@ router.get("/works/:id", async (req, res) => {
     return res.status(200).send(data);
 });
 
-// MASSIVE PAYROLL REQUEST
-// Limit via query and business units
-// router.get("/attempt/trial", privileges(Privileges.READ_REPORTS), async (req, res) => {
-//     // Get all business units from user
-//     const { business_unit, role_id } = res.locals.userInfo;
-//     const { business_unit_ids } = business_unit;
-
-//     const role = await getRoleName(role_id);
-
-//     // Get all user_ids under current user business unit
-//     let userIdData;
-//     if (role === "admin") {
-//         userIdData = await getIdsUnderBusinessUnit(business_unit_ids);
-//     } else {
-//         userIdData = await getIdsUnderBusinessUnit();
-//     }
-
-//     const userList = createList(userIdData.userList);
-
-//     // Query user and check activity
-//     const userData = await getMassiveUserData(userList);
-
-//     // Query salary
-//     const salaryDataObject = await getMassiveSalary(userList);
-
-//     // Query incomes-users
-//     const incomesDataObject = await getMassiveIncomes(userList);
-//     // let incomesList: incomesObj[] | undefined = [];
-
-//     // No associated incomes found
-//     // if (!incomesDataObject.successful) {
-//     //     // Invalid query
-//     //     if (incomesDataObject.error) {
-//     //         return res.sendStatus(500);
-//     //     }
-
-//     //     incomesList = [{
-//     //         income_id: undefined,
-//     //         counter: undefined,
-//     //         amount: undefined,
-//     //         name: undefined,
-//     //         automatic: undefined
-//     //     }];
-//     // }
-
-//     return res.status(200).send(incomesDataObject);
-// });
 
 
 

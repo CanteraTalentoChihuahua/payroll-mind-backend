@@ -3,19 +3,9 @@ import { outcomesObj } from "../controllers/outcomes";
 import { createUnitsListCondition } from "../controllers/users";
 
 const { Op } = require("sequelize");
-const { users, salaries } = require("../database/models/index");
+const { users, salaries, payments_periods: paymentPeriods, roles } = require("../database/models/index");
 
-const attributesList = ["active", "role_id", "payment_period_id", "salary_id", "payroll_schema_id"];
-
-export async function trialFunction(userId: number) {
-    const data = await users.findOne({
-        where: { id: userId },
-        include: { model: salaries },
-        raw: true
-    });
-
-    return data;
-}
+const attributesList = ["active", "payment_period_id", "payroll_schema_id"];
 
 export function createList(listWithObjects: Array<{ id: number }> | undefined) {
     const finalList: Array<number> = [];
@@ -32,22 +22,28 @@ export function createList(listWithObjects: Array<{ id: number }> | undefined) {
 export async function getUserData(id: number) {
     let userData;
 
-    // Cannot query id=1
+    // What if double salary?
     try {
         userData = await users.findOne({
             attributes: attributesList,
             where: {
                 id,
-                active: true
-            }
+                active: true,
+                [Op.not]: { id: 1 }
+            },
+            include: [
+                { attributes: ["id", "name"], model: roles },
+                { attributes: ["id", "salary"], model: salaries },
+                { attributes: ["id", "name"], model: paymentPeriods }
+            ]
         });
 
         if (!userData) {
-            return { successful: false };
+            return { successful: false, error: "User not found, may be inactive or invalid user." };
         }
 
     } catch (error) {
-        return { successful: false };
+        return { successful: false, error: "Query error." };
     }
 
     return { successful: true, userData };
@@ -272,4 +268,15 @@ export async function getMassiveSalary(idList: Array<number>) {
     }
 
     return { successful: true, salaryData };
+}
+
+
+export async function trialFunction(userId: number) {
+    const data = await users.findOne({
+        where: { id: userId },
+        include: { model: salaries },
+        raw: true
+    });
+
+    return data;
 }
