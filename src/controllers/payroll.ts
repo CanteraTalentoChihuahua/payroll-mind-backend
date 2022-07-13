@@ -1,11 +1,8 @@
 import { incomesObj } from "../controllers/incomes";
 import { outcomesObj } from "../controllers/outcomes";
 import { createUnitsListCondition } from "../controllers/users";
-
 const { Op } = require("sequelize");
-const { users, salaries, payments_periods: paymentPeriods, roles } = require("../database/models/index");
-
-const attributesList = ["active", "payment_period_id", "payroll_schema_id"];
+const { users, salaries, payroll_schemas, payments_periods, roles, incomes } = require("../database/models/index");
 
 export function createList(listWithObjects: Array<{ id: number }> | undefined) {
     const finalList: Array<number> = [];
@@ -17,15 +14,13 @@ export function createList(listWithObjects: Array<{ id: number }> | undefined) {
     return finalList;
 }
 
-// Query incomes, outc
-// Queries only active collabs
 export async function getUserData(id: number) {
     let userData;
 
     // What if double salary?
     try {
         userData = await users.findOne({
-            attributes: attributesList,
+            attributes: ["id"],
             where: {
                 id,
                 active: true,
@@ -34,7 +29,9 @@ export async function getUserData(id: number) {
             include: [
                 { attributes: ["id", "name"], model: roles },
                 { attributes: ["id", "salary"], model: salaries },
-                { attributes: ["id", "name"], model: paymentPeriods }
+                { attributes: ["id", "name"], model: payroll_schemas },
+                { attributes: ["id", "name"], model: payments_periods }
+                // { model: incomes }
             ]
         });
 
@@ -43,6 +40,7 @@ export async function getUserData(id: number) {
         }
 
     } catch (error) {
+        console.log(error);
         return { successful: false, error: "Query error." };
     }
 
@@ -205,69 +203,6 @@ export async function getIdsUnderBusinessUnit(businessUnits?: Array<number>): Pr
     }
 
     return { successful: true, userList };
-}
-
-
-// Massive methods-----------------
-export async function getMassiveUserData(idList: Array<number>) {
-    let userData;
-
-    // Create an id array for querying... CAN BE FACTORED INTO A FUNC
-    const idQueryList: { id: number }[] = [];
-
-    for (const id in idList) {
-        idQueryList.push({ "id": idList[parseInt(id)] });
-    }
-
-    // Cannot query id=1
-    try {
-        userData = await users.findAll({
-            attributes: attributesList,
-            where: {
-                [Op.or]: idQueryList,
-                active: true
-            }
-        });
-
-        if (!userData) {
-            return { successful: false };
-        }
-
-    } catch (error) {
-        return { successful: false };
-    }
-
-    return { successful: true, userData };
-}
-
-export async function getMassiveSalary(idList: Array<number>) {
-    let salaryData;
-
-    const idQueryList: { user_id: number }[] = [];
-
-    for (const id in idList) {
-        idQueryList.push({ "user_id": idList[parseInt(id)] });
-    }
-
-    try {
-        salaryData = await salaries.findAll({
-            attributes: ["salary"],
-            where: {
-                [Op.or]: idQueryList,
-                deletedAt: null
-            },
-            raw: true
-        });
-
-        if (!salaryData.length) {
-            return { successful: false };
-        }
-
-    } catch (error) {
-        return { successful: false };
-    }
-
-    return { successful: true, salaryData };
 }
 
 

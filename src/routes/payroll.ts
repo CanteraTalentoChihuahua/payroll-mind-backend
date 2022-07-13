@@ -20,9 +20,6 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     const { userData } = userObject;
     return res.status(200).json({ message: userData });
 
-    // Query salary
-
-
     // Query incomes-users
 
     // No associated incomes found

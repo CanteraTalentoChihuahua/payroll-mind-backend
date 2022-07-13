@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
             users.belongsTo(models.roles, { foreignKey: "role_id" });
             users.belongsTo(models.payroll_schemas, { foreignKey: "payroll_schema_id" });
             users.belongsTo(models.salaries, { foreignKey: "salary_id" });
+            users.belongsTo(models.payments_periods, { foreignKey: "payment_period_id" }); 
         }
     }
 
