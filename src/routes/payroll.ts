@@ -30,7 +30,7 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
         return res.status(400).send({ message: outcomesObject.error });
     }
 
-    return res.status(200).send(incomesObject);
+    return res.status(200).send(outcomesObject);
 });
 
 

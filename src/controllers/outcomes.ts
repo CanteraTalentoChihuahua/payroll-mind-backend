@@ -81,68 +81,38 @@ export async function getNewOutcomeId() {
 
 export async function getOutcomes(userId: number) {
     let outcomesData;
+
     try {
-        // Query incomes_users directly -- MUST NOT BE DELETED
         outcomesData = await outcomes_users.findAll({
             attributes: ["outcome_id", "counter", "amount"],
             where: {
                 user_id: userId,
                 deletedAt: null
             },
-            raw: true
-        });
-
-        if (!outcomesData.length) {
-            return { successful: false };
-        }
-
-    } catch (error) {
-        return { successful: false };
-    }
-
-    // Create an id array for querying...
-    interface idQuery { id: number; }
-    const idList: idQuery[] = [];
-
-    for (const outcomesUsers in outcomesData) {
-        idList.push({ "id": parseInt(outcomesData[outcomesUsers].outcome_id) });
-    }
-
-    let activeOutcomes: unknown[];
-    try {
-        // Check their name via the id -- MUST BE ACTIVE
-        activeOutcomes = await outcomes.findAll({
-            attributes: ["name", "automatic"],
-            where: {
-                [Op.or]: idList,
-                active: true
+            include: {
+                attributes: ["name", "automatic", "active", "deletedAt"],
+                model: outcomes,
+                where: {
+                    active: true,
+                    deletedAt: null
+                }
             },
             raw: true
         });
 
-        if (!activeOutcomes) {
-            return { successful: false };
+        if (!outcomesData) {
+            return { successful: false, error: "Outcomes not found." };
         }
 
     } catch (error) {
-        return { successful: false };
+        return { successful: false, error: "Query error." };
     }
 
-    // If it works... Create the incomes object -- JOIN ALL DATA
-    const outcomesObject: outcomesObj[] = [];
-
-
-    outcomesData.forEach((outcome: outcomesObj, index: number) => {
-        if (!activeOutcomes[index]) {
-            return;
-        }
-        const outcomesObjectElement = Object.assign(outcome, activeOutcomes[index]);
-        outcomesObject.push(outcomesObjectElement);
-    });
-
-
-    return { successful: true, outcomesObject, error: null };
+    return { successful: true, outcomesData };
 }
+
+
+
 
 export async function createOutcomeDated(name: string, automatic: boolean): Promise<void> {
     await outcomes.create({

@@ -112,14 +112,6 @@ export async function getIncomes(userId: number) {
         return { successful: false, error: "Query error." };
     }
 
-    // incomesData = incomesData.map((elem: number) => {
-    //     const currentIncome = incomesData[elem];
-
-    //     if (currentIncome["income.active"] !== false || currentIncome["income.deletedAt"] === null) {
-    //         return currentIncome;
-    //     }
-    // });
-
     return { successful: true, incomesData };
 }
 
