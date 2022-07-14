@@ -83,26 +83,6 @@ export async function getNewIncomeId() {
     return parseInt(max);
 }
 
-
-interface incomeObj {
-    income_id: number, counter: number, amount: string, "income.name": string, "income.automatic": boolean, "income.active": boolean, "income.deletedAt": null | string
-}
-
-export async function cleanIncomesData(incomeData: any) {
-    const newIncomesObject: incomeObj[] = [];
-
-    for (const i in incomeData) {
-        const currentIncome = incomeData[i];
-        if (currentIncome["income.active"] === false || currentIncome["income.deletedAt"] !== null) {
-            continue;
-        } else {
-            newIncomesObject.push(newIncomesObject);
-        }
-    }
-
-    return newIncomesObject;
-}
-
 export async function getIncomes(userId: number) {
     let incomesData;
 
@@ -115,7 +95,11 @@ export async function getIncomes(userId: number) {
             },
             include: {
                 attributes: ["name", "automatic", "active", "deletedAt"],
-                model: incomes
+                model: incomes,
+                where: {
+                    active: true,
+                    deletedAt: null
+                }
             },
             raw: true
         });
@@ -128,10 +112,17 @@ export async function getIncomes(userId: number) {
         return { successful: false, error: "Query error." };
     }
 
-    const trialObject = await cleanIncomesData(incomesData);
+    // incomesData = incomesData.map((elem: number) => {
+    //     const currentIncome = incomesData[elem];
+
+    //     if (currentIncome["income.active"] !== false || currentIncome["income.deletedAt"] === null) {
+    //         return currentIncome;
+    //     }
+    // });
 
     return { successful: true, incomesData };
 }
+
 
 
 

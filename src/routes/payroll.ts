@@ -17,26 +17,21 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
         return res.status(400).send({ message: userObject.error });
     }
 
+    const { userData } = userObject;
+    
     // Query income
     const incomesObject = await getIncomes(parseInt(id));
-
     if (!incomesObject.successful) {
         return res.status(400).send({ message: incomesObject.error });
     }
 
-
-    // Extract data
-    const { userData } = userObject;
-    const { incomesData } = incomesObject;
-
-    // Calculate payroll
-
-    // Build final JSON object
+    const outcomesObject = await getOutcomes(parseInt(id));
+    if (!outcomesObject.successful) {
+        return res.status(400).send({ message: outcomesObject.error });
+    }
 
     return res.status(200).send(incomesObject);
 });
-
-
 
 
 
