@@ -4,15 +4,6 @@ import { createUnitsListCondition } from "../controllers/users";
 const { Op } = require("sequelize");
 const { users, salaries, payroll_schemas, payments_periods, roles, incomes } = require("../database/models/index");
 
-export function createList(listWithObjects: Array<{ id: number }> | undefined) {
-    const finalList: Array<number> = [];
-
-    for (const element in listWithObjects) {
-        finalList.push(listWithObjects[parseInt(element)].id);
-    }
-
-    return finalList;
-}
 
 export async function getUserData(id: number) {
     let userData;
@@ -51,7 +42,15 @@ export async function getUserData(id: number) {
 
 
 
+export function createList(listWithObjects: Array<{ id: number }> | undefined) {
+    const finalList: Array<number> = [];
 
+    for (const element in listWithObjects) {
+        finalList.push(listWithObjects[parseInt(element)].id);
+    }
+
+    return finalList;
+}
 
 
 // Check the most recent???

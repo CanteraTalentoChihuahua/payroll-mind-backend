@@ -17,8 +17,6 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
         return res.status(400).send({ message: userObject.error });
     }
 
-    const { userData } = userObject;
-
     // Query income
     const incomesObject = await getIncomes(parseInt(id));
 
@@ -26,24 +24,21 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
         return res.status(400).send({ message: incomesObject.error });
     }
 
+
+    // Extract data
+    const { userData } = userObject;
+    const { incomesData } = incomesObject;
+
+    // Calculate payroll
+
+    // Build final JSON object
+
     return res.status(200).send(incomesObject);
-
-    // No associated incomes found
-
-    // Query outcomes-users
-
-    // No associated outcomes found
-
-    // Payroll sum total --SALARY IS REQUIRED
-
-    // Associated incomes exist
-
-    // Associated outcomes exist
-
-    // Final payroll value
-
-    // Build JSON object
 });
+
+
+
+
 
 // Does not edit AUTOMATIC column in outcomes when UPDATING
 // SENDING ID MEANS IMPLIES IT EXISTS, SENDING NAME IMPLIES IT DOES NOT
