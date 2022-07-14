@@ -16,8 +16,6 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     if (!userObject.successful) {
         return res.status(400).send({ message: userObject.error });
     }
-
-    const { userData } = userObject;
     
     // Query income
     const incomesObject = await getIncomes(parseInt(id));
@@ -25,12 +23,32 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
         return res.status(400).send({ message: incomesObject.error });
     }
 
+    // Query outcome
     const outcomesObject = await getOutcomes(parseInt(id));
     if (!outcomesObject.successful) {
         return res.status(400).send({ message: outcomesObject.error });
     }
 
-    return res.status(200).send(outcomesObject);
+    // Extract values
+    const { userData } = userObject;
+    const { incomesData } = incomesObject;
+    const { outcomesData } = outcomesObject;
+    const { salary } = userData["salary"];
+    
+    // Calculate payroll
+    const payroll = await calculatePayroll(parseFloat(salary), incomesData, outcomesData);
+
+    // Build final JSON object
+    const finalPayrollObject = {
+        payroll_schema: userData["payroll_schema"].name,
+        payment_period: userData["payments_period"].name,
+        salary: salary,
+        incomes: incomesData,
+        outcomes: outcomesData,
+        payrollTotal: payroll
+    };
+    
+    return res.status(200).send(finalPayrollObject);
 });
 
 

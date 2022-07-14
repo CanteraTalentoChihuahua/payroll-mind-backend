@@ -90,7 +90,7 @@ export async function getOutcomes(userId: number) {
                 deletedAt: null
             },
             include: {
-                attributes: ["name", "automatic", "active", "deletedAt"],
+                attributes: ["name", "automatic"],
                 model: outcomes,
                 where: {
                     active: true,
@@ -112,14 +112,6 @@ export async function getOutcomes(userId: number) {
 }
 
 
-
-
-export async function createOutcomeDated(name: string, automatic: boolean): Promise<void> {
-    await outcomes.create({
-        name,
-        automatic
-    });
-}
 
 export async function getAllOutcomes(): Promise<unknown[]> {
     return await outcomes.findAll({

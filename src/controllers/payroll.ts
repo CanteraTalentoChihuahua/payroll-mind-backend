@@ -37,6 +37,42 @@ export async function getUserData(id: number) {
 }
 
 
+export async function calculatePayroll(salary: number, incomes?: incomesObj[], outcomes?: outcomesObj[]) {
+    let payrollTotal: number = salary;
+    let incomesTotal = 0;
+    let outcomesTotal = 0;
+    let currentVal;
+
+    if (incomes) {
+        for (const incomeObj in incomes) {
+            const { counter, amount } = incomes[parseInt(incomeObj)];
+
+            if (!counter || !amount) {
+                continue;
+            } else {
+                currentVal = counter as number * parseFloat(amount!);
+                payrollTotal += currentVal;
+                incomesTotal += currentVal;
+            }
+        }
+    }
+
+    if (outcomes) {
+        for (const outcomeObj in outcomes) {
+            const { counter, amount } = outcomes[parseInt(outcomeObj)];
+
+            if (!counter || !amount) {
+                continue;
+            } else {
+                currentVal = counter as number * parseFloat(amount!);
+                payrollTotal -= currentVal;
+                outcomesTotal += currentVal;
+            }
+        }
+    }
+
+    return { payrollTotal, outcomesTotal, incomesTotal };
+}
 
 
 
@@ -127,43 +163,6 @@ export async function createSalary(userId: number, salary: number) {
     }
 
     return { successful: true };
-}
-
-export async function calculatePayroll(salary: number, incomes?: incomesObj[], outcomes?: outcomesObj[]) {
-    let payrollTotal: number = salary;
-    let incomesTotal = 0;
-    let outcomesTotal = 0;
-    let currentVal;
-
-    if (incomes) {
-        for (const incomeObj in incomes) {
-            const { counter, amount } = incomes[parseInt(incomeObj)];
-
-            if (!counter || !amount) {
-                continue;
-            } else {
-                currentVal = counter as number * parseFloat(amount!);
-                payrollTotal += currentVal;
-                incomesTotal += currentVal;
-            }
-        }
-    }
-
-    if (outcomes) {
-        for (const outcomeObj in outcomes) {
-            const { counter, amount } = outcomes[parseInt(outcomeObj)];
-
-            if (!counter || !amount) {
-                continue;
-            } else {
-                currentVal = counter as number * parseFloat(amount!);
-                payrollTotal -= currentVal;
-                outcomesTotal += currentVal;
-            }
-        }
-    }
-
-    return { payrollTotal, outcomesTotal, incomesTotal };
 }
 
 export async function getRoles(userId: number) {
