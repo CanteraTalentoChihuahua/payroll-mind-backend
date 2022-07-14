@@ -4,6 +4,33 @@ import { createUnitsListCondition } from "../controllers/users";
 const { Op } = require("sequelize");
 const { users, salaries, payroll_schemas, payments_periods, roles, incomes } = require("../database/models/index");
 
+export async function getAllUsersData(offset: number, limit: number) {
+    let usersData;
+
+    try {
+        usersData = await users.findAll({
+            attributes: ["id"],
+            where: {
+                offset,
+                limit,
+                active: true,
+                [Op.not]: { id: 1 }
+            },
+            include: [
+                { attributes: ["id", "name"], model: roles },
+                { attributes: ["id", "salary"], model: salaries },
+                { attributes: ["id", "name"], model: payroll_schemas },
+                { attributes: ["id", "name"], model: payments_periods }
+            ]
+        });
+
+    } catch (error) {
+        
+    }
+
+    return { successful: true, usersData };
+}
+
 
 export async function getUserData(id: number) {
     let userData;
@@ -73,9 +100,6 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
 
     return { payrollTotal, outcomesTotal, incomesTotal };
 }
-
-
-
 
 
 export function createList(listWithObjects: Array<{ id: number }> | undefined) {

@@ -2,11 +2,35 @@ import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
 import { createSalary } from "../controllers/payroll";
-import { createIncome, createUserIncome, getNewIncomeId, getIncomes, incomesObj } from "../controllers/incomes";
-import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, outcomesObj } from "../controllers/outcomes";
-import { getUserData, getSalary, calculatePayroll } from "../controllers/payroll";
+import { createIncome, createUserIncome, getNewIncomeId, getIncomes } from "../controllers/incomes";
+import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes } from "../controllers/outcomes";
+import { getUserData, getAllUsersData, calculatePayroll } from "../controllers/payroll";
 
 const router = express.Router();
+
+// Gets all
+router.get("/all", async (req, res) => {
+    // offset?num=1
+    const { offset, limit } = req.params;
+
+    if (!offset || !limit) {
+        return res.status(400).send("Missing paramenters.");
+    }
+
+    // Get list of users
+    const users = await getAllUsersData(offset, limit);
+
+    // Get salaries of users
+
+    // Get incomes of users
+
+    // Get outcomes of users
+
+    // Calculate payroll
+
+    // Create payroll object
+
+});
 
 router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
     const { id } = req.params;
@@ -50,8 +74,6 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     
     return res.status(200).send(finalPayrollObject);
 });
-
-
 
 // Does not edit AUTOMATIC column in outcomes when UPDATING
 // SENDING ID MEANS IMPLIES IT EXISTS, SENDING NAME IMPLIES IT DOES NOT
