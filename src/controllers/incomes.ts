@@ -77,10 +77,61 @@ export async function createUserIncome(userId: number, incomeUserData: newIncome
     return { successful: true, updated: true };
 }
 
-// Must certainly be a more efficient way?
-export async function getNewIncomeId() {
-    const max = await incomes.max("id");
-    return parseInt(max);
+////////////////////////////
+function createIdCondition(idRange: number[]) {
+    interface idObj { id: string }
+
+    const finalObject: idObj[] = idRange.map((id) => {
+        return { "id": `${id}` };
+    });
+
+    return finalObject;
+}
+
+export async function getAllUsersIncomes(idRange: number[]) {
+    let incomesData;
+    const finalIdList = createIdCondition(idRange);
+
+    try {
+        incomesData = await incomes_users.findAll({
+            attributes: ["income_id", "counter", "amount"],
+            where: {
+                [Op.or]: finalIdList,
+                deletedAt: null
+            },
+            include: {
+                attributes: ["name", "automatic"],
+                model: incomes,
+                where: {
+                    active: true,
+                    deletedAt: null
+                }
+            },
+            raw: true
+        });
+
+        if (!incomesData) {
+            return { successful: false, error: "No incomes found." };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Invalid query." };
+    }
+
+    return { successful: true, incomesData };
+}
+
+////////////////////////////
+
+export async function getAllIncomes(): Promise<unknown[]> {
+    return await incomes.findAll({
+        attributes: [
+            "id",
+            "name",
+            "automatic",
+            "active"
+        ], where: { deletedAt: null }
+    });
 }
 
 export async function getIncomes(userId: number) {
@@ -105,7 +156,7 @@ export async function getIncomes(userId: number) {
         });
 
         if (!incomesData) {
-            return { successful: false, error: "Incomes not found." };
+            return { successful: false, error: "No incomes found." };
         }
 
     } catch (error) {
@@ -115,18 +166,21 @@ export async function getIncomes(userId: number) {
     return { successful: true, incomesData };
 }
 
+export function createRange(lowEnd: number, highEnd: number) {
+    const range: number[] = [];
+    for (let i = lowEnd; i <= highEnd; i++) {
+        range.push(i);
+    }
 
-
-export async function getAllIncomes(): Promise<unknown[]> {
-    return await incomes.findAll({
-        attributes: [
-            "id",
-            "name",
-            "automatic",
-            "active"
-        ], where: { deletedAt: null }
-    });
+    return range;
 }
+
+// Must certainly be a more efficient way?
+export async function getNewIncomeId() {
+    const max = await incomes.max("id");
+    return parseInt(max);
+}
+
 
 export async function editIncome(id: number, name: string | undefined, automatic: boolean | undefined, active: boolean | undefined): Promise<void> {
     await incomes.update({

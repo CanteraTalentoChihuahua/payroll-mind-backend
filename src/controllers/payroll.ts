@@ -10,9 +10,9 @@ export async function getAllUsersData(offset: number, limit: number) {
     try {
         usersData = await users.findAll({
             attributes: ["id"],
+            offset,
+            limit,
             where: {
-                offset,
-                limit,
                 active: true,
                 [Op.not]: { id: 1 }
             },
@@ -24,8 +24,12 @@ export async function getAllUsersData(offset: number, limit: number) {
             ]
         });
 
+        if (!usersData) {
+            return { successful: false, error: "User not found, may be inactive or invalid user." };
+        }
+
     } catch (error) {
-        
+        return { successful: false, error: "Query error. Check offset." };
     }
 
     return { successful: true, usersData };
@@ -233,5 +237,3 @@ export async function getIdsUnderBusinessUnit(businessUnits?: Array<number>): Pr
 
     return { successful: true, userList };
 }
-
-

@@ -2,23 +2,62 @@ import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
 import { createSalary } from "../controllers/payroll";
-import { createIncome, createUserIncome, getNewIncomeId, getIncomes } from "../controllers/incomes";
+import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes, createRange } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes } from "../controllers/outcomes";
 import { getUserData, getAllUsersData, calculatePayroll } from "../controllers/payroll";
 
 const router = express.Router();
 
+// Must be a way of gathering total users.
+
+// Must check total users first and avoid surpassing total
+// Adapt to typescript...
 // Gets all
 router.get("/all", async (req, res) => {
-    // offset?num=1
-    const { offset, limit } = req.params;
-
-    if (!offset || !limit) {
-        return res.status(400).send("Missing paramenters.");
+    let offset, limit;
+    if (req.query && req.query.offset && req.query.limit) {
+        // @ts-ignore: Unreachable code error
+        offset = parseInt(req.query["offset"]);
+        // @ts-ignore: Unreachable code error
+        limit = parseInt(req.query["limit"]);
+    } else {
+        return res.status(400).json({ message: "Missing parameters 'offset' and/or 'limit'." });
     }
 
-    // Get list of users
-    const users = await getAllUsersData(offset, limit);
+    // @ts-ignore: Unreachable code error
+    if (offset <= 1) {
+        return res.status(400).json({ message: "Invalid offset. Value must be greater than 1." });
+    }
+
+    // Query users and check activity
+    // @ts-ignore: Unreachable code error
+    const usersObject = await getAllUsersData(offset, limit);
+    if (!usersObject.successful) {
+        return res.status(400).json({ message: usersObject.error });
+    }
+
+    // Generate range
+    // @ts-ignore: Unreachable code error
+    const idRange = createRange(offset, offset + limit);
+
+    // Query income
+    const incomesObject = await getAllUsersIncomes(idRange);
+    if (!incomesObject.successful) {
+        return res.status(400).send({ message: incomesObject.error });
+    }
+
+    // Query outcome
+    // const outcomesObject = await getAllOutcomes(parseInt(id));
+    // if (!outcomesObject.successful) {
+    //     return res.status(400).send({ message: outcomesObject.error });
+    // }
+
+    // Extract values
+    // const { userData } = userObject;
+    // const { incomesData } = incomesObject;
+    // const { outcomesData } = outcomesObject;
+    // const { salary } = userData["salary"];
+
 
     // Get salaries of users
 
@@ -30,6 +69,7 @@ router.get("/all", async (req, res) => {
 
     // Create payroll object
 
+    return res.status(200).send(incomesObject);
 });
 
 router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
@@ -40,7 +80,7 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     if (!userObject.successful) {
         return res.status(400).send({ message: userObject.error });
     }
-    
+
     // Query income
     const incomesObject = await getIncomes(parseInt(id));
     if (!incomesObject.successful) {
@@ -58,7 +98,7 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     const { incomesData } = incomesObject;
     const { outcomesData } = outcomesObject;
     const { salary } = userData["salary"];
-    
+
     // Calculate payroll
     const payroll = await calculatePayroll(parseFloat(salary), incomesData, outcomesData);
 
@@ -71,7 +111,7 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
         outcomes: outcomesData,
         payrollTotal: payroll
     };
-    
+
     return res.status(200).send(finalPayrollObject);
 });
 
