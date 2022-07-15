@@ -3,7 +3,7 @@ import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
 import { createSalary } from "../controllers/payroll";
 import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes, createRange } from "../controllers/incomes";
-import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes } from "../controllers/outcomes";
+import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
 import { getUserData, getAllUsersData, calculatePayroll } from "../controllers/payroll";
 
 const router = express.Router();
@@ -47,10 +47,10 @@ router.get("/all", async (req, res) => {
     }
 
     // Query outcome
-    // const outcomesObject = await getAllOutcomes(parseInt(id));
-    // if (!outcomesObject.successful) {
-    //     return res.status(400).send({ message: outcomesObject.error });
-    // }
+    const outcomesObject = await getAllUsersOutcomes(idRange);
+    if (!outcomesObject.successful) {
+        return res.status(400).send({ message: outcomesObject.error });
+    }
 
     // Extract values
     // const { userData } = userObject;
@@ -58,18 +58,11 @@ router.get("/all", async (req, res) => {
     // const { outcomesData } = outcomesObject;
     // const { salary } = userData["salary"];
 
-
-    // Get salaries of users
-
-    // Get incomes of users
-
-    // Get outcomes of users
-
     // Calculate payroll
 
     // Create payroll object
 
-    return res.status(200).send(incomesObject);
+    return res.status(200).send(outcomesObject);
 });
 
 router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {

@@ -1,8 +1,18 @@
+const { Op } = require("sequelize");
 import { incomesObj } from "../controllers/incomes";
 import { outcomesObj } from "../controllers/outcomes";
 import { createUnitsListCondition } from "../controllers/users";
-const { Op } = require("sequelize");
-const { users, salaries, payroll_schemas, payments_periods, roles, incomes } = require("../database/models/index");
+const { users, salaries, payroll_schemas, payments_periods, roles } = require("../database/models/index");
+
+export function createIdCondition(idRange: number[]) {
+    interface idObj { id: string }
+
+    const finalObject: idObj[] = idRange.map((id) => {
+        return { "id": `${id}` };
+    });
+
+    return finalObject;
+}
 
 export async function getAllUsersData(offset: number, limit: number) {
     let usersData;
@@ -35,7 +45,6 @@ export async function getAllUsersData(offset: number, limit: number) {
     return { successful: true, usersData };
 }
 
-
 export async function getUserData(id: number) {
     let userData;
 
@@ -66,7 +75,6 @@ export async function getUserData(id: number) {
 
     return { successful: true, userData };
 }
-
 
 export async function calculatePayroll(salary: number, incomes?: incomesObj[], outcomes?: outcomesObj[]) {
     let payrollTotal: number = salary;
@@ -105,7 +113,6 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
     return { payrollTotal, outcomesTotal, incomesTotal };
 }
 
-
 export function createList(listWithObjects: Array<{ id: number }> | undefined) {
     const finalList: Array<number> = [];
 
@@ -115,7 +122,6 @@ export function createList(listWithObjects: Array<{ id: number }> | undefined) {
 
     return finalList;
 }
-
 
 // Check the most recent???
 export async function getSalary(userId: number) {

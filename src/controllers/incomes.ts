@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import { newIncomeData } from "../util/objects";
+import { createIdCondition } from "../controllers/payroll";
 const { incomes, incomes_users } = require("../database/models/index");
 
 // What if an outcome / income is inactive? How to activate it?
@@ -77,16 +78,7 @@ export async function createUserIncome(userId: number, incomeUserData: newIncome
     return { successful: true, updated: true };
 }
 
-////////////////////////////
-function createIdCondition(idRange: number[]) {
-    interface idObj { id: string }
 
-    const finalObject: idObj[] = idRange.map((id) => {
-        return { "id": `${id}` };
-    });
-
-    return finalObject;
-}
 
 export async function getAllUsersIncomes(idRange: number[]) {
     let incomesData;
@@ -120,8 +112,6 @@ export async function getAllUsersIncomes(idRange: number[]) {
 
     return { successful: true, incomesData };
 }
-
-////////////////////////////
 
 export async function getAllIncomes(): Promise<unknown[]> {
     return await incomes.findAll({

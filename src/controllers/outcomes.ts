@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import { newOutcomeData } from "../util/objects";
+import { createIdCondition } from "../controllers/payroll";
 const { outcomes, outcomes_users } = require("../database/models/index");
 
 interface entryObj {
@@ -111,7 +112,38 @@ export async function getOutcomes(userId: number) {
     return { successful: true, outcomesData };
 }
 
+export async function getAllUsersOutcomes(idRange: number[]) {
+    let outcomesData;
+    const finalIdList = createIdCondition(idRange);
 
+    try {
+        outcomesData = await outcomes_users.findAll({
+            attributes: ["outcome_id", "counter", "amount"],
+            where: {
+                [Op.or]: finalIdList,
+                deletedAt: null
+            },
+            include: {
+                attributes: ["name", "automatic"],
+                model: outcomes,
+                where: {
+                    active: true,
+                    deletedAt: null
+                }
+            },
+            raw: true
+        });
+
+        if (!outcomesData) {
+            return { successful: false, error: "No outcomes found." };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Invalid query." };
+    }
+
+    return { successful: true, outcomesData };
+}
 
 export async function getAllOutcomes(): Promise<unknown[]> {
     return await outcomes.findAll({
