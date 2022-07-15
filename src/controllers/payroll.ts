@@ -113,6 +113,23 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
     return { payrollTotal, outcomesTotal, incomesTotal };
 }
 
+export async function calculatePayrollMassively(usersList: unknown, incomesList: unknown, outcomesList: unknown) {
+
+
+    const finalPayrollObject = salaries.map((userObj: unknown) => {
+        const currentId = userObj.id, salary = userObj["salary"].salary;
+        let payrollTotal: number = salary;
+        let outcomesTotal = 0, incomesTotal = 0;
+
+        const newOutcomesObject = outcomesList.map((outcome) => {
+
+        });
+
+    });
+
+
+}
+
 export function createList(listWithObjects: Array<{ id: number }> | undefined) {
     const finalList: Array<number> = [];
 

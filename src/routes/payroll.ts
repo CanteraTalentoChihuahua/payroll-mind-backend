@@ -53,16 +53,16 @@ router.get("/all", async (req, res) => {
     }
 
     // Extract values -- must be done individually
-    // const { usersData } = usersObject;
-    // const { incomesData } = incomesObject;
-    // const { outcomesData } = outcomesObject;
+    const { usersData } = usersObject;
+    const { incomesData } = incomesObject;
+    const { outcomesData } = outcomesObject;
     // const { salary } = usersData["salary"];
 
     // Calculate payroll
 
     // Create payroll object
 
-    return res.status(200).send(outcomesObject);
+    return res.status(200).send(incomesData);
 });
 
 router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {

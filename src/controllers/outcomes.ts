@@ -118,7 +118,7 @@ export async function getAllUsersOutcomes(idRange: number[]) {
 
     try {
         outcomesData = await outcomes_users.findAll({
-            attributes: ["outcome_id", "counter", "amount"],
+            attributes: ["user_id", "outcome_id", "counter", "amount"],
             where: {
                 [Op.or]: finalIdList,
                 deletedAt: null

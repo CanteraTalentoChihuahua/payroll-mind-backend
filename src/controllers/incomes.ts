@@ -86,7 +86,7 @@ export async function getAllUsersIncomes(idRange: number[]) {
 
     try {
         incomesData = await incomes_users.findAll({
-            attributes: ["income_id", "counter", "amount"],
+            attributes: ["user_id", "income_id", "counter", "amount"],
             where: {
                 [Op.or]: finalIdList,
                 deletedAt: null
