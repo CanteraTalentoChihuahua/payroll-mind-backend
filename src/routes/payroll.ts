@@ -52,11 +52,11 @@ router.get("/all", async (req, res) => {
         return res.status(400).send({ message: outcomesObject.error });
     }
 
-    // Extract values
-    // const { userData } = userObject;
+    // Extract values -- must be done individually
+    // const { usersData } = usersObject;
     // const { incomesData } = incomesObject;
     // const { outcomesData } = outcomesObject;
-    // const { salary } = userData["salary"];
+    // const { salary } = usersData["salary"];
 
     // Calculate payroll
 
