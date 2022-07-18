@@ -4,11 +4,19 @@ import { outcomesObj } from "../controllers/outcomes";
 import { createUnitsListCondition } from "../controllers/users";
 const { users, salaries, payroll_schemas, payments_periods, roles } = require("../database/models/index");
 
+interface idObj { id: string }
 export function createIdCondition(idRange: number[]) {
-    interface idObj { id: string }
-
     const finalObject: idObj[] = idRange.map((id) => {
         return { "id": `${id}` };
+    });
+
+    return finalObject;
+}
+
+interface userIdObj { user_id: string }
+export function createUserIdCondition(idRange: number[]) {
+    const finalObject: userIdObj[] = idRange.map((id) => {
+        return { "user_id": `${id}` };
     });
 
     return finalObject;
@@ -31,6 +39,9 @@ export async function getAllUsersData(offset: number, limit: number) {
                 { attributes: ["id", "salary"], model: salaries },
                 { attributes: ["id", "name"], model: payroll_schemas },
                 { attributes: ["id", "name"], model: payments_periods }
+            ],
+            order: [
+                ["id", "ASC"]
             ]
         });
 
@@ -89,7 +100,7 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
             if (!counter || !amount) {
                 continue;
             } else {
-                currentVal = counter as number * parseFloat(amount!);
+                currentVal = parseFloat(amount!);
                 payrollTotal += currentVal;
                 incomesTotal += currentVal;
             }
@@ -103,7 +114,7 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
             if (!counter || !amount) {
                 continue;
             } else {
-                currentVal = counter as number * parseFloat(amount!);
+                currentVal = parseFloat(amount!);
                 payrollTotal -= currentVal;
                 outcomesTotal += currentVal;
             }
@@ -167,9 +178,9 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
             incomes: incomesObject,
             outcomes: outcomesObject,
             payrollTotal: {
+                payrollTotal: salary + incomesTotal - outcomesTotal,
                 incomesTotal,
-                outcomesTotal,
-                payrollTotal: salary + incomesTotal - outcomesTotal
+                outcomesTotal
             }
         };
     });

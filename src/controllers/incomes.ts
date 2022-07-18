@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { newIncomeData } from "../util/objects";
-import { createIdCondition } from "../controllers/payroll";
+import { createUserIdCondition } from "../controllers/payroll";
 const { incomes, incomes_users } = require("../database/models/index");
 
 // What if an outcome / income is inactive? How to activate it?
@@ -82,7 +82,7 @@ export async function createUserIncome(userId: number, incomeUserData: newIncome
 
 export async function getAllUsersIncomes(idRange: number[]) {
     let incomesData;
-    const finalIdList = createIdCondition(idRange);
+    const finalIdList = createUserIdCondition(idRange);
 
     try {
         incomesData = await incomes_users.findAll({
@@ -156,7 +156,11 @@ export async function getIncomes(userId: number) {
     return { successful: true, incomesData };
 }
 
-export function createRange(lowEnd: number, highEnd: number) {
+export function createRange(highEnd: number, lowEnd?: number) {
+    if (!lowEnd) {
+        lowEnd = 1;
+    }
+
     const range: number[] = [];
     for (let i = lowEnd; i <= highEnd; i++) {
         range.push(i);

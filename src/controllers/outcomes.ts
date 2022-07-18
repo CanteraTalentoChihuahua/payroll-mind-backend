@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { newOutcomeData } from "../util/objects";
-import { createIdCondition } from "../controllers/payroll";
+import { createUserIdCondition } from "../controllers/payroll";
 const { outcomes, outcomes_users } = require("../database/models/index");
 
 interface entryObj {
@@ -114,7 +114,7 @@ export async function getOutcomes(userId: number) {
 
 export async function getAllUsersOutcomes(idRange: number[]) {
     let outcomesData;
-    const finalIdList = createIdCondition(idRange);
+    const finalIdList = createUserIdCondition(idRange);
 
     try {
         outcomesData = await outcomes_users.findAll({
