@@ -15,17 +15,23 @@ const router = express.Router();
 // Gets all
 router.get("/all", async (req, res) => {
     let offset, limit;
-    if (req.query && req.query.offset && req.query.limit) {
+
+    if (req.query && req.query.limit) {
         // @ts-ignore: Unreachable code error
         offset = parseInt(req.query["offset"]);
         // @ts-ignore: Unreachable code error
         limit = parseInt(req.query["limit"]);
+        
     } else {
         return res.status(400).json({ message: "Missing parameters 'offset' and/or 'limit'." });
     }
 
+    if (req.query.offset) {
+        console.log("Must add this logic.");
+    }   
+
     // @ts-ignore: Unreachable code error
-    if (offset <= 1) {
+    if (offset < 1) {
         return res.status(400).json({ message: "Invalid offset. Value must be greater than 1." });
     }
 
@@ -65,8 +71,8 @@ router.get("/all", async (req, res) => {
         return res.status(400).send({ message: outcomesObject.error });
     }
 
-    return res.status(200).send(finalMassivePayrollObject.finalMassivePayroll);
-    // return res.status(200).send(usersObject);
+    return res.status(200).send(usersData);
+    // return res.status(200).send(finalMassivePayrollObject.finalMassivePayroll);
 });
 
 router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {

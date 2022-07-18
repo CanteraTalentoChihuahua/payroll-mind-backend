@@ -4,11 +4,19 @@ import { outcomesObj } from "../controllers/outcomes";
 import { createUnitsListCondition } from "../controllers/users";
 const { users, salaries, payroll_schemas, payments_periods, roles } = require("../database/models/index");
 
+interface idObj { id: string }
 export function createIdCondition(idRange: number[]) {
-    interface idObj { id: string }
-
     const finalObject: idObj[] = idRange.map((id) => {
         return { "id": `${id}` };
+    });
+
+    return finalObject;
+}
+
+interface userIdObj { user_id: string }
+export function createUserIdCondition(idRange: number[]) {
+    const finalObject: userIdObj[] = idRange.map((id) => {
+        return { "user_id": `${id}` };
     });
 
     return finalObject;
@@ -20,8 +28,8 @@ export async function getAllUsersData(offset: number, limit: number) {
     try {
         usersData = await users.findAll({
             attributes: ["id"],
-            offset,
             limit,
+            // offset,
             where: {
                 active: true,
                 [Op.not]: { id: 1 }

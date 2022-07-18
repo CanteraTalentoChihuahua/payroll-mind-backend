@@ -134,6 +134,9 @@ export async function getAllUsersOutcomes(idRange: number[]) {
             raw: true
         });
 
+        console.log(outcomesData);
+        
+
         if (!outcomesData) {
             return { successful: false, error: "No outcomes found." };
         }
