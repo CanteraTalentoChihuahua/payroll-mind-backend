@@ -114,20 +114,67 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
 }
 
 export async function calculatePayrollMassively(usersList: unknown, incomesList: unknown, outcomesList: unknown) {
+    // Map with user data 
+    // @ts-ignore: Unreachable code error
+    const finalMassivePayroll = usersList.map((user) => {
+        const { id } = user;
+        const payroll_schema = user["payroll_schema"].dataValues["name"];
+        const payments_periods = user["payments_period"].dataValues["name"];
+        const salary = parseFloat(user["salary"].dataValues["salary"]);
 
+        if (!id || !payroll_schema || !payments_periods || !salary) {
+            return { successful: false, error: "Missing one or more parameters: id, payroll_schema, payment_periods, salary." };
+        }
 
-    const finalPayrollObject = salaries.map((userObj: unknown) => {
-        const currentId = userObj.id, salary = userObj["salary"].salary;
-        let payrollTotal: number = salary;
-        let outcomesTotal = 0, incomesTotal = 0;
+        // Incomes section - filters by id
+        // income_id, counter, amount, income.name, income.automatic
+        let incomesTotal = 0;
+        // @ts-ignore: Unreachable code error
+        let incomesObject = incomesList.map((income) => {
+            const { user_id } = income;
 
-        const newOutcomesObject = outcomesList.map((outcome) => {
-
+            // Redundant user_id but whatever...
+            if (user_id === id) {
+                incomesTotal += parseFloat(income.amount);
+                return income;
+            }
         });
 
+        incomesObject = incomesObject.filter((income: unknown) => income !== undefined);
+
+        // Outcomes section
+        let outcomesTotal = 0;
+        // @ts-ignore: Unreachable code error
+        let outcomesObject = outcomesList.map((outcome) => {
+            const { user_id } = outcome;
+
+            // Redundant user_id but whatever...
+            if (user_id === id) {
+                outcomesTotal += parseFloat(outcome.amount);
+                return outcome;
+            }
+        });
+
+        outcomesObject = outcomesObject.filter((outcome: unknown) => outcome !== undefined);
+
+
+        // Return final user object
+        return {
+            id,
+            payroll_schema,
+            payments_periods,
+            salary,
+            incomes: incomesObject,
+            outcomes: outcomesObject,
+            payrollTotal: {
+                incomesTotal,
+                outcomesTotal,
+                payrollTotal: salary + incomesTotal - outcomesTotal
+            }
+        };
     });
 
-
+    return { successful: true, finalMassivePayroll };
 }
 
 export function createList(listWithObjects: Array<{ id: number }> | undefined) {

@@ -1,7 +1,7 @@
 import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
-import { createSalary } from "../controllers/payroll";
+import { calculatePayrollMassively, createSalary } from "../controllers/payroll";
 import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes, createRange } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
 import { getUserData, getAllUsersData, calculatePayroll } from "../controllers/payroll";
@@ -38,7 +38,7 @@ router.get("/all", async (req, res) => {
 
     // Generate range
     // @ts-ignore: Unreachable code error
-    const idRange = createRange(offset, offset + limit);
+    const idRange = createRange(offset, limit);
 
     // Query income
     const incomesObject = await getAllUsersIncomes(idRange);
@@ -58,11 +58,15 @@ router.get("/all", async (req, res) => {
     const { outcomesData } = outcomesObject;
     // const { salary } = usersData["salary"];
 
-    // Calculate payroll
+    // Calculate payroll massively
+    const finalMassivePayrollObject = await calculatePayrollMassively(usersData, incomesData, outcomesData);
+    // Loop through all checking success status
+    if (!finalMassivePayrollObject.successful) {
+        return res.status(400).send({ message: outcomesObject.error });
+    }
 
-    // Create payroll object
-
-    return res.status(200).send(incomesData);
+    return res.status(200).send(finalMassivePayrollObject.finalMassivePayroll);
+    // return res.status(200).send(usersObject);
 });
 
 router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
