@@ -10,12 +10,10 @@ const router = express.Router();
 
 // Must be a way of gathering total users.
 
-// Must check total users first and avoid surpassing total
 // Adapt to typescript...
-// Gets all
-router.get("/all", async (req, res) => {
+router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
+    // Check business unit logic
     let offset, limit;
-
     if (req.query && req.query.limit) {
         // @ts-ignore: Unreachable code error
         offset = parseInt(req.query["offset"]);
@@ -23,16 +21,11 @@ router.get("/all", async (req, res) => {
         limit = parseInt(req.query["limit"]);
         
     } else {
-        return res.status(400).json({ message: "Missing parameters 'offset' and/or 'limit'." });
+        return res.status(400).json({ message: "Missing limit parameters." });
     }
 
-    if (req.query.offset) {
-        console.log("Must add this logic.");
-    }   
-
-    // @ts-ignore: Unreachable code error
-    if (offset < 1) {
-        return res.status(400).json({ message: "Invalid offset. Value must be greater than 1." });
+    if (!req.query.offset) {
+        offset = 0;
     }
 
     // Query users and check activity
@@ -44,7 +37,7 @@ router.get("/all", async (req, res) => {
 
     // Generate range
     // @ts-ignore: Unreachable code error
-    const idRange = createRange(offset, limit);
+    const idRange = createRange(limit, offset);
 
     // Query income
     const incomesObject = await getAllUsersIncomes(idRange);
@@ -71,8 +64,10 @@ router.get("/all", async (req, res) => {
         return res.status(400).send({ message: outcomesObject.error });
     }
 
-    return res.status(200).send(usersData);
-    // return res.status(200).send(finalMassivePayrollObject.finalMassivePayroll);
+    return res.status(200).send({
+        massivePayroll: finalMassivePayrollObject.finalMassivePayroll,
+        massivePayrollTotal: finalMassivePayrollObject.massivePayrollTotal
+    });
 });
 
 router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {

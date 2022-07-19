@@ -28,8 +28,8 @@ export async function getAllUsersData(offset: number, limit: number) {
     try {
         usersData = await users.findAll({
             attributes: ["id"],
+            offset,
             limit,
-            // offset,
             where: {
                 active: true,
                 [Op.not]: { id: 1 }
@@ -39,6 +39,9 @@ export async function getAllUsersData(offset: number, limit: number) {
                 { attributes: ["id", "salary"], model: salaries },
                 { attributes: ["id", "name"], model: payroll_schemas },
                 { attributes: ["id", "name"], model: payments_periods }
+            ],
+            order: [
+                ["id", "ASC"]
             ]
         });
 
@@ -97,7 +100,7 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
             if (!counter || !amount) {
                 continue;
             } else {
-                currentVal = counter as number * parseFloat(amount!);
+                currentVal = parseFloat(amount!);
                 payrollTotal += currentVal;
                 incomesTotal += currentVal;
             }
@@ -111,7 +114,7 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
             if (!counter || !amount) {
                 continue;
             } else {
-                currentVal = counter as number * parseFloat(amount!);
+                currentVal = parseFloat(amount!);
                 payrollTotal -= currentVal;
                 outcomesTotal += currentVal;
             }
@@ -122,6 +125,8 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
 }
 
 export async function calculatePayrollMassively(usersList: unknown, incomesList: unknown, outcomesList: unknown) {
+    let massivePayrollTotal = 0;
+
     // Map with user data 
     // @ts-ignore: Unreachable code error
     const finalMassivePayroll = usersList.map((user) => {
@@ -135,7 +140,6 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
         }
 
         // Incomes section - filters by id
-        // income_id, counter, amount, income.name, income.automatic
         let incomesTotal = 0;
         // @ts-ignore: Unreachable code error
         let incomesObject = incomesList.map((income) => {
@@ -165,6 +169,11 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
 
         outcomesObject = outcomesObject.filter((outcome: unknown) => outcome !== undefined);
 
+        // Calculate payroll total
+        const payrollTotal = salary + incomesTotal - outcomesTotal;
+        // @ts-ignore: Unreachable code error
+        massivePayrollTotal += parseFloat(payrollTotal);
+
 
         // Return final user object
         return {
@@ -175,14 +184,14 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
             incomes: incomesObject,
             outcomes: outcomesObject,
             payrollTotal: {
+                payrollTotal,
                 incomesTotal,
-                outcomesTotal,
-                payrollTotal: salary + incomesTotal - outcomesTotal
+                outcomesTotal
             }
         };
     });
 
-    return { successful: true, finalMassivePayroll };
+    return { successful: true, finalMassivePayroll, massivePayrollTotal };
 }
 
 export function createList(listWithObjects: Array<{ id: number }> | undefined) {
