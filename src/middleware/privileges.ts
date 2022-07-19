@@ -19,7 +19,11 @@ export default (...privileges: Privilege[]) => {
             return res.status(401).json({ message: tokenMessage });
         }
 
-        const userInfo = await users.findOne({ where: { id: (tokenInfo.payload as JwtPayload).id } });
+        const userInfo = await users.findOne({
+            where: {
+                id: (tokenInfo.payload as JwtPayload).id
+            }
+        });
 
         if (userInfo === null) {
             return res.status(401).json({ message: tokenMessage });

@@ -10,18 +10,10 @@ const router = express.Router();
 
 // Must be a way of gathering total users.
 
-
-// Total user endpoint
-
-
-
 // Adapt to typescript...
-// Gets all
-router.get("/all", async (req, res) => {
+router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
     // Check business unit logic
-
     let offset, limit;
-
     if (req.query && req.query.limit) {
         // @ts-ignore: Unreachable code error
         offset = parseInt(req.query["offset"]);
@@ -71,7 +63,10 @@ router.get("/all", async (req, res) => {
         return res.status(400).send({ message: outcomesObject.error });
     }
 
-    return res.status(200).send(finalMassivePayrollObject.finalMassivePayroll);
+    return res.status(200).send({
+        massivePayroll: finalMassivePayrollObject.finalMassivePayroll,
+        massivePayrollTotal: finalMassivePayrollObject.massivePayrollTotal
+    });
 });
 
 router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {

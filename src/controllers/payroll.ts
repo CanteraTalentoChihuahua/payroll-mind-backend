@@ -29,7 +29,7 @@ export async function getAllUsersData(offset: number, limit: number) {
         usersData = await users.findAll({
             attributes: ["id"],
             offset,
-            limit,
+            limit: null,
             where: {
                 active: true,
                 [Op.not]: { id: 1 }
@@ -125,6 +125,8 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
 }
 
 export async function calculatePayrollMassively(usersList: unknown, incomesList: unknown, outcomesList: unknown) {
+    let massivePayrollTotal = 0;
+
     // Map with user data 
     // @ts-ignore: Unreachable code error
     const finalMassivePayroll = usersList.map((user) => {
@@ -138,7 +140,6 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
         }
 
         // Incomes section - filters by id
-        // income_id, counter, amount, income.name, income.automatic
         let incomesTotal = 0;
         // @ts-ignore: Unreachable code error
         let incomesObject = incomesList.map((income) => {
@@ -168,6 +169,11 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
 
         outcomesObject = outcomesObject.filter((outcome: unknown) => outcome !== undefined);
 
+        // Calculate payroll total
+        const payrollTotal = salary + incomesTotal - outcomesTotal;
+        // @ts-ignore: Unreachable code error
+        massivePayrollTotal += parseFloat(payrollTotal);
+
 
         // Return final user object
         return {
@@ -178,14 +184,14 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
             incomes: incomesObject,
             outcomes: outcomesObject,
             payrollTotal: {
-                payrollTotal: salary + incomesTotal - outcomesTotal,
+                payrollTotal,
                 incomesTotal,
                 outcomesTotal
             }
         };
     });
 
-    return { successful: true, finalMassivePayroll };
+    return { successful: true, finalMassivePayroll, massivePayrollTotal };
 }
 
 export function createList(listWithObjects: Array<{ id: number }> | undefined) {

@@ -3,7 +3,7 @@ import { hash } from "bcrypt";
 
 const { Op } = require("sequelize");
 const sqlz = require("sequelize").Sequelize;
-const {users: user, roles, business_units: businessUnits} = require("../database/models/index");
+const { users: user, roles, business_units: businessUnits } = require("../database/models/index");
 
 const attributesList = [
     "id",
@@ -28,14 +28,14 @@ const attributesList = [
 
 function getOrder(order: string, by: string) {
     switch (order) {
-    case "name": return [
-        ["first_name", by],
-        ["last_name", by]
-    ];
-    case "salary": return [
-        ["salary", by]
-    ];
-    default: return [];
+        case "name": return [
+            ["first_name", by],
+            ["last_name", by]
+        ];
+        case "salary": return [
+            ["salary", by]
+        ];
+        default: return [];
     }
 }
 
@@ -231,3 +231,5 @@ export async function getNewUserId() {
     const max = await user.max("id");
     return parseInt(max);
 }
+
+// export async function get
