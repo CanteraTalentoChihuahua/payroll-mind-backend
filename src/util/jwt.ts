@@ -3,7 +3,7 @@ const loginAudience = "session";
 
 export function createSessionJWT(payload: object) {
     return jwt.sign(payload, process.env.JWT_SECRET!, {
-        expiresIn: "1h",
+        // expiresIn: "1h",
         audience: loginAudience
     });
 }

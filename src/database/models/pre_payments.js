@@ -2,7 +2,6 @@
 const {
   Model
 } = require('sequelize');
-const { Sequelize } = require('.');
 module.exports = (sequelize, DataTypes) => {
   class pre_payments extends Model {
     /**
@@ -19,7 +18,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
-
     },
     user_id: DataTypes.INTEGER,
     incomes: DataTypes.JSONB,
