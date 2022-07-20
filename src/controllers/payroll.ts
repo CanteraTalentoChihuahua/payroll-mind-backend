@@ -340,6 +340,9 @@ export async function getAllPayrolls(offset?: number, limit?: number) {
                 { attributes: ["salary"], model: salaries },
                 { attributes: ["name"], model: payments_periods }
             ],
+            order: [
+                ["id", "ASC"]
+            ],
             raw: true
         });
 
@@ -357,8 +360,14 @@ export async function getAllPayrolls(offset?: number, limit?: number) {
 }
 
 export async function buildFinalPayrollObject(userArray: unknown) {
+    const finalPayrollArray = [];
+
     // @ts-ignore: Unreachable code error
-    const finalPayrollArray = userArray.map((user) => {
+    for (const userIndex in userArray) {
+        // Locate current user
+        // @ts-ignore: Unreachable code error
+        const user = userArray[userIndex];
+
         // Extract incomes / outcomes data
         const { incomes } = user;
         const { outcomes } = user;
@@ -389,8 +398,8 @@ export async function buildFinalPayrollObject(userArray: unknown) {
         } catch (error) {
             return { successful: false, error: "Query error at outcomes." };
         }
-        
-        return {
+
+        const userObject = {
             id: user.id,
             user_id: user.user_id,
             // payroll_schema: user["payroll_schema.name"],
@@ -405,17 +414,17 @@ export async function buildFinalPayrollObject(userArray: unknown) {
                 incomesTotal: user.total_incomes,
                 outcomesTotal: user.total_outcomes
             }
-        }; ;
-    });
+        };
 
-    console.log("shit");
+        finalPayrollArray.push(userObject);
+    }
 
     return { successful: true, finalPayrollArray };
 }
 
 
 
-///
+// 
 export async function getAllUsersIncomes(idCondition: number[]) {
     let incomesData;
 

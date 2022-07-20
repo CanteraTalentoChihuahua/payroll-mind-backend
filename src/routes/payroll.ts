@@ -12,7 +12,7 @@ const router = express.Router();
 // Query pre_payments
 // Must return a total of users in order for pagination calculation
 // Maybe: displaying 10 out of 20
-router.get("/unconfirmed", async (req, res) => {
+router.get("/staged", async (req, res) => {
     // Check for offset and limit
     let offset = 0, limit = 10;
     if (req.query.limit) {
@@ -26,7 +26,7 @@ router.get("/unconfirmed", async (req, res) => {
     }
 
     // Query payroll data
-    const payrollObject = await getAllPayrolls();
+    const payrollObject = await getAllPayrolls(offset, limit);
     if (!payrollObject?.successful) {
         return res.status(400).json({ message: payrollObject.error });
     }
@@ -39,8 +39,10 @@ router.get("/unconfirmed", async (req, res) => {
         return res.status(400).json({ message: finalPayrollObject.error });
     }
 
-    return res.status(200).send(payrollData);
+    return res.status(200).send(finalPayrollObject.finalPayrollArray);
 });
+
+
 
 
 // Calculates total payroll --- SHOULD TURN INTO A SOLE SCRIPT
