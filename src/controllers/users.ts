@@ -232,4 +232,16 @@ export async function getNewUserId() {
     return parseInt(max);
 }
 
-// export async function get
+export async function trialFunction() {
+    return await roles.findOne({
+        where: {
+            user_id: 1
+        },
+        include: {
+            model: user
+
+        },
+        raw: true
+    });
+}
+

@@ -5,12 +5,18 @@ import { calculatePayrollMassively, createSalary } from "../controllers/payroll"
 import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes, createRange } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
 import { getUserData, getAllUsersData, calculatePayroll } from "../controllers/payroll";
+import { trialFunction } from "../controllers/users";
 
 const router = express.Router();
 
-// Must be a way of gathering total users.
+router.get("/something", async (req, res) => {
+    const data = await trialFunction();
+    return res.status(200).send(data);
+});
 
-// Adapt to typescript...
+
+
+// Calculates total payroll
 router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
     // Check business unit logic
     let offset, limit;
@@ -19,7 +25,7 @@ router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
         offset = parseInt(req.query["offset"]);
         // @ts-ignore: Unreachable code error
         limit = parseInt(req.query["limit"]);
-        
+
     } else {
         return res.status(400).json({ message: "Missing limit parameters." });
     }
@@ -70,6 +76,8 @@ router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     });
 });
 
+
+//////
 router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
     const { id } = req.params;
 
