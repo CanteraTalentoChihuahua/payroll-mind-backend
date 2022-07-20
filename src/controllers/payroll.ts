@@ -2,7 +2,7 @@ const { Op } = require("sequelize");
 import { incomesObj } from "../controllers/incomes";
 import { outcomesObj } from "../controllers/outcomes";
 import { createUnitsListCondition } from "../controllers/users";
-const { users, salaries, payroll_schemas, payments_periods, roles, pre_payments } = require("../database/models/index");
+const { users, salaries, payroll_schemas, payments_periods, roles, pre_payments, incomes_users, incomes, outcomes_users, outcomes } = require("../database/models/index");
 
 interface idObj { id: string }
 export function createIdCondition(idRange: number[]) {
@@ -333,15 +333,12 @@ export async function getAllPayrolls(offset?: number, limit?: number) {
     let payrollData;
     try {
         payrollData = await pre_payments.findAll({
-            // attributes: [""],
+            attributes: ["id", "user_id", "incomes", "total_incomes", "outcomes", "total_outcomes", "total_amount", "payment_period_id", "payment_date"],
             offset,
             limit,
-            where: {
-                deletedAt: null
-            },
             include: [
-                { attributes: ["id", "salary"], model: salaries },
-                { attributes: ["id", "name"], model: payments_periods }
+                { attributes: ["salary"], model: salaries },
+                { attributes: ["name"], model: payments_periods }
             ],
             raw: true
         });
@@ -357,4 +354,129 @@ export async function getAllPayrolls(offset?: number, limit?: number) {
     // Create payroll object
 
     return { successful: true, payrollData };
+}
+
+export async function buildFinalPayrollObject(userArray: unknown) {
+    // @ts-ignore: Unreachable code error
+    const finalPayrollArray = userArray.map((user) => {
+        // Extract incomes / outcomes data
+        const { incomes } = user;
+        const { outcomes } = user;
+
+        const filteredIncomes = incomes["incomes"];
+        const filteredOutcomes = outcomes["outcomes"];
+
+        // Create id conditions
+        const incomesIdCondition = createIdCondition(filteredIncomes);
+        const outcomesIdCondition = createIdCondition(filteredOutcomes);
+
+        // Query incomes
+        let incomesData;
+        try {
+            // @ts-ignore: Unreachable code error
+            incomesData = await getAllUsersIncomes(incomesIdCondition);
+
+        } catch (error) {
+            return { successful: false, error: "Query error at incomes." };
+        }
+
+        // Query outcomes
+        let outcomesData;
+        try {
+            // @ts-ignore: Unreachable code error
+            outcomesData = await getAllUsersOutcomes(outcomesIdCondition);
+
+        } catch (error) {
+            return { successful: false, error: "Query error at outcomes." };
+        }
+        
+        return {
+            id: user.id,
+            user_id: user.user_id,
+            // payroll_schema: user["payroll_schema.name"],
+            payment_period: user["payments_period.name"],
+            salary: user["salary.salary"],
+            // @ts-ignore: Unreachable code error
+            incomes: incomesData["incomesData"],
+            // @ts-ignore: Unreachable code error
+            outcomes: outcomesData["outcomesData"],
+            payrollTotal: {
+                payrollTotal: user.total_amount,
+                incomesTotal: user.total_incomes,
+                outcomesTotal: user.total_outcomes
+            }
+        }; ;
+    });
+
+    console.log("shit");
+
+    return { successful: true, finalPayrollArray };
+}
+
+
+
+///
+export async function getAllUsersIncomes(idCondition: number[]) {
+    let incomesData;
+
+    try {
+        incomesData = await incomes_users.findAll({
+            attributes: ["user_id", "income_id", "counter", "amount"],
+            where: {
+                [Op.or]: idCondition,
+                deletedAt: null
+            },
+            include: {
+                attributes: ["name", "automatic"],
+                model: incomes,
+                where: {
+                    active: true,
+                    deletedAt: null
+                }
+            },
+            raw: true
+        });
+
+        if (!incomesData) {
+            return [];
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Invalid query." };
+    }
+
+    return { successful: true, incomesData };
+}
+
+
+export async function getAllUsersOutcomes(idCondition: number[]) {
+    let outcomesData;
+
+    try {
+        outcomesData = await outcomes_users.findAll({
+            attributes: ["user_id", "outcome_id", "counter", "amount"],
+            where: {
+                [Op.or]: idCondition,
+                deletedAt: null
+            },
+            include: {
+                attributes: ["name", "automatic"],
+                model: outcomes,
+                where: {
+                    active: true,
+                    deletedAt: null
+                }
+            },
+            raw: true
+        });
+
+        if (!outcomesData) {
+            return [];
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Invalid query." };
+    }
+
+    return { successful: true, outcomesData };
 }

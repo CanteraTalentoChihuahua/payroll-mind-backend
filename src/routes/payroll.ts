@@ -1,7 +1,7 @@
 import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
-import { calculatePayrollMassively, createSalary } from "../controllers/payroll";
+import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
 import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes, createRange } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
 import { getUserData, getAllUsersData, calculatePayroll, getAllPayrolls } from "../controllers/payroll";
@@ -31,11 +31,16 @@ router.get("/unconfirmed", async (req, res) => {
         return res.status(400).json({ message: payrollObject.error });
     }
 
-    return res.status(200).send(payrollObject.payrollData);
+    // 
+    const { payrollData } = payrollObject;
+    const finalPayrollObject = await buildFinalPayrollObject(payrollData);
+    if (!finalPayrollObject.successful) {
+        // @ts-ignore: Unreachable code error
+        return res.status(400).json({ message: finalPayrollObject.error });
+    }
+
+    return res.status(200).send(payrollData);
 });
-
-// Moves from prepayments to payments route ; deletes from prepayments 
-
 
 
 // Calculates total payroll --- SHOULD TURN INTO A SOLE SCRIPT
