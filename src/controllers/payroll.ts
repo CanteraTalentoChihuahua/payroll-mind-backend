@@ -341,7 +341,7 @@ export async function getAllPayrolls(offset?: number, limit?: number) {
                 { attributes: ["name"], model: payments_periods }
             ],
             order: [
-                ["id", "ASC"]
+                ["user_id", "ASC"]
             ],
             raw: true
         });
@@ -353,8 +353,6 @@ export async function getAllPayrolls(offset?: number, limit?: number) {
     } catch (error) {
         return { successful: false, error: "Query error." };
     }
-
-    // Create payroll object
 
     return { successful: true, payrollData };
 }
@@ -423,8 +421,28 @@ export async function buildFinalPayrollObject(userArray: unknown) {
 }
 
 
+export async function getStagedPayrollsLength() {
+    let userData;
+    try {
+        userData = await pre_payments.findAll({
+            order: [
+                ["user_id", "ASC"]
+            ]
+        });
 
-// 
+        if (!userData) {
+            return { successful: true, payrollLength: 0 };
+        }
+
+    } catch (error) {
+        return { successful: true, error: "Query error." };
+    }
+
+    return { successful: true, payrollLength: userData.length };
+}
+
+
+// Must be moved to incomes... Kept here to avoid breaking stuff
 export async function getAllUsersIncomes(idCondition: number[]) {
     let incomesData;
 
@@ -457,7 +475,7 @@ export async function getAllUsersIncomes(idCondition: number[]) {
     return { successful: true, incomesData };
 }
 
-
+// Must be moved to outcomes... Kept here to avoid breaking stuff
 export async function getAllUsersOutcomes(idCondition: number[]) {
     let outcomesData;
 
@@ -488,4 +506,20 @@ export async function getAllUsersOutcomes(idCondition: number[]) {
     }
 
     return { successful: true, outcomesData };
+}
+
+export function inRange(offset: number, limit: number, total: number) {
+    if (offset + limit > total) {
+        return total;
+    } else {
+        return offset + limit;
+    }
+}
+
+export function showing(offset: number, limit: number, total: number) {
+    if (offset + limit > total) {
+        return total - offset;
+    } else {
+        return limit;
+    }
 }
