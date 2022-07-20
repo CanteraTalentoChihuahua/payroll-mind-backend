@@ -6,9 +6,8 @@ module.exports = (sequelize, DataTypes) => {
   class pre_payments extends Model {
 
     static associate(models) {
-      pre_payments.belongsTo(models.users, { foreignKey: "user_id" });
-
-      pre_payments.belongsTo(models.payroll_schemas, { foreignKey: "payroll_schema_id" });
+      // pre_payments.belongsTo(models.users, { foreignKey: "user_id" });
+      // pre_payments.belongsTo(models.payroll_schemas, { foreignKey: "payroll_schema_id" });
       pre_payments.belongsTo(models.salaries, { foreignKey: "salary_id" });
       pre_payments.belongsTo(models.payments_periods, { foreignKey: "payment_period_id" });
     }

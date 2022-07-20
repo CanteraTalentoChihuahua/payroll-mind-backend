@@ -3,7 +3,10 @@ import { hash } from "bcrypt";
 
 const { Op } = require("sequelize");
 const sqlz = require("sequelize").Sequelize;
-const { users: user, roles, business_units: businessUnits } = require("../database/models/index");
+const { users: user,
+    roles,
+    business_units: businessUnits,
+    pre_payments, salaries } = require("../database/models/index");
 
 const attributesList = [
     "id",
@@ -233,13 +236,13 @@ export async function getNewUserId() {
 }
 
 export async function trialFunction() {
-    return await roles.findOne({
+    return await pre_payments.findOne({
         where: {
-            user_id: 1
+            user_id: 2
         },
         include: {
-            model: user
-
+            model: salaries,
+            attributes: ["salary"]
         },
         raw: true
     });
