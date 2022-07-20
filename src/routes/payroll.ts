@@ -4,19 +4,41 @@ import privileges from "../middleware/privileges";
 import { calculatePayrollMassively, createSalary } from "../controllers/payroll";
 import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes, createRange } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
-import { getUserData, getAllUsersData, calculatePayroll } from "../controllers/payroll";
-import { trialFunction } from "../controllers/users";
+import { getUserData, getAllUsersData, calculatePayroll, getAllPayrolls } from "../controllers/payroll";
 
 const router = express.Router();
 
-router.get("/something", async (req, res) => {
-    const data = await trialFunction();
-    return res.status(200).send(data);
+// Query those that are not deleted
+// Query pre_payments
+// Must return a total of users in order for pagination calculation
+// Maybe: displaying 10 out of 20
+router.get("/unconfirmed", async (req, res) => {
+    // Check for offset and limit
+    let offset = 0, limit = 10;
+    if (req.query.limit) {
+        // @ts-ignore: Unreachable code error
+        limit = parseInt(req.query["limit"]);
+    }
+
+    if (req.query.offset) {
+        // @ts-ignore: Unreachable code error
+        offset = parseInt(req.query["offset"]);
+    }
+
+    // Query payroll data
+    const payrollObject = await getAllPayrolls();
+    if (!payrollObject?.successful) {
+        return res.status(400).json({ message: payrollObject.error });
+    }
+
+    return res.status(200).send(payrollObject.payrollData);
 });
 
+// Moves from prepayments to payments route ; deletes from prepayments 
 
 
-// Calculates total payroll
+
+// Calculates total payroll --- SHOULD TURN INTO A SOLE SCRIPT
 router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
     // Check business unit logic
     let offset, limit;

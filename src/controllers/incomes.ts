@@ -78,8 +78,6 @@ export async function createUserIncome(userId: number, incomeUserData: newIncome
     return { successful: true, updated: true };
 }
 
-
-
 export async function getAllUsersIncomes(idRange: number[]) {
     let incomesData;
     const finalIdList = createUserIdCondition(idRange);
@@ -174,7 +172,6 @@ export async function getNewIncomeId() {
     const max = await incomes.max("id");
     return parseInt(max);
 }
-
 
 export async function editIncome(id: number, name: string | undefined, automatic: boolean | undefined, active: boolean | undefined): Promise<void> {
     await incomes.update({

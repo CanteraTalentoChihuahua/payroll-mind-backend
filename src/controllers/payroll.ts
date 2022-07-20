@@ -2,7 +2,7 @@ const { Op } = require("sequelize");
 import { incomesObj } from "../controllers/incomes";
 import { outcomesObj } from "../controllers/outcomes";
 import { createUnitsListCondition } from "../controllers/users";
-const { users, salaries, payroll_schemas, payments_periods, roles } = require("../database/models/index");
+const { users, salaries, payroll_schemas, payments_periods, roles, pre_payments } = require("../database/models/index");
 
 interface idObj { id: string }
 export function createIdCondition(idRange: number[]) {
@@ -323,4 +323,38 @@ export async function getIdsUnderBusinessUnit(businessUnits?: Array<number>): Pr
     }
 
     return { successful: true, userList };
+}
+
+
+
+/// Experimental methods
+// Should not query id: 1
+export async function getAllPayrolls(offset?: number, limit?: number) {
+    let payrollData;
+    try {
+        payrollData = await pre_payments.findAll({
+            // attributes: [""],
+            offset,
+            limit,
+            where: {
+                deletedAt: null
+            },
+            include: [
+                { attributes: ["id", "salary"], model: salaries },
+                { attributes: ["id", "name"], model: payments_periods }
+            ],
+            raw: true
+        });
+
+        if (!payrollData) {
+            return { successful: false, error: "No payrolls found." };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Query error." };
+    }
+
+    // Create payroll object
+
+    return { successful: true, payrollData };
 }
