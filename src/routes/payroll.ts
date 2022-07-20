@@ -4,13 +4,14 @@ import privileges from "../middleware/privileges";
 import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
 import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes, createRange } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
-import { getUserData, getAllUsersData, calculatePayroll, getAllPayrolls, getStagedPayrollsLength, inRange, showing } from "../controllers/payroll";
+import { getUserData, getAllUsersData, calculatePayroll, getAllPayrolls, getStagedPayrollsLength, inRange, showing, pushToPayments } from "../controllers/payroll";
 
 const router = express.Router();
 
+// If pushed... where will they query?
+
 // Query pre_payments
 // Must return a total of users in order for pagination calculation
-// Maybe: displaying 10 out of 20
 router.get("/staged", async (req, res) => {
     // Check for offset and limit
     let offset = 0, limit = 10;
@@ -59,7 +60,16 @@ router.get("/staged", async (req, res) => {
 });
 
 
+// Moves data from pre_payments to payments
+// Ask front to double confirm before calling this endpoint...
+router.post("/push", async (req, res) => {
+    const pushObject = await pushToPayments();
+    if (!pushObject.successful) {
+        return res.status(400).json({ message: pushObject.error });
+    }
 
+    return res.status(200).json({ message: "Successfully registered payments." });
+});
 
 // Calculates total payroll --- SHOULD TURN INTO A SOLE SCRIPT
 router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {

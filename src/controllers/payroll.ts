@@ -2,7 +2,7 @@ const { Op } = require("sequelize");
 import { incomesObj } from "../controllers/incomes";
 import { outcomesObj } from "../controllers/outcomes";
 import { createUnitsListCondition } from "../controllers/users";
-const { users, salaries, payroll_schemas, payments_periods, roles, pre_payments, incomes_users, incomes, outcomes_users, outcomes } = require("../database/models/index");
+const { users, salaries, payroll_schemas, payments_periods, payments, roles, pre_payments, incomes_users, incomes, outcomes_users, outcomes } = require("../database/models/index");
 
 interface idObj { id: string }
 export function createIdCondition(idRange: number[]) {
@@ -347,7 +347,7 @@ export async function getAllPayrolls(offset?: number, limit?: number) {
         });
 
         if (!payrollData) {
-            return { successful: false, error: "No payrolls found." };
+            return { successful: false, error: "No payrolls found in pre-payments. May've been pushed already." };
         }
 
     } catch (error) {
@@ -522,4 +522,45 @@ export function showing(offset: number, limit: number, total: number) {
     } else {
         return limit;
     }
+}
+
+
+/// 
+export async function pushToPayments() {
+    // Find all available prepayments
+    let pre_paymentsData;
+    try {
+        pre_paymentsData = await pre_payments.findAll({
+            attributes: ["user_id", "salary_id", "incomes", "total_incomes", "outcomes", "total_outcomes", "total_amount", "payment_period_id", "payment_date"],
+            order: [["id", "ASC"]],
+            raw: true
+        });
+
+        if (!pre_paymentsData) {
+            return { successful: false, error: "Nothing to push." };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Query error." };
+    }
+
+    // Assign them to payments
+    try {
+        await payments.bulkCreate([...pre_paymentsData]);
+
+    } catch (error) {
+        return { successful: true, error: "Error creating rows at payments." };
+    }
+
+    // Remove the from prepayments
+    try {
+        await pre_payments.destroy({
+            where: {}
+        });
+
+    } catch (error) {
+        return { successful: true, error: "Error destroying rows at pre_payments." };
+    }
+
+    return { successful: true };
 }
