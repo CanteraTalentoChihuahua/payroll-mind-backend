@@ -22,23 +22,18 @@ export function createUserIdCondition(idRange: number[]) {
     return finalObject;
 }
 
-export async function getAllUsersData(offset: number, limit: number) {
+export async function getAllUsersDataRaw() {
     let usersData;
 
     try {
         usersData = await users.findAll({
-            attributes: ["id", "business_unit"],
-            offset,
-            limit,
+            attributes: ["id", "salary_id", "payment_period_id", "payroll_schema_id", "business_unit"],
             where: {
                 active: true,
                 [Op.not]: { id: 1 }
             },
             include: [
-                { attributes: ["id", "name"], model: roles },
                 { attributes: ["id", "salary"], model: salaries },
-                { attributes: ["id", "name"], model: payroll_schemas },
-                { attributes: ["id", "name"], model: payments_periods }
             ],
             order: [
                 ["id", "ASC"]
@@ -50,11 +45,46 @@ export async function getAllUsersData(offset: number, limit: number) {
         }
 
     } catch (error) {
-        return { successful: false, error: "Query error. Check offset." };
+        return { successful: false, error: "Query error." };
     }
 
     return { successful: true, usersData };
 }
+
+
+// export async function getAllUsersData(offset: number, limit: number) {
+//     let usersData;
+
+//     try {
+//         usersData = await users.findAll({
+//             attributes: ["id", "business_unit"],
+//             offset,
+//             limit,
+//             where: {
+//                 active: true,
+//                 [Op.not]: { id: 1 }
+//             },
+//             include: [
+//                 { attributes: ["id", "name"], model: roles },
+//                 { attributes: ["id", "salary"], model: salaries },
+//                 { attributes: ["id", "name"], model: payroll_schemas },
+//                 { attributes: ["id", "name"], model: payments_periods }
+//             ],
+//             order: [
+//                 ["id", "ASC"]
+//             ]
+//         });
+
+//         if (!usersData) {
+//             return { successful: false, error: "User not found, may be inactive or invalid user." };
+//         }
+
+//     } catch (error) {
+//         return { successful: false, error: "Query error. Check offset." };
+//     }
+
+//     return { successful: true, usersData };
+// }
 
 export async function getUserData(id: number) {
     let userData;
@@ -133,13 +163,11 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
     // Map with user data 
     // @ts-ignore: Unreachable code error
     const comprehensivePayrollObject = usersList.map((user) => {
-        const { id } = user;
-        const payroll_schema = user["payroll_schema"].dataValues["name"];
-        const payments_periods = user["payments_period"].dataValues["name"];
+        const { id, salary_id, payment_period_id, payroll_schema_id, business_unit } = user;
+        const { business_unit_ids } = business_unit;
         const salary = parseFloat(user["salary"].dataValues["salary"]);
-        const { business_unit_ids } = user["business_unit"];
 
-        if (!id || !payroll_schema || !payments_periods || !salary) {
+        if (!id || !payroll_schema_id || !payment_period_id || !salary_id || !business_unit) {
             return { successful: false, error: "Missing one or more parameters: id, payroll_schema, payment_periods, salary." };
         }
 
@@ -147,12 +175,12 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
         let incomesTotal = 0;
         // @ts-ignore: Unreachable code error
         let incomesObject = incomesList.map((income) => {
-            const { user_id } = income;
+            const { user_id, amount, income_id } = income;
 
             // Redundant user_id but whatever...
             if (user_id === id) {
-                incomesTotal += parseFloat(income.amount);
-                return income;
+                incomesTotal += parseFloat(amount);
+                return income_id;
             }
         });
 
@@ -162,12 +190,12 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
         let outcomesTotal = 0;
         // @ts-ignore: Unreachable code error
         let outcomesObject = outcomesList.map((outcome) => {
-            const { user_id } = outcome;
+            const { user_id, amount, outcome_id } = outcome;
 
             // Redundant user_id but whatever...
             if (user_id === id) {
-                outcomesTotal += parseFloat(outcome.amount);
-                return outcome;
+                outcomesTotal += parseFloat(amount);
+                return outcome_id;
             }
         });
 
@@ -204,11 +232,14 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
         // Return final user object
         return {
             id,
-            payroll_schema,
-            payments_periods,
-            salary,
+            salary_id,
+            payment_period_id,
+            payroll_schema_id,
+            business_unit,
+
             incomes: incomesObject,
             outcomes: outcomesObject,
+
             payrollTotal: {
                 payrollTotal,
                 incomesTotal,
@@ -384,35 +415,35 @@ export async function getAllPrePayrolls(offset?: number, limit?: number) {
     return { successful: true, payrollData };
 }
 
-export async function getAllPayrolls(offset?: number, limit?: number) {
-    let payrollData;
+// export async function getAllPayrolls(offset?: number, limit?: number) {
+//     let payrollData;
 
-    try {
-        // @ts-ignore: Unreachable code error
-        payrollData = await payments.findAll({
-            attributes: ["id", "user_id", "incomes", "total_incomes", "outcomes", "total_outcomes", "total_amount", "payment_period_id", "payment_date"],
-            offset,
-            limit,
-            include: [
-                { attributes: ["salary"], model: salaries },
-                { attributes: ["name"], model: payments_periods }
-            ],
-            order: [
-                ["user_id", "ASC"]
-            ],
-            raw: true
-        });
+//     try {
+//         // @ts-ignore: Unreachable code error
+//         payrollData = await payments.findAll({
+//             attributes: ["id", "user_id", "incomes", "total_incomes", "outcomes", "total_outcomes", "total_amount", "payment_period_id", "payment_date"],
+//             offset,
+//             limit,
+//             include: [
+//                 { attributes: ["salary"], model: salaries },
+//                 { attributes: ["name"], model: payments_periods }
+//             ],
+//             order: [
+//                 ["user_id", "ASC"]
+//             ],
+//             raw: true
+//         });
 
-        if (!payrollData) {
-            return { successful: false, error: "No payrolls found." };
-        }
+//         if (!payrollData) {
+//             return { successful: false, error: "No payrolls found." };
+//         }
 
-    } catch (error) {
-        return { successful: false, error: "Query error." };
-    }
+//     } catch (error) {
+//         return { successful: false, error: "Query error." };
+//     }
 
-    return { successful: true, payrollData };
-}
+//     return { successful: true, payrollData };
+// }
 
 export async function buildFinalPayrollObject(userArray: unknown) {
     const finalPayrollArray = [];
@@ -639,3 +670,9 @@ export async function pushToPayments() {
 
     return { successful: true };
 }
+
+
+// INSERTS
+// export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
+//     for ()
+// }

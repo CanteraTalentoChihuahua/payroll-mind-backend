@@ -2,9 +2,12 @@ import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
 import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
-import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes, createRange } from "../controllers/incomes";
+import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
-import { getUserData, getAllUsersData, calculatePayroll, getAllPayrolls, getAllPrePayrolls, getStagedPayrollsLength, getPushedPayrollsLength, inRange, showing, pushToPayments } from "../controllers/payroll";
+import {
+    getUserData, getAllUsersData, getAllUsersDataRaw, calculatePayroll, getAllPrePayrolls, getStagedPayrollsLength,
+    getPushedPayrollsLength, inRange, showing, pushToPayments,
+} from "../controllers/payroll";
 
 const router = express.Router();
 
@@ -27,12 +30,11 @@ router.get("/staged", async (req, res) => {
 
     // Query payroll data
     // Is this allowed? Waste of resources?
-    let payrollObject = await getAllPrePayrolls(offset, limit);
+    const payrollObject = await getAllPrePayrolls(offset, limit);
     if (!payrollObject.successful) {
-        payrollObject = await getAllPayrolls(offset, limit);
-        if (!payrollObject.successful) {
-            return res.status(400).json({ message: payrollObject.error });
-        }
+        return res.status(400).json({ message: payrollObject.error });
+        // payrollObject = await getAllPayrolls(offset, limit);
+        // if (!payrollObject.successful) {
     }
 
     // Build payroll object
@@ -87,7 +89,7 @@ router.post("/push", async (req, res) => {
 router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
     // Query users and check activity
     // @ts-ignore: Unreachable code error
-    const usersObject = await getAllUsersData();
+    const usersObject = await getAllUsersDataRaw();
     if (!usersObject.successful) {
         return res.status(400).json({ message: usersObject.error });
     }
@@ -116,10 +118,20 @@ router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
         return res.status(400).send({ message: outcomesObject.error });
     }
 
-    // Save into prepayments and prepayroll
-
     // Extract final data
     const { comprehensivePayrollObject, brutePayrollObject } = finalMassivePayrollObject;
+
+    // Save into prepayments
+    // const insertPrePaymentsObject = bulkInsertIntoPrePayments(comprehensivePayrollObject);
+    // if (!insertPrePaymentsObject.successful) {
+    //     return res.status(400).json({ message: insertPrePaymentsObject.error });
+    // }
+
+    // Save into payrolls
+    // const insertPrePayrollObject = bulkInsertIntoPrePayrolls(brutePayrollObject);
+    // if (!insertPrePayrollObject.successful) {
+    //     return res.status(400).json({ message: insertPrePayrollObject.error });
+    // }
 
     // For visualization purposes, front won't use this
     return res.status(200).send({
@@ -127,6 +139,12 @@ router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
         brutePayrollObject
     });
 });
+
+
+
+
+
+
 
 // NOTE - MUST MOVE THIS TO CRONJOB
 router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
