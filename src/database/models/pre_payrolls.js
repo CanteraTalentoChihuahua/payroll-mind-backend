@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
     total_amount: DataTypes.DECIMAL
   }, {
     sequelize,
-    modelName: 'pre_payroll',
+    modelName: 'pre_payrolls',
     paranoid: true
   });
   return pre_payroll;

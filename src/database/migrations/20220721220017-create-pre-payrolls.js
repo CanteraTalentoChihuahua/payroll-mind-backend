@@ -17,7 +17,7 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       business_unit_id: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.INTEGER
       },
       total_amount: {

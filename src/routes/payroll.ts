@@ -6,7 +6,7 @@ import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsers
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
 import {
     getUserData, getAllUsersDataRaw, calculatePayroll, getAllPrePayrolls, getStagedPayrollsLength,
-    getPushedPayrollsLength, inRange, showing, pushToPayments, bulkInsertIntoPrePayments
+    getPushedPayrollsLength, inRange, showing, pushToPayments, bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls
 } from "../controllers/payroll";
 
 const router = express.Router();
@@ -128,10 +128,10 @@ router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     }
 
     // Save into payrolls
-    // const insertPrePayrollObject = bulkInsertIntoPrePayrolls(brutePayrollObject);
-    // if (!insertPrePayrollObject.successful) {
-    //     return res.status(400).json({ message: insertPrePayrollObject.error });
-    // }
+    const insertPrePayrollObject = await bulkInsertIntoPrePayrolls(brutePayrollObject);
+    if (!insertPrePayrollObject.successful) {
+        return res.status(400).json({ message: insertPrePayrollObject.error });
+    }
 
     // For visualization purposes, front won't use this
     return res.status(200).send({

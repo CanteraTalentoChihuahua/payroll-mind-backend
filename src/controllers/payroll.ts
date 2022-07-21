@@ -2,7 +2,8 @@ const { Op } = require("sequelize");
 import { incomesObj } from "../controllers/incomes";
 import { outcomesObj } from "../controllers/outcomes";
 import { createUnitsListCondition } from "../controllers/users";
-const { users, salaries, payroll_schemas, payments_periods, payments, roles, pre_payments, incomes_users, incomes, outcomes_users, outcomes } = require("../database/models/index");
+const { users, salaries, payroll_schemas, payments_periods, payments, roles, pre_payments, incomes_users, incomes,
+    outcomes_users, outcomes, pre_payrolls } = require("../database/models/index");
 
 interface idObj { id: string }
 export function createIdCondition(idRange: number[]) {
@@ -698,6 +699,49 @@ export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
         } catch (error) {
             return { successful: false, error: "Error at pre_payments creation." };
         }
+    }
+
+    return { successful: true };
+}
+
+
+// NOTE - What should be introduced in payment_period_id??
+// CHANGE PAYMENT_PERIOD_ID!!!!
+export async function bulkInsertIntoPrePayrolls(brutePayroll: unknown) {
+    // @ts-ignore: Unreachable code error
+    const { global, business_unit } = brutePayroll;
+
+    try {
+        await pre_payrolls.create({
+            payment_date: new Date(),
+            payment_period_id: 1,
+            total_amount: global,
+            createdAt: new Date()
+        });
+
+    } catch (error) {
+        console.log(error);
+
+        return { successful: false, error: "Error at pre_payrolls global creation." };
+    }
+
+    try {
+        for (const [key, value] of Object.entries(business_unit)) {
+            // @ts-ignore: Unreachable code error
+            const { payrollTotal, salariesTotal, incomesTotal, outcomesTotal } = value;
+
+            await pre_payrolls.create({
+                payment_date: new Date(),
+                payment_period_id: 1,
+                business_unit_id: key,
+                total_amount: payrollTotal,
+                createdAt: new Date()
+            });
+        }
+
+    } catch (error) {
+        console.log(error);
+        return { successful: false, error: "Error at pre_payroll business_unit creation." };
     }
 
     return { successful: true };
