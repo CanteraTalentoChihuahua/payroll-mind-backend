@@ -4,7 +4,7 @@ import privileges from "../middleware/privileges";
 import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
 import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes, createRange } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
-import { getUserData, getAllUsersData, calculatePayroll, getAllPayrolls, getAllPrePayrolls, getStagedPayrollsLength, inRange, showing, pushToPayments } from "../controllers/payroll";
+import { getUserData, getAllUsersData, calculatePayroll, getAllPayrolls, getAllPrePayrolls, getStagedPayrollsLength, getPushedPayrollsLength, inRange, showing, pushToPayments } from "../controllers/payroll";
 
 const router = express.Router();
 
@@ -44,9 +44,13 @@ router.get("/staged", async (req, res) => {
     }
 
     // Query total user amount
-    const payrollLengthObject = await getStagedPayrollsLength();
+    let payrollLengthObject = await getStagedPayrollsLength();
     if (!payrollLengthObject.successful) {
-        return res.status(400).json({ message: payrollLengthObject.error });
+        // Must be a TIME ELEMENT TO IT, how will they be distinguished?
+        payrollLengthObject = await getPushedPayrollsLength();
+        if (!payrollLengthObject.successful) {
+            return res.status(400).json({ message: payrollLengthObject.error });
+        }
     }
 
     // Adds readability
@@ -75,6 +79,8 @@ router.post("/push", async (req, res) => {
 
     return res.status(200).json({ message: "Successfully registered payments." });
 });
+
+
 
 // NOTE - MUST MOVE THIS TO CRONJOB
 // Calculates total payroll --- SHOULD TURN INTO A SOLE SCRIPT
@@ -122,7 +128,6 @@ router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     const { usersData } = usersObject;
     const { incomesData } = incomesObject;
     const { outcomesData } = outcomesObject;
-    // const { salary } = usersData["salary"];
 
     // Calculate payroll massively
     const finalMassivePayrollObject = await calculatePayrollMassively(usersData, incomesData, outcomesData);

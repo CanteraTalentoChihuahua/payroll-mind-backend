@@ -461,8 +461,28 @@ export async function getStagedPayrollsLength() {
             ]
         });
 
-        if (!userData) {
-            return { successful: true, payrollLength: 0 };
+        if (userData.length === 0) {
+            return { successful: false, payrollLength: 0 };
+        }
+
+    } catch (error) {
+        return { successful: true, error: "Query error." };
+    }
+
+    return { successful: true, payrollLength: userData.length };
+}
+
+export async function getPushedPayrollsLength() {
+    let userData;
+    try {
+        userData = await payments.findAll({
+            order: [
+                ["user_id", "ASC"]
+            ]
+        });
+
+        if (userData.length === 0) {
+            return { successful: false, payrollLength: 0 };
         }
 
     } catch (error) {
