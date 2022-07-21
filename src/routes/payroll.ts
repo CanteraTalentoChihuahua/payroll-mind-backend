@@ -4,9 +4,7 @@ import privileges from "../middleware/privileges";
 import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
 import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes, createRange } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
-import { getUserData, getAllUsersData, calculatePayroll, getAllPayrolls, getAllPrePayrolls, getStagedPayrollsLength, inRange, showing, pushToPayments } from "../controllers/payroll";
-
-const { pre_payments, payments } = require("../database/models/index");
+import { getUserData, getAllUsersData, calculatePayroll, getAllPayrolls, getStagedPayrollsLength, inRange, showing, pushToPayments } from "../controllers/payroll";
 
 const router = express.Router();
 
@@ -28,16 +26,12 @@ router.get("/staged", async (req, res) => {
     }
 
     // Query payroll data
-    // Is this allowed? Waste of resources?
-    let payrollObject = await getAllPrePayrolls(offset, limit);
-    if (!payrollObject.successful) {
-        payrollObject = await getAllPayrolls(offset, limit);
-        if (!payrollObject.successful) {
-            return res.status(400).json({ message: payrollObject.error });
-        }
+    const payrollObject = await getAllPayrolls(offset, limit);
+    if (!payrollObject?.successful) {
+        return res.status(400).json({ message: payrollObject.error });
     }
 
-    // Build payroll object
+    // 
     const { payrollData } = payrollObject;
     const finalPayrollObject = await buildFinalPayrollObject(payrollData);
     if (!finalPayrollObject.successful) {
@@ -68,7 +62,6 @@ router.get("/staged", async (req, res) => {
 
 // Moves data from pre_payments to payments
 // Ask front to double confirm before calling this endpoint...
-// NOTE - IF A CERTAIN TIME PASSES WITH NO CONFIRMATION, CRONJOB SHOULD CALL THIS
 router.post("/push", async (req, res) => {
     const pushObject = await pushToPayments();
     if (!pushObject.successful) {
@@ -78,7 +71,6 @@ router.post("/push", async (req, res) => {
     return res.status(200).json({ message: "Successfully registered payments." });
 });
 
-// NOTE - MUST MOVE THIS TO CRONJOB
 // Calculates total payroll --- SHOULD TURN INTO A SOLE SCRIPT
 router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
     // Check business unit logic
@@ -139,7 +131,8 @@ router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     });
 });
 
-// NOTE - MUST MOVE THIS TO CRONJOB
+
+//////
 router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
     const { id } = req.params;
 
@@ -183,12 +176,6 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     return res.status(200).send(finalPayrollObject);
 });
 
-
-
-
-
-
-// ----- USELESS, MUST BE READAPT TO PRE_PAYMENTS TABLE
 // Does not edit AUTOMATIC column in outcomes when UPDATING
 // SENDING ID MEANS IMPLIES IT EXISTS, SENDING NAME IMPLIES IT DOES NOT
 router.post("/incomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS), async (req, res) => {

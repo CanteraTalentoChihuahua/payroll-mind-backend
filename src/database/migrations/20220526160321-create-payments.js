@@ -11,10 +11,6 @@ module.exports = {
             user_id: {
                 type: Sequelize.INTEGER
             },
-            salary_id: {
-                type: Sequelize.INTEGER,
-                allowNull: false
-            },
             incomes: {
                 type: Sequelize.JSONB,
                 allowNull: false
@@ -48,7 +44,7 @@ module.exports = {
                 type: Sequelize.DATE
             },
             updatedAt: {
-                allowNull: true,
+                allowNull: false,
                 type: Sequelize.DATE
             },
             deletedAt: {
