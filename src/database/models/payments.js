@@ -11,8 +11,8 @@ module.exports = (sequelize, DataTypes) => {
          */
 
         static associate(models) {
-            payments.hasOne(models.payments_periods, { foreignKey: "payment_period_id" });
-            //payments.hasOne(models.users, { foreignKey: "user_id" });
+            payments.belongsTo(models.salaries, { foreignKey: "salary_id" });
+            payments.belongsTo(models.payments_periods, { foreignKey: "payment_period_id" });
         }
 
     }

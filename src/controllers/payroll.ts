@@ -329,17 +329,18 @@ export async function getIdsUnderBusinessUnit(businessUnits?: Array<number>): Pr
 
 /// Experimental methods
 // Should not query id: 1
-export async function getAllPayrolls(offset?: number, limit?: number) {
+export async function getAllPrePayrolls(offset?: number, limit?: number) {
     let payrollData;
     try {
+        // @ts-ignore: Unreachable code error
         payrollData = await pre_payments.findAll({
             attributes: ["id", "user_id", "incomes", "total_incomes", "outcomes", "total_outcomes", "total_amount", "payment_period_id", "payment_date"],
             offset,
             limit,
-            include: [
-                { attributes: ["salary"], model: salaries },
-                { attributes: ["name"], model: payments_periods }
-            ],
+            // include: [
+            //     { attributes: ["salary"], model: salaries },
+            //     { attributes: ["name"], model: payments_periods }
+            // ],
             order: [
                 ["user_id", "ASC"]
             ],
@@ -347,7 +348,36 @@ export async function getAllPayrolls(offset?: number, limit?: number) {
         });
 
         if (!payrollData) {
-            return { successful: false, error: "No payrolls found in pre-payments. May've been pushed already." };
+            return { successful: false, error: "No payrolls found." };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Query error." };
+    }
+
+    return { successful: true, payrollData };
+}
+
+export async function getAllPayrolls(offset?: number, limit?: number) {
+    let payrollData;
+    try {
+        // @ts-ignore: Unreachable code error
+        payrollData = await payments.findAll({
+            attributes: ["id", "user_id", "incomes", "total_incomes", "outcomes", "total_outcomes", "total_amount", "payment_period_id", "payment_date"],
+            offset,
+            limit,
+            // include: [
+            //     { attributes: ["salary"], model: salaries },
+            //     { attributes: ["name"], model: payments_periods }
+            // ],
+            order: [
+                ["user_id", "ASC"]
+            ],
+            raw: true
+        });
+
+        if (!payrollData) {
+            return { successful: false, error: "No payrolls found." };
         }
 
     } catch (error) {
@@ -524,8 +554,6 @@ export function showing(offset: number, limit: number, total: number) {
     }
 }
 
-
-/// 
 export async function pushToPayments() {
     // Find all available prepayments
     let pre_paymentsData;
