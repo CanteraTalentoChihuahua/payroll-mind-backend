@@ -368,7 +368,7 @@ export async function getAllPayrolls(offset?: number, limit?: number) {
             offset,
             limit,
             include: [
-                { attributes: ["salary"], model: salaries },
+                { attributes: ["salary"], model: salaries }, 
                 { attributes: ["name"], model: payments_periods }
             ],
             order: [
@@ -376,8 +376,6 @@ export async function getAllPayrolls(offset?: number, limit?: number) {
             ],
             raw: true
         });
-
-        console.log(payrollData);
 
         if (!payrollData) {
             return { successful: false, error: "No payrolls found." };

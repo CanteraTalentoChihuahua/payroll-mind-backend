@@ -11,6 +11,10 @@ module.exports = {
             user_id: {
                 type: Sequelize.INTEGER
             },
+            salary_id: {
+                type: Sequelize.INTEGER,
+                allowNull: false
+            },
             incomes: {
                 type: Sequelize.JSONB,
                 allowNull: false

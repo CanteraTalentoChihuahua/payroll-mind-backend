@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
     },
+    salary_id: DataTypes.INTEGER,
     user_id: DataTypes.INTEGER,
     incomes: DataTypes.JSONB,
     total_incomes: DataTypes.DECIMAL,

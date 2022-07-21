@@ -11,10 +11,9 @@ module.exports = (sequelize, DataTypes) => {
          */
 
         static associate(models) {
-            payments.hasOne(models.payments_periods, { foreignKey: "payment_period_id" });
-            //payments.hasOne(models.users, { foreignKey: "user_id" });
+            payments.belongsTo(models.payments_periods, { foreignKey: "payment_period_id" });
+            payments.belongsTo(models.salaries, { foreignKey: "salary_id" });
         }
-
     }
     payments.init({
         id: {
@@ -22,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true,
         },
+        salary_id: DataTypes.INTEGER,
         user_id: DataTypes.INTEGER,
         incomes: DataTypes.JSONB,
         total_incomes: DataTypes.DECIMAL,
