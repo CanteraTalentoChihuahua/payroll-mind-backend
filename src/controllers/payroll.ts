@@ -27,7 +27,7 @@ export async function getAllUsersData(offset: number, limit: number) {
 
     try {
         usersData = await users.findAll({
-            attributes: ["id"],
+            attributes: ["id", "business_unit"],
             offset,
             limit,
             where: {
@@ -125,15 +125,19 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
 }
 
 export async function calculatePayrollMassively(usersList: unknown, incomesList: unknown, outcomesList: unknown) {
-    let massivePayrollTotal = 0;
+    const brutePayrollObject = {
+        global: 0,
+        business_unit: {}
+    };
 
     // Map with user data 
     // @ts-ignore: Unreachable code error
-    const finalMassivePayroll = usersList.map((user) => {
+    const comprehensivePayrollObject = usersList.map((user) => {
         const { id } = user;
         const payroll_schema = user["payroll_schema"].dataValues["name"];
         const payments_periods = user["payments_period"].dataValues["name"];
         const salary = parseFloat(user["salary"].dataValues["salary"]);
+        const { business_unit_ids } = user["business_unit"];
 
         if (!id || !payroll_schema || !payments_periods || !salary) {
             return { successful: false, error: "Missing one or more parameters: id, payroll_schema, payment_periods, salary." };
@@ -171,9 +175,31 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
 
         // Calculate payroll total
         const payrollTotal = salary + incomesTotal - outcomesTotal;
-        // @ts-ignore: Unreachable code error
-        massivePayrollTotal += parseFloat(payrollTotal);
 
+        // NOTE - If in multiple business units, assign to the first one
+        // Add to business unit payroll
+        if (!(business_unit_ids[0] in brutePayrollObject["business_unit"])) {
+            const payrollObject = {
+                payrollTotal,
+                salariesTotal: salary,
+                incomesTotal,
+                outcomesTotal,
+            };
+            // @ts-ignore: Unreachable code error
+            brutePayrollObject["business_unit"][business_unit_ids[0]] = payrollObject;
+
+        } else {
+            // @ts-ignore: Unreachable code error
+            const existingPayrollObject = brutePayrollObject["business_unit"][business_unit_ids[0]];
+            existingPayrollObject["payrollTotal"] += payrollTotal;
+            existingPayrollObject["salariesTotal"] += salary;
+            existingPayrollObject["incomesTotal"] += incomesTotal;
+            existingPayrollObject["outcomesTotal"] += outcomesTotal;
+        }
+
+        // Add to massive payroll
+        // @ts-ignore: Unreachable code error
+        brutePayrollObject["global"] += parseFloat(payrollTotal);
 
         // Return final user object
         return {
@@ -191,7 +217,7 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
         };
     });
 
-    return { successful: true, finalMassivePayroll, massivePayrollTotal };
+    return { successful: true, comprehensivePayrollObject, brutePayrollObject };
 }
 
 export function createList(listWithObjects: Array<{ id: number }> | undefined) {
@@ -360,7 +386,7 @@ export async function getAllPrePayrolls(offset?: number, limit?: number) {
 
 export async function getAllPayrolls(offset?: number, limit?: number) {
     let payrollData;
-    
+
     try {
         // @ts-ignore: Unreachable code error
         payrollData = await payments.findAll({
@@ -368,7 +394,7 @@ export async function getAllPayrolls(offset?: number, limit?: number) {
             offset,
             limit,
             include: [
-                { attributes: ["salary"], model: salaries }, 
+                { attributes: ["salary"], model: salaries },
                 { attributes: ["name"], model: payments_periods }
             ],
             order: [

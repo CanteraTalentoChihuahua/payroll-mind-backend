@@ -116,9 +116,15 @@ router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
         return res.status(400).send({ message: outcomesObject.error });
     }
 
+    // Save into prepayments and prepayroll
+
+    // Extract final data
+    const { comprehensivePayrollObject, brutePayrollObject } = finalMassivePayrollObject;
+
+    // For visualization purposes, front won't use this
     return res.status(200).send({
-        massivePayroll: finalMassivePayrollObject.finalMassivePayroll,
-        massivePayrollTotal: finalMassivePayrollObject.massivePayrollTotal
+        comprehensivePayrollObject,
+        brutePayrollObject
     });
 });
 
