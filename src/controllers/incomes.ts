@@ -78,15 +78,12 @@ export async function createUserIncome(userId: number, incomeUserData: newIncome
     return { successful: true, updated: true };
 }
 
-export async function getAllUsersIncomes(idRange: number[]) {
+export async function getAllUsersIncomes() {
     let incomesData;
-    const finalIdList = createUserIdCondition(idRange);
-
     try {
         incomesData = await incomes_users.findAll({
             attributes: ["user_id", "income_id", "counter", "amount"],
             where: {
-                [Op.or]: finalIdList,
                 deletedAt: null
             },
             include: {

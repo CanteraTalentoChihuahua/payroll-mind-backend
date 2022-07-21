@@ -112,15 +112,12 @@ export async function getOutcomes(userId: number) {
     return { successful: true, outcomesData };
 }
 
-export async function getAllUsersOutcomes(idRange: number[]) {
+export async function getAllUsersOutcomes() {
     let outcomesData;
-    const finalIdList = createUserIdCondition(idRange);
-
     try {
         outcomesData = await outcomes_users.findAll({
             attributes: ["user_id", "outcome_id", "counter", "amount"],
             where: {
-                [Op.or]: finalIdList,
                 deletedAt: null
             },
             include: {

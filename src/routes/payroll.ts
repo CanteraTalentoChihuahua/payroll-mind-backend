@@ -85,41 +85,21 @@ router.post("/push", async (req, res) => {
 // NOTE - MUST MOVE THIS TO CRONJOB
 // Calculates total payroll --- SHOULD TURN INTO A SOLE SCRIPT
 router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
-    // Check business unit logic
-    let offset, limit;
-    if (req.query && req.query.limit) {
-        // @ts-ignore: Unreachable code error
-        offset = parseInt(req.query["offset"]);
-        // @ts-ignore: Unreachable code error
-        limit = parseInt(req.query["limit"]);
-
-    } else {
-        return res.status(400).json({ message: "Missing limit parameters." });
-    }
-
-    if (!req.query.offset) {
-        offset = 0;
-    }
-
     // Query users and check activity
     // @ts-ignore: Unreachable code error
-    const usersObject = await getAllUsersData(offset, limit);
+    const usersObject = await getAllUsersData();
     if (!usersObject.successful) {
         return res.status(400).json({ message: usersObject.error });
     }
 
-    // Generate range
-    // @ts-ignore: Unreachable code error
-    const idRange = createRange(limit, offset);
-
     // Query income
-    const incomesObject = await getAllUsersIncomes(idRange);
+    const incomesObject = await getAllUsersIncomes();
     if (!incomesObject.successful) {
         return res.status(400).send({ message: incomesObject.error });
     }
 
     // Query outcome
-    const outcomesObject = await getAllUsersOutcomes(idRange);
+    const outcomesObject = await getAllUsersOutcomes();
     if (!outcomesObject.successful) {
         return res.status(400).send({ message: outcomesObject.error });
     }
