@@ -5,8 +5,8 @@ import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from
 import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
 import {
-    getUserData, getAllUsersData, getAllUsersDataRaw, calculatePayroll, getAllPrePayrolls, getStagedPayrollsLength,
-    getPushedPayrollsLength, inRange, showing, pushToPayments,
+    getUserData, getAllUsersDataRaw, calculatePayroll, getAllPrePayrolls, getStagedPayrollsLength,
+    getPushedPayrollsLength, inRange, showing, pushToPayments, bulkInsertIntoPrePayments
 } from "../controllers/payroll";
 
 const router = express.Router();
@@ -122,10 +122,10 @@ router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     const { comprehensivePayrollObject, brutePayrollObject } = finalMassivePayrollObject;
 
     // Save into prepayments
-    // const insertPrePaymentsObject = bulkInsertIntoPrePayments(comprehensivePayrollObject);
-    // if (!insertPrePaymentsObject.successful) {
-    //     return res.status(400).json({ message: insertPrePaymentsObject.error });
-    // }
+    const insertPrePaymentsObject = await bulkInsertIntoPrePayments(comprehensivePayrollObject);
+    if (!insertPrePaymentsObject.successful) {
+        return res.status(400).json({ message: insertPrePaymentsObject.error });
+    }
 
     // Save into payrolls
     // const insertPrePayrollObject = bulkInsertIntoPrePayrolls(brutePayrollObject);

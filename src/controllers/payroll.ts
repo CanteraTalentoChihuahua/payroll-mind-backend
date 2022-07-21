@@ -673,6 +673,32 @@ export async function pushToPayments() {
 
 
 // INSERTS
-// export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
-//     for ()
-// }
+export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
+    // @ts-ignore: Unreachable code error
+    for (const payrollIndex in comprehensivePayroll) {
+        // @ts-ignore: Unreachable code error
+        const currentPayroll = comprehensivePayroll[payrollIndex];
+        const { id, salary_id, payment_period_id, payroll_schema_id, business_unit, incomes, outcomes, payrollTotal } = currentPayroll;
+
+        try {
+            await pre_payments.create({
+                user_id: id,
+                salary_id,
+                payment_period_id,
+                payroll_schema_id,
+                business_unit,
+                incomes,
+                outcomes,
+                total_incomes: payrollTotal.incomesTotal,
+                total_outcomes: payrollTotal.outcomesTotal,
+                total_amount: payrollTotal.payrollTotal,
+                payment_date: new Date()
+            });
+
+        } catch (error) {
+            return { successful: false, error: "Error at pre_payments creation." };
+        }
+    }
+
+    return { successful: true };
+}
