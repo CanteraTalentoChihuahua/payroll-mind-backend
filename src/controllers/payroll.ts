@@ -675,6 +675,15 @@ export async function pushToPayments() {
 
 // INSERTS
 export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
+    // Delete everything
+    try {
+        await pre_payments.destroy({ where: {} });
+
+    } catch (error) {
+        return { successful: false, error: "Error at pre_payments deletion." };
+    }
+
+
     // @ts-ignore: Unreachable code error
     for (const payrollIndex in comprehensivePayroll) {
         // @ts-ignore: Unreachable code error
@@ -708,9 +717,16 @@ export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
 // NOTE - What should be introduced in payment_period_id??
 // CHANGE PAYMENT_PERIOD_ID!!!!
 export async function bulkInsertIntoPrePayrolls(brutePayroll: unknown) {
+    // Deletes everything
+    try {
+        await pre_payrolls.destroy({ where: {} });
+
+    } catch (error) {
+        return { successful: false, error: "Error at pre_payments deletion." };
+    }
+
     // @ts-ignore: Unreachable code error
     const { global, business_unit } = brutePayroll;
-
     try {
         await pre_payrolls.create({
             payment_date: new Date(),
@@ -720,8 +736,6 @@ export async function bulkInsertIntoPrePayrolls(brutePayroll: unknown) {
         });
 
     } catch (error) {
-        console.log(error);
-
         return { successful: false, error: "Error at pre_payrolls global creation." };
     }
 
@@ -740,7 +754,6 @@ export async function bulkInsertIntoPrePayrolls(brutePayroll: unknown) {
         }
 
     } catch (error) {
-        console.log(error);
         return { successful: false, error: "Error at pre_payroll business_unit creation." };
     }
 
