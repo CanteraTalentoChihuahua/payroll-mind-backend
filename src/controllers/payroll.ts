@@ -785,3 +785,26 @@ export async function bulkInsertIntoPrePayrolls(brutePayroll: unknown) {
 
     return { successful: true };
 }
+
+// Calculate global payroll
+export async function calculateGlobalPayroll() {
+    let globalPayroll;
+    try {
+        globalPayroll = await payrolls.findAll();
+
+        if (globalPayroll.length) {
+            return { successful: false, error: "No payrolls " };
+        }
+
+    } catch (error) {
+        return { successful: true, error: "Query error." };
+    }
+
+    let globalPayrollTotal = 0; 
+    for (const payrollIndex in payrolls) {
+        const { total_amount } = payrolls[payrollIndex];
+        globalPayrollTotal += total_amount;
+    }
+
+    return { successful: true, globalPayrollTotal };
+}

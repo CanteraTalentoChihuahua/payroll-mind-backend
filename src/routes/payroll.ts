@@ -6,7 +6,8 @@ import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsers
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
 import {
     getUserData, getAllUsersDataRaw, calculatePayroll, getAllPrePayrolls, getStagedPayrollsLength,
-    pushToPayrolls, inRange, showing, pushToPayments, bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls
+    pushToPayrolls, inRange, showing, pushToPayments, bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls,
+    calculateGlobalPayroll
 } from "../controllers/payroll";
 
 const router = express.Router();
@@ -70,6 +71,16 @@ router.get("/calculate", privileges(Privileges.CREATE_REPORTS, Privileges.READ_R
         comprehensivePayrollObject,
         brutePayrollObject
     });
+});
+
+// Calculate global 
+router.post("/calculate/global", async (req, res) => {
+    const globalPayrollObject = await calculateGlobalPayroll();
+    if (!globalPayrollObject.successful) {
+        return res.status(400).json({ message: globalPayrollObject.error });
+    }
+
+    return res.status(200).send(globalPayrollObject.globalPayrollTotal);
 });
 
 // Query pre_payments
@@ -147,6 +158,9 @@ router.post("/push", async (req, res) => {
 
     return res.status(200).json({ message: "Successfully registered payments." });
 });
+
+
+
 
 
 // NOTE - MUST MOVE THIS TO CRONJOB
