@@ -74,13 +74,13 @@ router.get("/calculate", privileges(Privileges.CREATE_REPORTS, Privileges.READ_R
 });
 
 // Calculate global 
-router.post("/calculate/global", async (req, res) => {
+router.get("/calculate/global", async (req, res) => {
     const globalPayrollObject = await calculateGlobalPayroll();
     if (!globalPayrollObject.successful) {
         return res.status(400).json({ message: globalPayrollObject.error });
     }
 
-    return res.status(200).send(globalPayrollObject.globalPayrollTotal);
+    return res.status(200).send({globalPayrollTotal: globalPayrollObject.globalPayrollTotal});
 });
 
 // Query pre_payments
