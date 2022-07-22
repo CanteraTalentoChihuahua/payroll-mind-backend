@@ -157,7 +157,7 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
 
 export async function calculatePayrollMassively(usersList: unknown, incomesList: unknown, outcomesList: unknown) {
     const brutePayrollObject = {
-        global: 0,
+        // global: 0,
         business_unit: {}
     };
 
@@ -226,9 +226,9 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
             existingPayrollObject["outcomesTotal"] += outcomesTotal;
         }
 
-        // Add to massive payroll
-        // @ts-ignore: Unreachable code error
-        brutePayrollObject["global"] += parseFloat(payrollTotal);
+        // // Add to massive payroll
+        // // @ts-ignore: Unreachable code error
+        // brutePayrollObject["global"] += parseFloat(payrollTotal);
 
         // Return final user object
         return {
@@ -726,19 +726,7 @@ export async function bulkInsertIntoPrePayrolls(brutePayroll: unknown) {
     }
 
     // @ts-ignore: Unreachable code error
-    const { global, business_unit } = brutePayroll;
-    try {
-        await pre_payrolls.create({
-            payment_date: new Date(),
-            payment_period_id: 1,
-            total_amount: global,
-            createdAt: new Date()
-        });
-
-    } catch (error) {
-        return { successful: false, error: "Error at pre_payrolls global creation." };
-    }
-
+    const { business_unit } = brutePayroll;
     try {
         for (const [key, value] of Object.entries(business_unit)) {
             // @ts-ignore: Unreachable code error

@@ -11,11 +11,70 @@ import {
 
 const router = express.Router();
 
+// Create endpoint for calculating payroll massively each time when called
+
 // If pushed... where will they query?
+
+// NEEDS TO CALCULATE FOR NEW USERS
+// NOTE - MUST MOVE THIS TO CRONJOB
+// Calculates total payroll --- SHOULD TURN INTO A SOLE SCRIPT
+router.get("/calculate", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
+    // Query users and check activity
+    // @ts-ignore: Unreachable code error
+    const usersObject = await getAllUsersDataRaw();
+    if (!usersObject.successful) {
+        return res.status(400).json({ message: usersObject.error });
+    }
+
+    // Query income
+    const incomesObject = await getAllUsersIncomes();
+    if (!incomesObject.successful) {
+        return res.status(400).send({ message: incomesObject.error });
+    }
+ 
+    // Query outcome
+    const outcomesObject = await getAllUsersOutcomes();
+    if (!outcomesObject.successful) {
+        return res.status(400).send({ message: outcomesObject.error });
+    }
+
+    // Extract values -- must be done individually
+    const { usersData } = usersObject;
+    const { incomesData } = incomesObject;
+    const { outcomesData } = outcomesObject;
+   
+    // Calculate payroll massively
+    const finalMassivePayrollObject = await calculatePayrollMassively(usersData, incomesData, outcomesData);
+    // Loop through all checking success status
+    if (!finalMassivePayrollObject.successful) {
+        return res.status(400).send({ message: outcomesObject.error });
+    }
+
+    // Extract final data
+    const { comprehensivePayrollObject, brutePayrollObject } = finalMassivePayrollObject;
+
+    // Save into prepayments
+    const insertPrePaymentsObject = await bulkInsertIntoPrePayments(comprehensivePayrollObject);
+    if (!insertPrePaymentsObject.successful) {
+        return res.status(400).json({ message: insertPrePaymentsObject.error });
+    }
+
+    // Save into payrolls
+    const insertPrePayrollObject = await bulkInsertIntoPrePayrolls(brutePayrollObject);
+    if (!insertPrePayrollObject.successful) {
+        return res.status(400).json({ message: insertPrePayrollObject.error });
+    }
+
+    // For visualization purposes, front won't use this
+    return res.status(200).send({
+        comprehensivePayrollObject,
+        brutePayrollObject
+    });
+});
 
 // Query pre_payments
 // Must return a total of users in order for pagination calculation
-router.get("/staged", async (req, res) => {
+router.get("/prepayroll", async (req, res) => {
     // Check for offset and limit
     let offset = 0, limit = 10;
     if (req.query.limit) {
@@ -83,69 +142,6 @@ router.post("/push", async (req, res) => {
 });
 
 
-
-// NOTE - MUST MOVE THIS TO CRONJOB
-// Calculates total payroll --- SHOULD TURN INTO A SOLE SCRIPT
-router.get("/all", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
-    // Query users and check activity
-    // @ts-ignore: Unreachable code error
-    const usersObject = await getAllUsersDataRaw();
-    if (!usersObject.successful) {
-        return res.status(400).json({ message: usersObject.error });
-    }
-
-    // Query income
-    const incomesObject = await getAllUsersIncomes();
-    if (!incomesObject.successful) {
-        return res.status(400).send({ message: incomesObject.error });
-    }
-
-    // Query outcome
-    const outcomesObject = await getAllUsersOutcomes();
-    if (!outcomesObject.successful) {
-        return res.status(400).send({ message: outcomesObject.error });
-    }
-
-    // Extract values -- must be done individually
-    const { usersData } = usersObject;
-    const { incomesData } = incomesObject;
-    const { outcomesData } = outcomesObject;
-
-    // Calculate payroll massively
-    const finalMassivePayrollObject = await calculatePayrollMassively(usersData, incomesData, outcomesData);
-    // Loop through all checking success status
-    if (!finalMassivePayrollObject.successful) {
-        return res.status(400).send({ message: outcomesObject.error });
-    }
-
-    // Extract final data
-    const { comprehensivePayrollObject, brutePayrollObject } = finalMassivePayrollObject;
-
-    // Save into prepayments
-    const insertPrePaymentsObject = await bulkInsertIntoPrePayments(comprehensivePayrollObject);
-    if (!insertPrePaymentsObject.successful) {
-        return res.status(400).json({ message: insertPrePaymentsObject.error });
-    }
-
-    // Save into payrolls
-    const insertPrePayrollObject = await bulkInsertIntoPrePayrolls(brutePayrollObject);
-    if (!insertPrePayrollObject.successful) {
-        return res.status(400).json({ message: insertPrePayrollObject.error });
-    }
-
-    // For visualization purposes, front won't use this
-    return res.status(200).send({
-        comprehensivePayrollObject,
-        brutePayrollObject
-    });
-});
-
-
-
-
-
-
-
 // NOTE - MUST MOVE THIS TO CRONJOB
 router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
     const { id } = req.params;
@@ -189,8 +185,6 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
 
     return res.status(200).send(finalPayrollObject);
 });
-
-
 
 
 
