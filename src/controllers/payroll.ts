@@ -3,7 +3,7 @@ import { incomesObj } from "../controllers/incomes";
 import { outcomesObj } from "../controllers/outcomes";
 import { createUnitsListCondition } from "../controllers/users";
 const { users, salaries, payroll_schemas, payments_periods, payments, roles, pre_payments, incomes_users, incomes,
-    outcomes_users, outcomes, pre_payrolls } = require("../database/models/index");
+    outcomes_users, outcomes, pre_payrolls, payrolls } = require("../database/models/index");
 
 interface idObj { id: string }
 export function createIdCondition(idRange: number[]) {
@@ -454,7 +454,7 @@ export async function buildFinalPayrollObject(userArray: unknown) {
         // Locate current user
         // @ts-ignore: Unreachable code error
         const user = userArray[userIndex];
-
+        
         // Extract incomes / outcomes data
         const { incomes } = user;
         const { outcomes } = user;
@@ -672,6 +672,45 @@ export async function pushToPayments() {
     return { successful: true };
 }
 
+export async function pushToPayrolls() {
+    // Find all available prepayments
+    let pre_paymentsData;
+    try {
+        pre_paymentsData = await pre_payrolls.findAll({
+            attributes: ["user_id", "salary_id", "incomes", "total_incomes", "outcomes", "total_outcomes", "total_amount", "payment_period_id", "payment_date"],
+            order: [["id", "ASC"]],
+            raw: true
+        });
+
+        if (!pre_paymentsData) {
+            return { successful: false, error: "Nothing to push." };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Query error." };
+    }
+
+    // Assign them to payments
+    try {
+        await payrolls.bulkCreate([...pre_paymentsData]);
+
+    } catch (error) {
+        return { successful: true, error: "Error creating rows at payrolls." };
+    }
+
+    // Remove the from prepayments
+    try {
+        await pre_payrolls.destroy({
+            where: {}
+        });
+
+    } catch (error) {
+        return { successful: true, error: "Error destroying rows at pre_payrolls." };
+    }
+
+    return { successful: true };
+}
+
 
 // INSERTS
 export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
@@ -682,7 +721,6 @@ export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
     } catch (error) {
         return { successful: false, error: "Error at pre_payments deletion." };
     }
-
 
     // @ts-ignore: Unreachable code error
     for (const payrollIndex in comprehensivePayroll) {
@@ -697,8 +735,8 @@ export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
                 payment_period_id,
                 payroll_schema_id,
                 business_unit,
-                incomes,
-                outcomes,
+                incomes: {"incomes": incomes},
+                outcomes: {"outcomes": outcomes},
                 total_incomes: payrollTotal.incomesTotal,
                 total_outcomes: payrollTotal.outcomesTotal,
                 total_amount: payrollTotal.payrollTotal,

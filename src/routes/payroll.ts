@@ -6,7 +6,7 @@ import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsers
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
 import {
     getUserData, getAllUsersDataRaw, calculatePayroll, getAllPrePayrolls, getStagedPayrollsLength,
-    getPushedPayrollsLength, inRange, showing, pushToPayments, bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls
+    pushToPayrolls, inRange, showing, pushToPayments, bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls
 } from "../controllers/payroll";
 
 const router = express.Router();
@@ -105,13 +105,15 @@ router.get("/prepayroll", async (req, res) => {
     }
 
     // Query total user amount
-    let payrollLengthObject = await getStagedPayrollsLength();
+    const payrollLengthObject = await getStagedPayrollsLength();
     if (!payrollLengthObject.successful) {
         // Must be a TIME ELEMENT TO IT, how will they be distinguished?
-        payrollLengthObject = await getPushedPayrollsLength();
-        if (!payrollLengthObject.successful) {
-            return res.status(400).json({ message: payrollLengthObject.error });
-        }
+        return res.status(400).json({ message: payrollLengthObject.error });
+        
+        // payrollLengthObject = await getPushedPayrollsLength();
+        // if (!payrollLengthObject.successful) {
+        //     return res.status(400).json({ message: payrollLengthObject.error });
+        // }
     }
 
     // Adds readability
@@ -136,6 +138,11 @@ router.post("/push", async (req, res) => {
     const pushObject = await pushToPayments();
     if (!pushObject.successful) {
         return res.status(400).json({ message: pushObject.error });
+    }
+
+    const nextPushObject = await pushToPayrolls();
+    if (!nextPushObject.successful) {
+        return res.status(400).json({ message: nextPushObject.error });
     }
 
     return res.status(200).json({ message: "Successfully registered payments." });
