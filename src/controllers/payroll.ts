@@ -1,7 +1,7 @@
 const { Op } = require("sequelize");
 import { incomesObj } from "../controllers/incomes";
 import { outcomesObj } from "../controllers/outcomes";
-import { newPrepaymentsData } from "../util/objects";
+import { newPrepaymentsData, newTotalsData } from "../util/objects";
 import { createUnitsListCondition } from "../controllers/users";
 const { users, salaries, payments_periods, payments, pre_payments, incomes_users, incomes,
     outcomes_users, outcomes, pre_payrolls, payrolls } = require("../database/models/index");
@@ -668,7 +668,7 @@ export async function calculateGlobalPayroll() {
 }
 
 // Modify prepayroll 
-export async function editPrePayments(user_id: number, prepaymentsObject: newPrepaymentsData | { salary_id: number }) {
+export async function editPrePayments(user_id: number, prepaymentsObject: newPrepaymentsData | { salary_id: number } | { payment_period_id: number } | newTotalsData) {
     try {
         await pre_payments.update({ ...prepaymentsObject }, { where: { user_id } });
 

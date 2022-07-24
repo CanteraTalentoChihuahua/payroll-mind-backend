@@ -81,3 +81,9 @@ export type newPrepaymentsData = {
     total_amount: number | undefined,
     payment_period_id: number | undefined,
 }
+
+export type newTotalsData = {
+    total_incomes: number | undefined,
+    total_outcomes: number | undefined,
+    total_amount: number | undefined,
+}
