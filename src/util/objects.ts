@@ -71,3 +71,13 @@ export type newOutcomeData = {
     amount: DecimalDataType,
     automatic: boolean
 }
+
+export type newPrepaymentsData = {
+    salary_id: number | undefined,
+    incomes: { incomes: (number | undefined)[] } | undefined,
+    total_incomes: number | undefined,
+    outcomes: { outcomes: (number | undefined)[] } | undefined,
+    total_outcomes: number | undefined,
+    total_amount: number | undefined,
+    payment_period_id: number | undefined,
+}

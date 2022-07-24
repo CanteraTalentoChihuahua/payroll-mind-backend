@@ -1,8 +1,9 @@
 const { Op } = require("sequelize");
 import { incomesObj } from "../controllers/incomes";
 import { outcomesObj } from "../controllers/outcomes";
+import { newPrepaymentsData } from "../util/objects";
 import { createUnitsListCondition } from "../controllers/users";
-const { users, salaries, payroll_schemas, payments_periods, payments, roles, pre_payments, incomes_users, incomes,
+const { users, salaries, payments_periods, payments, pre_payments, incomes_users, incomes,
     outcomes_users, outcomes, pre_payrolls, payrolls } = require("../database/models/index");
 
 interface idObj { id: string }
@@ -21,101 +22,6 @@ export function createUserIdCondition(idRange: number[]) {
     });
 
     return finalObject;
-}
-
-export async function getAllUsersDataRaw() {
-    let usersData;
-
-    try {
-        usersData = await users.findAll({
-            attributes: ["id", "salary_id", "payment_period_id", "payroll_schema_id", "business_unit"],
-            where: {
-                active: true,
-                [Op.not]: { id: 1 }
-            },
-            include: [
-                { attributes: ["id", "salary"], model: salaries },
-            ],
-            order: [
-                ["id", "ASC"]
-            ]
-        });
-
-        if (!usersData) {
-            return { successful: false, error: "User not found, may be inactive or invalid user." };
-        }
-
-    } catch (error) {
-        return { successful: false, error: "Query error." };
-    }
-
-    return { successful: true, usersData };
-}
-
-
-// export async function getAllUsersData(offset: number, limit: number) {
-//     let usersData;
-
-//     try {
-//         usersData = await users.findAll({
-//             attributes: ["id", "business_unit"],
-//             offset,
-//             limit,
-//             where: {
-//                 active: true,
-//                 [Op.not]: { id: 1 }
-//             },
-//             include: [
-//                 { attributes: ["id", "name"], model: roles },
-//                 { attributes: ["id", "salary"], model: salaries },
-//                 { attributes: ["id", "name"], model: payroll_schemas },
-//                 { attributes: ["id", "name"], model: payments_periods }
-//             ],
-//             order: [
-//                 ["id", "ASC"]
-//             ]
-//         });
-
-//         if (!usersData) {
-//             return { successful: false, error: "User not found, may be inactive or invalid user." };
-//         }
-
-//     } catch (error) {
-//         return { successful: false, error: "Query error. Check offset." };
-//     }
-
-//     return { successful: true, usersData };
-// }
-
-export async function getUserData(id: number) {
-    let userData;
-
-    // What if double salary?
-    try {
-        userData = await users.findOne({
-            attributes: ["id"],
-            where: {
-                id,
-                active: true,
-                [Op.not]: { id: 1 }
-            },
-            include: [
-                { attributes: ["id", "name"], model: roles },
-                { attributes: ["id", "salary"], model: salaries },
-                { attributes: ["id", "name"], model: payroll_schemas },
-                { attributes: ["id", "name"], model: payments_periods }
-            ]
-        });
-
-        if (!userData) {
-            return { successful: false, error: "User not found, may be inactive or invalid user." };
-        }
-
-    } catch (error) {
-        return { successful: false, error: "Query error." };
-    }
-
-    return { successful: true, userData };
 }
 
 export async function calculatePayroll(salary: number, incomes?: incomesObj[], outcomes?: outcomesObj[]) {
@@ -416,36 +322,6 @@ export async function getAllPrePayrolls(offset?: number, limit?: number) {
     return { successful: true, payrollData };
 }
 
-// export async function getAllPayrolls(offset?: number, limit?: number) {
-//     let payrollData;
-
-//     try {
-//         // @ts-ignore: Unreachable code error
-//         payrollData = await payments.findAll({
-//             attributes: ["id", "user_id", "incomes", "total_incomes", "outcomes", "total_outcomes", "total_amount", "payment_period_id", "payment_date"],
-//             offset,
-//             limit,
-//             include: [
-//                 { attributes: ["salary"], model: salaries },
-//                 { attributes: ["name"], model: payments_periods }
-//             ],
-//             order: [
-//                 ["user_id", "ASC"]
-//             ],
-//             raw: true
-//         });
-
-//         if (!payrollData) {
-//             return { successful: false, error: "No payrolls found." };
-//         }
-
-//     } catch (error) {
-//         return { successful: false, error: "Query error." };
-//     }
-
-//     return { successful: true, payrollData };
-// }
-
 export async function buildFinalPayrollObject(userArray: unknown) {
     const finalPayrollArray = [];
 
@@ -454,7 +330,7 @@ export async function buildFinalPayrollObject(userArray: unknown) {
         // Locate current user
         // @ts-ignore: Unreachable code error
         const user = userArray[userIndex];
-        
+
         // Extract incomes / outcomes data
         const { incomes } = user;
         const { outcomes } = user;
@@ -492,15 +368,15 @@ export async function buildFinalPayrollObject(userArray: unknown) {
             // payroll_schema: user["payroll_schema.name"],
             payment_period: user["payments_period.name"],
             salary: user["salary.salary"],
-            // @ts-ignore: Unreachable code error
-            incomes: incomesData["incomesData"],
-            // @ts-ignore: Unreachable code error
-            outcomes: outcomesData["outcomesData"],
             payrollTotal: {
                 payrollTotal: user.total_amount,
                 incomesTotal: user.total_incomes,
                 outcomesTotal: user.total_outcomes
-            }
+            },
+            // @ts-ignore: Unreachable code error
+            incomes: incomesData["incomesData"],
+            // @ts-ignore: Unreachable code error
+            outcomes: outcomesData["outcomesData"]
         };
 
         finalPayrollArray.push(userObject);
@@ -508,7 +384,6 @@ export async function buildFinalPayrollObject(userArray: unknown) {
 
     return { successful: true, finalPayrollArray };
 }
-
 
 export async function getStagedPayrollsLength() {
     let userData;
@@ -549,7 +424,6 @@ export async function getPushedPayrollsLength() {
 
     return { successful: true, payrollLength: userData.length };
 }
-
 
 // Must be moved to incomes... Kept here to avoid breaking stuff
 export async function getAllUsersIncomes(idCondition: number[]) {
@@ -615,22 +489,6 @@ export async function getAllUsersOutcomes(idCondition: number[]) {
     }
 
     return { successful: true, outcomesData };
-}
-
-export function inRange(offset: number, limit: number, total: number) {
-    if (offset + limit > total) {
-        return total;
-    } else {
-        return offset + limit;
-    }
-}
-
-export function showing(offset: number, limit: number, total: number) {
-    if (offset + limit > total) {
-        return total - offset;
-    } else {
-        return limit;
-    }
 }
 
 export async function pushToPayments() {
@@ -735,8 +593,8 @@ export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
                 payment_period_id,
                 payroll_schema_id,
                 business_unit,
-                incomes: {"incomes": incomes},
-                outcomes: {"outcomes": outcomes},
+                incomes: { "incomes": incomes },
+                outcomes: { "outcomes": outcomes },
                 total_incomes: payrollTotal.incomesTotal,
                 total_outcomes: payrollTotal.outcomesTotal,
                 total_amount: payrollTotal.payrollTotal,
@@ -793,18 +651,32 @@ export async function calculateGlobalPayroll() {
         globalPayroll = await pre_payrolls.findAll();
 
         if (globalPayroll.length == 0) {
-            return { successful: false, error: "No payrolls " };
+            return { successful: false, error: "No payrolls." };
         }
 
     } catch (error) {
         return { successful: true, error: "Query error." };
     }
 
-    let globalPayrollTotal = 0; 
+    let globalPayrollTotal = 0;
     for (const payrollIndex in globalPayroll) {
         const { total_amount } = globalPayroll[payrollIndex];
         globalPayrollTotal += parseFloat(total_amount);
     }
 
     return { successful: true, globalPayrollTotal };
+}
+
+// Modify prepayroll 
+export async function editPrePayments(user_id: number, prepaymentsObject: newPrepaymentsData) {
+    try {
+        await pre_payments.update({ ...prepaymentsObject }, { where: { user_id } });
+
+    } catch (error) {
+        console.log(error);
+
+        return { successful: false, error: "Unable to update prepayments object." };
+    }
+
+    return { successful: true };
 }

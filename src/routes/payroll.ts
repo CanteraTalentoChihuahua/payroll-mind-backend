@@ -1,25 +1,29 @@
 import express from "express";
-import { Privileges } from "../util/objects";
+import { Privileges, newPrepaymentsData } from "../util/objects";
 import privileges from "../middleware/privileges";
 import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
 import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
 import {
-    getUserData, getAllUsersDataRaw, calculatePayroll, getAllPrePayrolls, getStagedPayrollsLength,
-    pushToPayrolls, inRange, showing, pushToPayments, bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls,
-    calculateGlobalPayroll
+    calculatePayroll, getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments,
+    bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId
 } from "../controllers/payroll";
+
+import { getAllUsersDataRaw, getUserData } from "../controllers/users";
+import { inRange, showing } from "../controllers/general";
 
 const router = express.Router();
 
 // Create endpoint for calculating payroll massively each time when called
+
+// privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS)
 
 // If pushed... where will they query?
 
 // NEEDS TO CALCULATE FOR NEW USERS
 // NOTE - MUST MOVE THIS TO CRONJOB
 // Calculates total payroll --- SHOULD TURN INTO A SOLE SCRIPT
-router.get("/calculate", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
+router.get("/calculate", async (req, res) => {
     // Query users and check activity
     // @ts-ignore: Unreachable code error
     const usersObject = await getAllUsersDataRaw();
@@ -32,7 +36,7 @@ router.get("/calculate", privileges(Privileges.CREATE_REPORTS, Privileges.READ_R
     if (!incomesObject.successful) {
         return res.status(400).send({ message: incomesObject.error });
     }
- 
+
     // Query outcome
     const outcomesObject = await getAllUsersOutcomes();
     if (!outcomesObject.successful) {
@@ -43,7 +47,7 @@ router.get("/calculate", privileges(Privileges.CREATE_REPORTS, Privileges.READ_R
     const { usersData } = usersObject;
     const { incomesData } = incomesObject;
     const { outcomesData } = outcomesObject;
-   
+
     // Calculate payroll massively
     const finalMassivePayrollObject = await calculatePayrollMassively(usersData, incomesData, outcomesData);
     // Loop through all checking success status
@@ -73,14 +77,14 @@ router.get("/calculate", privileges(Privileges.CREATE_REPORTS, Privileges.READ_R
     });
 });
 
-// Calculate global 
+// Calculate global
 router.get("/calculate/global", async (req, res) => {
     const globalPayrollObject = await calculateGlobalPayroll();
     if (!globalPayrollObject.successful) {
         return res.status(400).json({ message: globalPayrollObject.error });
     }
 
-    return res.status(200).send({globalPayrollTotal: globalPayrollObject.globalPayrollTotal});
+    return res.status(200).send({ globalPayrollTotal: globalPayrollObject.globalPayrollTotal });
 });
 
 // Query pre_payments
@@ -120,7 +124,7 @@ router.get("/prepayroll", async (req, res) => {
     if (!payrollLengthObject.successful) {
         // Must be a TIME ELEMENT TO IT, how will they be distinguished?
         return res.status(400).json({ message: payrollLengthObject.error });
-        
+
         // payrollLengthObject = await getPushedPayrollsLength();
         // if (!payrollLengthObject.successful) {
         //     return res.status(400).json({ message: payrollLengthObject.error });
@@ -141,7 +145,6 @@ router.get("/prepayroll", async (req, res) => {
     return res.status(200).send(comprehensivePayroll);
 });
 
-
 // Moves data from pre_payments to payments
 // Ask front to double confirm before calling this endpoint...
 // NOTE - IF A CERTAIN TIME PASSES WITH NO CONFIRMATION, CRONJOB SHOULD CALL THIS
@@ -159,6 +162,65 @@ router.post("/push", async (req, res) => {
     return res.status(200).json({ message: "Successfully registered payments." });
 });
 
+// Edit prepayment values
+router.put("/prepayroll", async (req, res) => {
+    // Receive data available to edit and row id
+    // Can only edit incomes, 
+    const { id, user_id, salary, incomes, total_incomes, outcomes, total_outcomes, total_amount, payment_period_id } = req.body;
+
+    // Validations
+    // NOTE -- CONVERT THE FOLLOWING VALIDATION INTO A FUNCTION
+    if (!id || !user_id) {
+        // @ts-ignore: Unreachable code error
+        const varToString = varObj => Object.keys(varObj);
+        const displayName = varToString({ incomes, total_incomes, outcomes, total_outcomes, total_amount, payment_period_id });
+        const comparer = [incomes, total_incomes, outcomes, total_outcomes, total_amount, payment_period_id];
+
+        const missingVars: (string | undefined)[] = [];
+        comparer.forEach((variable, index) => {
+            if (variable === undefined) {
+                console.log(variable);
+
+                missingVars.push(displayName[index]);
+            }
+        });
+
+        return res.status(400).json({ message: `Missing the following parameters: ${missingVars}.` });
+    }
+
+    // If salary edit...
+    let salary_id;
+    if (salary) {
+        if (isNaN(parseFloat(salary)) || parseFloat(salary) <= 0) {
+            return res.status(400).json({ message: "Invalid type on salary. Must be a number bigger than 0. " });
+        }
+
+        // Create new salary
+        const createSalaryObject = await createSalary(user_id, parseFloat(salary));
+        if (!createSalaryObject.successful) {
+            return res.status(400).json({ message: createSalaryObject.error });
+        }
+
+        // Get salary_id
+        salary_id = await getNewSalaryId();
+    }
+
+    // If incomes edit
+
+    // If outcomes edit
+
+    // total incomes / outcomes /amount edit
+
+    // If payment_period_id
+
+    // Insert into prepayments / prepayroll
+    const prepaymentsEditObject = await editPrePayments(user_id, { salary_id, incomes, total_incomes, outcomes, total_outcomes, total_amount, payment_period_id })
+    if (!prepaymentsEditObject.successful) {
+        return res.status(400).json({ message: prepaymentsEditObject.error });
+    }
+
+    return res.status(200).json({ message: `Successfully edited prepayroll for user_id: ${user_id} ; row_id: ${id}` });
+});
 
 
 
