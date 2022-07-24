@@ -32,51 +32,51 @@ export async function createIncome(incomeData: entryObj) {
     return { successful: true };
 }
 
-export async function createUserIncome(userId: number, incomeUserData: newIncomeData) {
-    let incomesData;
+// export async function createUserIncome(userId: number, incomeUserData: Array<{ income_id: number, amount: number }>) {
+//     let incomesData;
 
-    // Check if income exists
-    try {
-        incomesData = await incomes.findOne({
-            attributes: ["name", "automatic"],
-            where: {
-                id: incomeUserData.income_id,
-                active: true
-            },
-            raw: true
-        });
+//     // Check if income exists
+//     try {
+//         incomesData = await incomes.findOne({
+//             attributes: ["name", "automatic"],
+//             where: {
+//                 id: incomeUserData.income_id,
+//                 active: true
+//             },
+//             raw: true
+//         });
 
-        if (!incomesData) {
-            return { successful: false, found: false };
-        }
+//         if (!incomesData) {
+//             return { successful: false, found: false };
+//         }
 
-    } catch (error) {
-        return { successful: false };
-    }
+//     } catch (error) {
+//         return { successful: false };
+//     }
 
-    // Income entry exist, check if incomeUsers exist
-    const updateObj = { counter: incomeUserData.counter, amount: incomeUserData.amount };
-    const entryResult = await incomes_users.update(updateObj, {
-        where: {
-            income_id: incomeUserData.income_id,
-            user_id: userId
-        }
-    });
+//     // Income entry exist, check if incomeUsers exist
+//     const updateObj = { counter: incomeUserData.counter, amount: incomeUserData.amount };
+//     const entryResult = await incomes_users.update(updateObj, {
+//         where: {
+//             income_id: incomeUserData.income_id,
+//             user_id: userId
+//         }
+//     });
 
-    // Does not exists, create incomeUsers entry
-    if (entryResult[0] === 0) {
-        await incomes_users.create({
-            user_id: userId,
-            ...incomeUserData,
-            createdAt: new Date(),
-            updatedAt: null
-        });
+//     // Does not exists, create incomeUsers entry
+//     if (entryResult[0] === 0) {
+//         await incomes_users.create({
+//             user_id: userId,
+//             ...incomeUserData,
+//             createdAt: new Date(),
+//             updatedAt: null
+//         });
 
-        return { successful: true };
-    }
+//         return { successful: true };
+//     }
 
-    return { successful: true, updated: true };
-}
+//     return { successful: true, updated: true };
+// }
 
 export async function getAllUsersIncomes() {
     let incomesData;

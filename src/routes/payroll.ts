@@ -2,7 +2,7 @@ import express from "express";
 import { Privileges, newPrepaymentsData } from "../util/objects";
 import privileges from "../middleware/privileges";
 import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
-import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes } from "../controllers/incomes";
+import { createIncome, getNewIncomeId, getIncomes, getAllUsersIncomes } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
 import {
     calculatePayroll, getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments,
@@ -162,69 +162,6 @@ router.post("/push", async (req, res) => {
     return res.status(200).json({ message: "Successfully registered payments." });
 });
 
-// Edit prepayment values
-router.put("/prepayroll", async (req, res) => {
-    // Receive data available to edit and row id
-    // Can only edit incomes, 
-    const { id, user_id, salary, incomes, total_incomes, outcomes, total_outcomes, total_amount, payment_period_id } = req.body;
-
-    // Validations
-    // NOTE -- CONVERT THE FOLLOWING VALIDATION INTO A FUNCTION
-    if (!id || !user_id) {
-        // @ts-ignore: Unreachable code error
-        const varToString = varObj => Object.keys(varObj);
-        const displayName = varToString({ incomes, total_incomes, outcomes, total_outcomes, total_amount, payment_period_id });
-        const comparer = [incomes, total_incomes, outcomes, total_outcomes, total_amount, payment_period_id];
-
-        const missingVars: (string | undefined)[] = [];
-        comparer.forEach((variable, index) => {
-            if (variable === undefined) {
-                console.log(variable);
-
-                missingVars.push(displayName[index]);
-            }
-        });
-
-        return res.status(400).json({ message: `Missing the following parameters: ${missingVars}.` });
-    }
-
-    // If salary edit...
-    let salary_id;
-    if (salary) {
-        if (isNaN(parseFloat(salary)) || parseFloat(salary) <= 0) {
-            return res.status(400).json({ message: "Invalid type on salary. Must be a number bigger than 0. " });
-        }
-
-        // Create new salary
-        const createSalaryObject = await createSalary(user_id, parseFloat(salary));
-        if (!createSalaryObject.successful) {
-            return res.status(400).json({ message: createSalaryObject.error });
-        }
-
-        // Get salary_id
-        salary_id = await getNewSalaryId();
-    }
-
-    // If incomes edit
-
-    // If outcomes edit
-
-    // total incomes / outcomes /amount edit
-
-    // If payment_period_id
-
-    // Insert into prepayments / prepayroll
-    const prepaymentsEditObject = await editPrePayments(user_id, { salary_id, incomes, total_incomes, outcomes, total_outcomes, total_amount, payment_period_id })
-    if (!prepaymentsEditObject.successful) {
-        return res.status(400).json({ message: prepaymentsEditObject.error });
-    }
-
-    return res.status(200).json({ message: `Successfully edited prepayroll for user_id: ${user_id} ; row_id: ${id}` });
-});
-
-
-
-
 // NOTE - MUST MOVE THIS TO CRONJOB
 router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
     const { id } = req.params;
@@ -273,54 +210,138 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
 
 
 // ----- USELESS, MUST BE READAPT TO PRE_PAYMENTS TABLE
+
+// Edit prepayment values
+// router.put("/prepayroll", async (req, res) => {
+//     // Receive data available to edit and row id
+//     // Can only edit incomes, 
+//     const { id, user_id, total_incomes, total_outcomes, total_amount } = req.body;
+
+//     // Validations
+//     // NOTE -- CONVERT THE FOLLOWING VALIDATION INTO A FUNCTION
+//     if (!id || !user_id) {
+//         // @ts-ignore: Unreachable code error
+//         const varToString = varObj => Object.keys(varObj);
+//         const displayName = varToString({ id, user_id });
+//         const comparer = [id, user_id];
+
+//         const missingVars: (string | undefined)[] = [];
+//         comparer.forEach((variable, index) => {
+//             if (variable === undefined) {
+//                 missingVars.push(displayName[index]);
+//             }
+//         });
+
+//         return res.status(400).json({ message: `Missing the following parameters: ${missingVars}.` });
+//     }
+
+//     // If salary edit...
+//     let salary_id;
+//     if (salary) {
+//         if (isNaN(parseFloat(salary)) || parseFloat(salary) <= 0) {
+//             return res.status(400).json({ message: "Invalid type on salary. Must be a number bigger than 0. " });
+//         }
+
+//         // Create new salary
+//         const createSalaryObject = await createSalary(user_id, parseFloat(salary));
+//         if (!createSalaryObject.successful) {
+//             return res.status(400).json({ message: createSalaryObject.error });
+//         }
+
+//         // Get salary_id
+//         salary_id = await getNewSalaryId();
+//     }
+
+//     // NOTE -- Incomes must be an object...
+//     // If incomes edit
+//     if (incomes) {
+//         for (const incomeIndex in incomes) {
+//             const currentIncome = incomes[incomeIndex];
+//             if (isNaN(currentIncome.income_id) || isNaN(parseFloat(currentIncome.amount))) {
+//                 return res.status(400).json({ message: "Invalid type on incomes parameters: income_id or amount." });
+//             }
+//         }
+
+//         const a = [
+//             {
+//                 "income_id": 1,
+//                 "amount": 2400
+//             },
+//             {
+//                 "income_id": 2,
+//                 "amount": 6900
+//             }
+//         ];
+
+//         // @ts-ignore: Unreachable code error
+//         const newIncomeData = await createUserIncome(parseInt(id),);
+
+//         // For a new income
+//     }
+
+//     // If outcomes edit
+
+//     // total incomes / outcomes /amount edit
+
+//     // If payment_period_id
+
+//     // Insert into prepayments / prepayroll
+//     const prepaymentsEditObject = await editPrePayments(user_id, { salary_id, incomes, total_incomes, outcomes, total_outcomes, total_amount, payment_period_id })
+//     if (!prepaymentsEditObject.successful) {
+//         return res.status(400).json({ message: prepaymentsEditObject.error });
+//     }
+
+//     return res.status(200).json({ message: `Successfully edited prepayroll for user_id: ${user_id} ; row_id: ${id}` });
+// });
+
 // Does not edit AUTOMATIC column in outcomes when UPDATING
 // SENDING ID MEANS IMPLIES IT EXISTS, SENDING NAME IMPLIES IT DOES NOT
-router.post("/incomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS), async (req, res) => {
-    // Income_id is optional...
-    let { income_id } = req.body;
-    const { counter, amount, name, automatic } = req.body;
-    const { id } = req.params;
+// router.post("/incomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS), async (req, res) => {
+//     // Income_id is optional...
+//     let { income_id } = req.body;
+//     const { counter, amount, name, automatic } = req.body;
+//     const { id } = req.params;
 
-    if (!name && !income_id) {
-        return res.status(400).json({ message: "Missing either name or income_id." });
-    }
+//     if (!name && !income_id) {
+//         return res.status(400).json({ message: "Missing either name or income_id." });
+//     }
 
-    if (name && income_id) {
-        return res.status(400).json({ message: "Must not provide name and income_id simultaneously." });
-    }
+//     if (name && income_id) {
+//         return res.status(400).json({ message: "Must not provide name and income_id simultaneously." });
+//     }
 
-    // Required
-    if (!counter || !amount || !automatic) {
-        return res.status(400).json({ message: "Missing parameters." });
-    }
+//     // Required
+//     if (!counter || !amount || !automatic) {
+//         return res.status(400).json({ message: "Missing parameters." });
+//     }
 
-    // Income entry does not exist, create it AND RETURN ITS ID
-    if (name) {
-        const newIncomeData = await createIncome({ name, automatic, active: true });
+//     // Income entry does not exist, create it AND RETURN ITS ID
+//     if (name) {
+//         const newIncomeData = await createIncome({ name, automatic, active: true });
 
-        if (!newIncomeData.successful) {
-            return res.status(400).json({ message: "Invalid request. Entry might be duplicate." });
-        }
+//         if (!newIncomeData.successful) {
+//             return res.status(400).json({ message: "Invalid request. Entry might be duplicate." });
+//         }
 
-        income_id = await getNewIncomeId();
-    }
+//         income_id = await getNewIncomeId();
+//     }
 
-    const newIncomeData = await createUserIncome(parseInt(id), { income_id, counter, amount, automatic });
+//     const newIncomeData = await createUserIncome(parseInt(id), { income_id, counter, amount, automatic });
 
-    if (!newIncomeData.successful) {
-        return res.sendStatus(500);
-    }
+//     if (!newIncomeData.successful) {
+//         return res.sendStatus(500);
+//     }
 
-    if (newIncomeData.updated) {
-        return res.status(200).json({ message: "Income was updated successfully." });
-    }
+//     if (newIncomeData.updated) {
+//         return res.status(200).json({ message: "Income was updated successfully." });
+//     }
 
-    return res.status(200).json({ message: "Income was registered successfully." });
-});
+//     return res.status(200).json({ message: "Income was registered successfully." });
+// });
 
 // Change privileges to better matching ones
 // Hay manera de invalidar la casilla de name mientras la casilla income_id está habilitada y viceversa?
-router.post("/outcomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS), async (req, res) => {
+router.put("/outcomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS), async (req, res) => {
     // Outcome is optional...
     let { outcome_id } = req.body;
     const { counter, amount, name, automatic } = req.body;
@@ -364,15 +385,28 @@ router.post("/outcomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.RE
     return res.status(200).json({ message: "Outcome was registered successfully." });
 });
 
-router.post("/salary/:id", async (req, res) => {
+router.put("/salary/:user_id", async (req, res) => {
     const { salary } = req.body;
-    const { id } = req.params;
+    const { user_id } = req.params;
 
-    try {
-        await createSalary(parseInt(id), parseFloat(salary));
+    if (isNaN(parseFloat(salary)) || parseFloat(salary) <= 0) {
+        return res.status(400).json({ message: "Invalid type on salary. Must be a number bigger than 0. " });
+    }
 
-    } catch (error) {
-        return res.status(400).json({ message: "Unable to update salary." });
+    // Create new salary
+    const createSalaryObject = await createSalary(parseInt(user_id), parseFloat(salary));
+    if (!createSalaryObject.successful) {
+        return res.status(400).json({ message: createSalaryObject.error });
+    }
+
+    // Get salary_id
+    const salary_id = await getNewSalaryId();
+
+    // Edit prepayments
+    // let incomes, total_incomes, outcomes, total_outcomes, total_amount, payment_period_id;
+    const prepaymentsEditObject = await editPrePayments(parseInt(user_id), { salary_id });
+    if (!prepaymentsEditObject.successful) {
+        return res.status(400).json({ message: prepaymentsEditObject.error });
     }
 
     return res.status(200).send({ message: "Successfully changed salary." });

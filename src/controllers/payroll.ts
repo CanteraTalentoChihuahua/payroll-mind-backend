@@ -668,7 +668,7 @@ export async function calculateGlobalPayroll() {
 }
 
 // Modify prepayroll 
-export async function editPrePayments(user_id: number, prepaymentsObject: newPrepaymentsData) {
+export async function editPrePayments(user_id: number, prepaymentsObject: newPrepaymentsData | { salary_id: number }) {
     try {
         await pre_payments.update({ ...prepaymentsObject }, { where: { user_id } });
 
