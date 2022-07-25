@@ -9,6 +9,7 @@ import docsRouter from "./routes/docs";
 import express from "express";
 import cors from "cors";
 import {resolve} from "path";
+import jiraRouter from "./routes/jira";
 
 const app = express();
 
@@ -31,5 +32,6 @@ app.use("/api", incomeRouter);
 app.use("/api", usersRouter);
 app.use("/api", authRouter);
 app.use("/", docsRouter);
+app.use("/jira", jiraRouter);
 
 export default app;
