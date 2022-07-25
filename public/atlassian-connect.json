@@ -1,0 +1,10 @@
+{
+  "name": "Payroll MIND Jira integration",
+  "description": "Jira application to collect project data used for payroll calculations",
+  "key": "tech.mindfinances.payrolljira",
+  "baseUrl": "https://3ae0-2806-2f0-34e0-1f76-c66-3657-7032-ccfb.ngrok.io",
+  "authentication": {
+    "type": "none"
+  },
+  "apiVersion": 1
+}
