@@ -1,20 +1,22 @@
 import express from "express";
-import { Privileges, newPrepaymentsData } from "../util/objects";
+import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
 import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
-import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes, updateIncomesArray } from "../controllers/incomes";
-import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
+import { createIncome, createUserIncome, getNewIncomeId, getAllUsersIncomes, updateIncomesArray } from "../controllers/incomes";
+import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes, updateOutcomesArray } from "../controllers/outcomes";
 import {
-    calculatePayroll, getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments,
-    bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId
+    getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments,
+    bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId, updatePaymentPeriod,
 } from "../controllers/payroll";
 
-import { getAllUsersDataRaw, getUserData } from "../controllers/users";
+import { getAllUsersDataRaw } from "../controllers/users";
 import { inRange, showing } from "../controllers/general";
 
 const router = express.Router();
 
-// Create endpoint for calculating payroll massively each time when called
+// NOTE --- EDIT ON PREPAYROLL FOR DELETING INCOME ID
+// NOTE --- EDIT ON PREPAYROLL FOR PAYMENT_PERIOD_ID
+
 
 // privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS)
 
@@ -22,7 +24,7 @@ const router = express.Router();
 
 // NEEDS TO CALCULATE FOR NEW USERS
 // NOTE - MUST MOVE THIS TO CRONJOB
-// Calculates total payroll --- SHOULD TURN INTO A SOLE SCRIPT
+// Calculates total payroll
 router.get("/calculate", async (req, res) => {
     // Query users and check activity
     // @ts-ignore: Unreachable code error
@@ -89,7 +91,7 @@ router.get("/calculate/global", async (req, res) => {
 
 // Query pre_payments
 // Must return a total of users in order for pagination calculation
-router.get("/prepayroll", async (req, res) => {
+router.get("/pre", async (req, res) => {
     // Check for offset and limit
     let offset = 0, limit = 10;
     if (req.query.limit) {
@@ -145,89 +147,13 @@ router.get("/prepayroll", async (req, res) => {
     return res.status(200).send(comprehensivePayroll);
 });
 
-// Moves data from pre_payments to payments
-// Ask front to double confirm before calling this endpoint...
-// NOTE - IF A CERTAIN TIME PASSES WITH NO CONFIRMATION, CRONJOB SHOULD CALL THIS
-router.post("/push", async (req, res) => {
-    const pushObject = await pushToPayments();
-    if (!pushObject.successful) {
-        return res.status(400).json({ message: pushObject.error });
-    }
+// Get individual prepayroll
+router.get("/pre/:user_id", async (req, res) => {
 
-    const nextPushObject = await pushToPayrolls();
-    if (!nextPushObject.successful) {
-        return res.status(400).json({ message: nextPushObject.error });
-    }
-
-    return res.status(200).json({ message: "Successfully registered payments." });
 });
-
-// NOTE - MUST MOVE THIS TO CRONJOB
-router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS), async (req, res) => {
-    const { id } = req.params;
-
-    // Query user and check activity
-    const userObject = await getUserData(parseInt(id));
-    if (!userObject.successful) {
-        return res.status(400).send({ message: userObject.error });
-    }
-
-    // Query income
-    const incomesObject = await getIncomes(parseInt(id));
-    if (!incomesObject.successful) {
-        return res.status(400).send({ message: incomesObject.error });
-    }
-
-    // Query outcome
-    const outcomesObject = await getOutcomes(parseInt(id));
-    if (!outcomesObject.successful) {
-        return res.status(400).send({ message: outcomesObject.error });
-    }
-
-    // Extract values
-    const { userData } = userObject;
-    const { incomesData } = incomesObject;
-    const { outcomesData } = outcomesObject;
-    const { salary } = userData["salary"];
-
-    // Calculate payroll
-    const payroll = await calculatePayroll(parseFloat(salary), incomesData, outcomesData);
-
-    // Build final JSON object
-    const finalPayrollObject = {
-        payroll_schema: userData["payroll_schema"].name,
-        payment_period: userData["payments_period"].name,
-        salary: salary,
-        incomes: incomesData,
-        outcomes: outcomesData,
-        payrollTotal: payroll
-    };
-
-    return res.status(200).send(finalPayrollObject);
-});
-
-/// COOOL VALIDATION
-// if (!id || !user_id) {
-//     // @ts-ignore: Unreachable code error
-//     const varToString = varObj => Object.keys(varObj);
-//     const displayName = varToString({ id, user_id });
-//     const comparer = [id, user_id];
-
-//     const missingVars: (string | undefined)[] = [];
-//     comparer.forEach((variable, index) => {
-//         if (variable === undefined) {
-//             missingVars.push(displayName[index]);
-//         }
-//     });
-
-//     return res.status(400).json({ message: `Missing the following parameters: ${missingVars}.` });
-
-
-
-// ----- USELESS, MUST BE READAPT TO PRE_PAYMENTS TABLE
 
 // Edit prepayment values
-router.put("/prepayroll/:user_id", async (req, res) => {
+router.put("/pre/:user_id", async (req, res) => {
     // Receive data
     const { user_id } = req.params;
 
@@ -261,8 +187,8 @@ router.put("/prepayroll/:user_id", async (req, res) => {
 // Does not edit AUTOMATIC column in outcomes when UPDATING
 // SENDING ID MEANS IMPLIES IT EXISTS, SENDING NAME IMPLIES IT DOES NOT
 // privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS)
-router.post("/incomes/:user_id", async (req, res) => {
-    // Income_id is optional...
+router.post("/pre/incomes/:user_id", async (req, res) => {
+    // outcome_id is optional...
     let { income_id } = req.body;
     const { counter, amount, name, automatic } = req.body;
     const { user_id } = req.params;
@@ -302,7 +228,7 @@ router.post("/incomes/:user_id", async (req, res) => {
         return res.status(200).json({ message: "Income was updated successfully." });
     }
 
-    // Query for incomes_user
+    // Query for incomes_users and update prepayments
     const userIncomeData = await updateIncomesArray(parseInt(user_id));
     if (!userIncomeData.successful) {
         return res.status(400).json({ message: userIncomeData.error });
@@ -311,13 +237,11 @@ router.post("/incomes/:user_id", async (req, res) => {
     return res.status(200).json({ message: "Income was registered successfully. Updated prepayments." });
 });
 
-// Change privileges to better matching ones
-// Hay manera de invalidar la casilla de name mientras la casilla income_id está habilitada y viceversa?
-router.put("/outcomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS), async (req, res) => {
-    // Outcome is optional...
+router.put("/pre/outcomes/:user_id", async (req, res) => {
+    // outcome_id is optional...
     let { outcome_id } = req.body;
     const { counter, amount, name, automatic } = req.body;
-    const { id } = req.params;
+    const { user_id } = req.params;
 
     if (!name && !outcome_id) {
         return res.status(400).json({ message: "Missing either name or outcome_id." });
@@ -327,37 +251,40 @@ router.put("/outcomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.REA
         return res.status(400).json({ message: "Must not provide name and outcome_id simultaneously." });
     }
 
-    // Required
-    if (!counter || !amount || !automatic) {
-        return res.status(400).json({ message: "Missing parameters." });
-    }
-
     // Income entry does not exist, create it AND RETURN ITS ID
     if (name) {
-        const newOutcomeData = await createOutcome({ name, automatic, active: true });
-
-        if (!newOutcomeData.successful) {
-            return res.status(400).json({ message: "Invalid request. Entry might be duplicate." });
+        if (!automatic) {
+            return res.status(400).json({ message: "Missing either amount or automatic parameter." });
         }
 
-        // POSSIBLE BREAK HERE---
+        const newOutcomeData = await createOutcome({ name, automatic, active: true });
+        if (!newOutcomeData.successful) {
+            return res.status(400).json({ message: newOutcomeData.error });
+        }
+
         outcome_id = await getNewOutcomeId();
     }
 
-    const newOutcomeData = await createUserOutcome(parseInt(id), { outcome_id, counter, amount, automatic });
 
+    const newOutcomeData = await createUserOutcome(parseInt(user_id), { outcome_id, counter, amount, automatic });
     if (!newOutcomeData.successful) {
-        return res.sendStatus(500);
+        return res.status(400).json({ message: newOutcomeData.error });
     }
 
     if (newOutcomeData.updated) {
         return res.status(200).json({ message: "Outcome was updated successfully." });
     }
 
+    // Query for outcomes_users and update prepayments
+    const userOutcomeData = await updateOutcomesArray(parseInt(user_id));
+    if (!userOutcomeData.successful) {
+        return res.status(400).json({ message: userOutcomeData.error });
+    }
+
     return res.status(200).json({ message: "Outcome was registered successfully." });
 });
 
-router.put("/salary/:user_id", async (req, res) => {
+router.put("/pre/salary/:user_id", async (req, res) => {
     const { salary } = req.body;
     const { user_id } = req.params;
 
@@ -384,5 +311,43 @@ router.put("/salary/:user_id", async (req, res) => {
     return res.status(200).send({ message: "Successfully changed salary." });
 });
 
+router.put("/pre/payment_period/:user_id", async (req, res) => {
+    const { payment_period_id } = req.body;
+    const { user_id } = req.params;
+
+    // Validations
+    if (!payment_period_id) {
+        return res.status(400).json({ message: "Missing payment_period_id" });
+    }
+
+    // @ts-ignore: Unreachable code error
+    if (isNaN(parseInt(payment_period_id)) || parseInt(payment_period_id) < 0) {
+        return res.status(400).json({ message: "Invalid datatype. Must be int and more than 0." });
+    }
+
+    const editPaymentObject = await updatePaymentPeriod(payment_period_id, parseInt(user_id));
+    if (!editPaymentObject.successful) {
+        return res.status(400).json({ message: editPaymentObject.error });
+    }
+
+    return res.status(200).json({ message: "Payment period has been changed successfully." });
+});
+
+// Moves data from pre_payments to payments
+// Ask front to double confirm before calling this endpoint...
+// NOTE - IF A CERTAIN TIME PASSES WITH NO CONFIRMATION, CRONJOB SHOULD CALL THIS
+router.post("/pre/push", async (req, res) => {
+    const pushObject = await pushToPayments();
+    if (!pushObject.successful) {
+        return res.status(400).json({ message: pushObject.error });
+    }
+
+    const nextPushObject = await pushToPayrolls();
+    if (!nextPushObject.successful) {
+        return res.status(400).json({ message: nextPushObject.error });
+    }
+
+    return res.status(200).json({ message: "Successfully registered payments." });
+});
 
 export default router;

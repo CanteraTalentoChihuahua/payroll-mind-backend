@@ -680,3 +680,30 @@ export async function editPrePayments(user_id: number, prepaymentsObject: newPre
 
     return { successful: true };
 }
+
+export async function updatePaymentPeriod(payment_period_id: number, user_id: number) {
+    try {
+        await users.update({ payment_period_id }, {
+            where: {
+                id: user_id
+            }
+        });
+
+    } catch (error) {
+        return { successful: false, error: "Unable to update payment_period_id on users." };
+    }
+
+    // Move into prepayments
+    try {
+        await pre_payments.update({ payment_period_id }, {
+            where: {
+                user_id
+            }
+        });
+
+    } catch (error) {
+        return { successful: false, error: "Unable to update payment_period_id on prepayments." };
+    }
+
+    return { successful: true };
+}
