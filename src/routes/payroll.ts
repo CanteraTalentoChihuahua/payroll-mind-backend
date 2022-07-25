@@ -2,7 +2,7 @@ import express from "express";
 import { Privileges, newPrepaymentsData } from "../util/objects";
 import privileges from "../middleware/privileges";
 import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
-import { createIncome, getNewIncomeId, getIncomes, getAllUsersIncomes } from "../controllers/incomes";
+import { createIncome, createUserIncome, getNewIncomeId, getIncomes, getAllUsersIncomes, updateIncomesArray } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getOutcomes, getAllUsersOutcomes } from "../controllers/outcomes";
 import {
     calculatePayroll, getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments,
@@ -206,7 +206,6 @@ router.get("/:id", privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS
     return res.status(200).send(finalPayrollObject);
 });
 
-
 /// COOOL VALIDATION
 // if (!id || !user_id) {
 //     // @ts-ignore: Unreachable code error
@@ -259,60 +258,58 @@ router.put("/prepayroll/:user_id", async (req, res) => {
 });
 
 
-
-
 // Does not edit AUTOMATIC column in outcomes when UPDATING
 // SENDING ID MEANS IMPLIES IT EXISTS, SENDING NAME IMPLIES IT DOES NOT
-// router.post("/incomes/:id", privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS), async (req, res) => {
-//     // Income_id is optional...
-//     let { income_id } = req.body;
-//     const { counter, amount, name, automatic } = req.body;
-//     const { id } = req.params;
+// privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS)
+router.post("/incomes/:user_id", async (req, res) => {
+    // Income_id is optional...
+    let { income_id } = req.body;
+    const { counter, amount, name, automatic } = req.body;
+    const { user_id } = req.params;
 
-// for (const incomeIndex in incomes) {
-//     const currentIncome = incomes[incomeIndex];
-//     if (isNaN(currentIncome.income_id) || isNaN(parseFloat(currentIncome.amount))) {
-//         return res.status(400).json({ message: "Invalid type on incomes parameters: income_id or amount." });
-//     }
-// }
+    // No request is made
+    if (!name && !income_id) {
+        return res.status(400).json({ message: "Missing either name or income_id." });
+    }
 
+    // This would imply creating something that already exists
+    if (name && income_id) {
+        return res.status(400).json({ message: "Must not provide name and income_id simultaneously." });
+    }
 
-//     if (!name && !income_id) {
-//         return res.status(400).json({ message: "Missing either name or income_id." });
-//     }
+    // Income entry does not exist, create it and return its id
+    if (name) {
+        // NOTE-- Counter should be assigned automatically
+        if (!automatic) {
+            return res.status(400).json({ message: "Missing either amount or automatic parameter." });
+        }
 
-//     if (name && income_id) {
-//         return res.status(400).json({ message: "Must not provide name and income_id simultaneously." });
-//     }
+        const newIncomeData = await createIncome({ name, automatic });
+        if (!newIncomeData.successful) {
+            return res.status(400).json({ message: newIncomeData.error });
+        }
 
-//     // Required
-//     if (!counter || !amount || !automatic) {
-//         return res.status(400).json({ message: "Missing parameters." });
-//     }
+        income_id = await getNewIncomeId();
+    }
 
-//     // Income entry does not exist, create it AND RETURN ITS ID
-//     if (name) {
-//         const newIncomeData = await createIncome({ name, automatic, active: true });
+    // Income entry exists, create a user-income association
+    const newIncomeData = await createUserIncome(parseInt(user_id), { income_id, amount, automatic, counter });
+    if (!newIncomeData.successful) {
+        return res.status(400).json({ message: newIncomeData.error });
+    }
 
-//         if (!newIncomeData.successful) {
-//             return res.status(400).json({ message: "Invalid request. Entry might be duplicate." });
-//         }
+    if (newIncomeData.updated) {
+        return res.status(200).json({ message: "Income was updated successfully." });
+    }
 
-//         income_id = await getNewIncomeId();
-//     }
+    // Query for incomes_user
+    const userIncomeData = await updateIncomesArray(parseInt(user_id));
+    if (!userIncomeData.successful) {
+        return res.status(400).json({ message: userIncomeData.error });
+    }
 
-//     const newIncomeData = await createUserIncome(parseInt(id), { income_id, counter, amount, automatic });
-
-//     if (!newIncomeData.successful) {
-//         return res.sendStatus(500);
-//     }
-
-//     if (newIncomeData.updated) {
-//         return res.status(200).json({ message: "Income was updated successfully." });
-//     }
-
-//     return res.status(200).json({ message: "Income was registered successfully." });
-// });
+    return res.status(200).json({ message: "Income was registered successfully. Updated prepayments." });
+});
 
 // Change privileges to better matching ones
 // Hay manera de invalidar la casilla de name mientras la casilla income_id está habilitada y viceversa?
