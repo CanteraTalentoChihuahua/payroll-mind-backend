@@ -1,9 +1,8 @@
 import { Request, Response } from "express";
 import { verifySessionJWT } from "../util/jwt";
-import db from "../database/database";
 import { JwtPayload } from "jsonwebtoken";
 import { Privilege } from "../util/objects";
-const users = require("../database/models/users")(db);
+const { users } = require("../database/models/index");
 
 export default (...privileges: Privilege[]) => {
     return async (req: Request, res: Response, next: () => unknown) => {
@@ -20,7 +19,11 @@ export default (...privileges: Privilege[]) => {
             return res.status(401).json({ message: tokenMessage });
         }
 
-        const userInfo = await users.findOne({ where: { id: (tokenInfo.payload as JwtPayload).id } });
+        const userInfo = await users.findOne({
+            where: {
+                id: (tokenInfo.payload as JwtPayload).id
+            }
+        });
 
         if (userInfo === null) {
             return res.status(401).json({ message: tokenMessage });

@@ -1,11 +1,4 @@
-import db from "../database/database";
-const roles = require("../database/models/roles")(db);
-const incomes = require("../database/models/incomes")(db);
-const outcomes = require("../database/models/outcomes")(db);
-const salaries = require("../database/models/salaries")(db);
-const businessUnits = require("../database/models/business_units")(db);
-const paymentPeriods = require("../database/models/payments_periods")(db);
-const payrollSchemas = require("../database/models/payroll_schemas")(db);
+const { roles, incomes, outcomes, salaries, business_units: businessUnits, payments_periods: paymentPeriods, payroll_schemas: payrollSchemas } = require("../database/models/index");
 
 export async function getIncomes() {
     let incomesData;

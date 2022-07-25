@@ -1,12 +1,12 @@
-import db from "../database/database";
 import { NewUserData } from "../util/objects";
 import { hash } from "bcrypt";
 
 const { Op } = require("sequelize");
 const sqlz = require("sequelize").Sequelize;
-const user = require("../database/models/users")(db);
-const roles = require("../database/models/roles")(db);
-const businessUnits = require("../database/models/business_units")(db);
+const { users: user,
+    roles,
+    business_units: businessUnits,
+    pre_payments, salaries, payments_periods, payroll_schemas } = require("../database/models/index");
 
 const attributesList = [
     "id",
@@ -128,6 +128,66 @@ export async function getUserDetails(id: number, businessUnits?: Array<number>):
     }
 
     return { successful: true, found: userDetails !== null, userDetails };
+}
+
+export async function getAllUsersDataRaw() {
+    let usersData;
+
+    try {
+        usersData = await user.findAll({
+            attributes: ["id", "salary_id", "payment_period_id", "payroll_schema_id", "business_unit"],
+            where: {
+                active: true,
+                [Op.not]: { id: 1 }
+            },
+            include: [
+                { attributes: ["id", "salary"], model: salaries },
+            ],
+            order: [
+                ["id", "ASC"]
+            ]
+        });
+
+        if (!usersData) {
+            return { successful: false, error: "User not found, may be inactive or invalid user." };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Query error." };
+    }
+
+    return { successful: true, usersData };
+}
+
+export async function getUserData(id: number) {
+    let userData;
+
+    // What if double salary?
+    try {
+        userData = await user.findOne({
+            attributes: ["id"],
+            where: {
+                id,
+                active: true,
+                [Op.not]: { id: 1 }
+            },
+            include: [
+                { attributes: ["id", "name"], model: roles },
+                { attributes: ["id", "salary"], model: salaries },
+                { attributes: ["id", "name"], model: payroll_schemas },
+                { attributes: ["id", "name"], model: payments_periods }
+            ]
+        });
+
+        if (!userData) {
+            return { successful: false, error: "User not found, may be inactive or invalid user." };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Query error." };
+    }
+
+    return { successful: true, userData };
 }
 
 // ADD PRIVILEGES SELECTION DEPENDING ON USER SPECIFICATION
