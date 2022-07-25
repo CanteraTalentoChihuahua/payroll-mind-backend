@@ -707,3 +707,14 @@ export async function updatePaymentPeriod(payment_period_id: number, user_id: nu
 
     return { successful: true };
 }
+
+export async function updateTotals(user_id: number, totalObject: {total_incomes: number, total_outcomes: number, total_amount: number}) {
+    try {
+        await pre_payments.update({...totalObject}, {where: { user_id }});
+
+    } catch (error) {
+        return { successful: true, error: "Unable to update prepayments." };
+    }
+
+    return { successful: true };
+}

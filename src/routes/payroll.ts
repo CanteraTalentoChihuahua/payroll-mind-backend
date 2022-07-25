@@ -6,7 +6,7 @@ import { createIncome, createUserIncome, getNewIncomeId, getAllUsersIncomes, upd
 import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes, updateOutcomesArray, getOutcomes } from "../controllers/outcomes";
 import {
     getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments, calculatePayroll,
-    bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId, updatePaymentPeriod,
+    bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId, updatePaymentPeriod, updateTotals
 } from "../controllers/payroll";
 
 import { getAllUsersDataRaw, getUserData } from "../controllers/users";
@@ -16,7 +16,6 @@ const router = express.Router();
 
 // NOTE --- EDIT ON PREPAYROLL FOR DELETING INCOME ID
 // NOTE --- ENDPOINT FOR RECALCULATING AND UPLOADING TO PREPAYROLLS
-
 
 // privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS)
 
@@ -365,6 +364,22 @@ router.put("/pre/payment_period/:user_id", async (req, res) => {
     }
 
     return res.status(200).json({ message: "Payment period has been changed successfully." });
+});
+
+router.put("/pre/total/:user_id", async (req, res) => {
+    const { total_incomes, total_outcomes, total_amount } = req.body;
+    const { user_id } = req.params;
+
+    if (!total_incomes || !total_amount || !total_outcomes) {
+        return res.status(400).json({ message: "Missing any of the following parameters: total_incomes, total_outcomes, total_amount." })
+    }
+
+    const totalUpdateObject = await updateTotals(parseInt(user_id), { total_incomes, total_outcomes, total_amount });
+    if (!totalUpdateObject.successful) {
+        return res.status(400).send({ message: totalUpdateObject.error });
+    }
+
+    return res.status(200).send("Successfully updated totals.");
 });
 
 // Moves data from pre_payments to payments
