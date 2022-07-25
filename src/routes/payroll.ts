@@ -2,20 +2,20 @@ import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
 import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
-import { createIncome, createUserIncome, getNewIncomeId, getAllUsersIncomes, updateIncomesArray } from "../controllers/incomes";
-import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes, updateOutcomesArray } from "../controllers/outcomes";
+import { createIncome, createUserIncome, getNewIncomeId, getAllUsersIncomes, updateIncomesArray, getIncomes } from "../controllers/incomes";
+import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes, updateOutcomesArray, getOutcomes } from "../controllers/outcomes";
 import {
-    getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments,
+    getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments, calculatePayroll,
     bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId, updatePaymentPeriod,
 } from "../controllers/payroll";
 
-import { getAllUsersDataRaw } from "../controllers/users";
+import { getAllUsersDataRaw, getUserData } from "../controllers/users";
 import { inRange, showing } from "../controllers/general";
 
 const router = express.Router();
 
 // NOTE --- EDIT ON PREPAYROLL FOR DELETING INCOME ID
-// NOTE --- EDIT ON PREPAYROLL FOR PAYMENT_PERIOD_ID
+// NOTE --- ENDPOINT FOR RECALCULATING AND UPLOADING TO PREPAYROLLS
 
 
 // privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS)
@@ -126,11 +126,6 @@ router.get("/pre", async (req, res) => {
     if (!payrollLengthObject.successful) {
         // Must be a TIME ELEMENT TO IT, how will they be distinguished?
         return res.status(400).json({ message: payrollLengthObject.error });
-
-        // payrollLengthObject = await getPushedPayrollsLength();
-        // if (!payrollLengthObject.successful) {
-        //     return res.status(400).json({ message: payrollLengthObject.error });
-        // }
     }
 
     // Adds readability
@@ -149,7 +144,46 @@ router.get("/pre", async (req, res) => {
 
 // Get individual prepayroll
 router.get("/pre/:user_id", async (req, res) => {
+    const { user_id } = req.params;
 
+    // Query user and check activity
+    const userObject = await getUserData(parseInt(user_id));
+    if (!userObject.successful) {
+        return res.status(400).send({ message: userObject.error });
+    }
+
+    // Query income
+    const incomesObject = await getIncomes(parseInt(user_id));
+    if (!incomesObject.successful) {
+        return res.status(400).send({ message: incomesObject.error });
+    }
+
+    // Query outcome
+    const outcomesObject = await getOutcomes(parseInt(user_id));
+    if (!outcomesObject.successful) {
+        return res.status(400).send({ message: outcomesObject.error });
+    }
+
+    // Extract values
+    const { userData } = userObject;
+    const { incomesData } = incomesObject;
+    const { outcomesData } = outcomesObject;
+    const { salary } = userData["salary"];
+
+    // Calculate payroll
+    const payroll = await calculatePayroll(parseFloat(salary), incomesData, outcomesData);
+
+    // Build final JSON object
+    const finalPayrollObject = {
+        payroll_schema: userData["payroll_schema"].name,
+        payment_period: userData["payments_period"].name,
+        salary: salary,
+        incomes: incomesData,
+        outcomes: outcomesData,
+        payrollTotal: payroll
+    };
+
+    return res.status(200).send(finalPayrollObject);
 });
 
 // Edit prepayment values
