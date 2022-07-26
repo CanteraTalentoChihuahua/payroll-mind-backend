@@ -25,6 +25,9 @@ const router = express.Router();
 // NOTE - MUST MOVE THIS TO CRONJOB
 // Calculates total payroll
 router.get("/calculate", async (req, res) => {
+    // @ts-ignore: Unreachable code error
+    const { day } = req.query;
+
     // Query users and check activity
     // @ts-ignore: Unreachable code error
     const usersObject = await getAllUsersDataRaw();
@@ -50,7 +53,7 @@ router.get("/calculate", async (req, res) => {
     const { outcomesData } = outcomesObject;
 
     // Calculate payroll massively
-    const finalMassivePayrollObject = await calculatePayrollMassively(usersData, incomesData, outcomesData);
+    const finalMassivePayrollObject = await calculatePayrollMassively(usersData, incomesData, outcomesData, parseInt(day));
     // Loop through all checking success status
     if (!finalMassivePayrollObject.successful) {
         return res.status(400).send({ message: outcomesObject.error });

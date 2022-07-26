@@ -61,7 +61,7 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
     return { payrollTotal, outcomesTotal, incomesTotal };
 }
 
-export async function calculatePayrollMassively(usersList: unknown, incomesList: unknown, outcomesList: unknown) {
+export async function calculatePayrollMassively(usersList: unknown, incomesList: unknown, outcomesList: unknown, currentDay: number) {
     const brutePayrollObject = {
         // global: 0,
         business_unit: {}
@@ -72,41 +72,55 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
     const comprehensivePayrollObject = usersList.map((user) => {
         const { id, salary_id, payment_period_id, payroll_schema_id, business_unit } = user;
         const { business_unit_ids } = business_unit;
-        const salary = parseFloat(user["salary"].dataValues["salary"]);
+        let salary = parseFloat(user["salary"].dataValues["salary"]);
 
         if (!id || !payroll_schema_id || !payment_period_id || !salary_id || !business_unit) {
             return { successful: false, error: "Missing one or more parameters: id, payroll_schema, payment_periods, salary." };
         }
 
-        // Incomes section - filters by id
-        let incomesTotal = 0;
-        // @ts-ignore: Unreachable code error
-        let incomesObject = incomesList.map((income) => {
-            const { user_id, amount, income_id } = income;
+        // Check payment period, solely pay half for quincenal - pay full if mensual
+        if (payment_period_id === 1) {
+            salary /= 2;
+        }
 
-            // Redundant user_id but whatever...
-            if (user_id === id) {
-                incomesTotal += parseFloat(amount);
-                return income_id;
-            }
-        });
+        // Check day of payroll calculation
+        const currentDate = new Date();
+        // currentDay = currentDate.getDay();
+        let incomesObject, outcomesObject;
+        let incomesTotal = 0, outcomesTotal = 0;
 
-        incomesObject = incomesObject.filter((income: unknown) => income !== undefined);
+        // If first of the month, assign incomes and outcomes for both
+        if (currentDay === 1) {
+            // Incomes section - filters by id
+            incomesTotal = 0;
+            // @ts-ignore: Unreachable code error
+            incomesObject = incomesList.map((income) => {
+                const { user_id, amount, income_id } = income;
 
-        // Outcomes section
-        let outcomesTotal = 0;
-        // @ts-ignore: Unreachable code error
-        let outcomesObject = outcomesList.map((outcome) => {
-            const { user_id, amount, outcome_id } = outcome;
+                // Redundant user_id but whatever...
+                if (user_id === id) {
+                    incomesTotal += parseFloat(amount);
+                    return income_id;
+                }
+            }); 
+            
+            incomesObject = incomesObject.filter((income: unknown) => income !== undefined);
 
-            // Redundant user_id but whatever...
-            if (user_id === id) {
-                outcomesTotal += parseFloat(amount);
-                return outcome_id;
-            }
-        });
+            // Outcomes section
+            outcomesTotal = 0;
+            // @ts-ignore: Unreachable code error
+            outcomesObject = outcomesList.map((outcome) => {
+                const { user_id, amount, outcome_id } = outcome;
 
-        outcomesObject = outcomesObject.filter((outcome: unknown) => outcome !== undefined);
+                // Redundant user_id but whatever...
+                if (user_id === id) {
+                    outcomesTotal += parseFloat(amount);
+                    return outcome_id;
+                }
+            });
+
+            outcomesObject = outcomesObject.filter((outcome: unknown) => outcome !== undefined);
+        }
 
         // Calculate payroll total
         const payrollTotal = salary + incomesTotal - outcomesTotal;
