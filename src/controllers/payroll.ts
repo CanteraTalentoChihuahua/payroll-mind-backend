@@ -102,8 +102,8 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
                     incomesTotal += parseFloat(amount);
                     return income_id;
                 }
-            }); 
-            
+            });
+
             incomesObject = incomesObject.filter((income: unknown) => income !== undefined);
 
             // Outcomes section
@@ -549,7 +549,6 @@ export async function pushToPayrolls() {
     let pre_paymentsData;
     try {
         pre_paymentsData = await pre_payrolls.findAll({
-            attributes: ["user_id", "salary_id", "incomes", "total_incomes", "outcomes", "total_outcomes", "total_amount", "payment_period_id", "payment_date"],
             order: [["id", "ASC"]],
             raw: true
         });
@@ -722,9 +721,9 @@ export async function updatePaymentPeriod(payment_period_id: number, user_id: nu
     return { successful: true };
 }
 
-export async function updateTotals(user_id: number, totalObject: {total_incomes: number, total_outcomes: number, total_amount: number}) {
+export async function updateTotals(user_id: number, totalObject: { total_incomes: number, total_outcomes: number, total_amount: number }) {
     try {
-        await pre_payments.update({...totalObject}, {where: { user_id }});
+        await pre_payments.update({ ...totalObject }, { where: { user_id } });
 
     } catch (error) {
         return { successful: true, error: "Unable to update prepayments." };
