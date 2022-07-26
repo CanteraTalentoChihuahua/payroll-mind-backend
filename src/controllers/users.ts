@@ -192,21 +192,23 @@ export async function getUserData(id: number) {
 
 // ADD PRIVILEGES SELECTION DEPENDING ON USER SPECIFICATION
 export async function createNewUser(userData: NewUserData, password: string) {
+    let userCreationData;
     try {
-        await user.create({
+        userCreationData = await user.create({
             ...userData,
             business_unit: { business_unit_ids: userData.business_unit_id },
             on_leave: false,
             active: true,
             privileges: { privileges: userData.privileges },
             password: await hash(password, 10)
-        });
+        }, { returning: true, raw: true });
+
 
     } catch (error) {
         return { successful: false };
     }
 
-    return { successful: true };
+    return { successful: true, userCreationData: userCreationData.dataValues };
 }
 
 export async function editUser(id: number, userData: Partial<NewUserData>, businessUnits?: Array<number>) {

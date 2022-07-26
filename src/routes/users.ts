@@ -1,7 +1,7 @@
 import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName, getNewUserId } from "../controllers/users";
+import { createSalary, calculatePayrollMassively, getNewSalaryId, bulkInsertIntoPrePayments, calculatePartialSalary } from "../controllers/payroll";
 import { sendPasswordChangeEmail } from "../controllers/auth";
 import { generatePassword } from "../controllers/auth";
-import { createSalary } from "../controllers/payroll";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 import { Router } from "express";
@@ -136,19 +136,20 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
     const on_leave = false, active = true;
     let privileges: Array<number> = [];
 
+    // MUST CHANGE TO BE DYNAMIC
     if (newUserRole === "admin") {
         privileges = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27];
     }
 
     const userData = await createNewUser({ first_name, last_name, birthday, email, phone_number, role_id, privileges, payment_period_id, on_leave, active, business_unit_id, bank, CLABE, payroll_schema_id, second_name, second_last_name }, newPass);
-
+    const newUserId = userData.userCreationData["id"];
     if (!userData.successful) {
         return res.status(500).json({ message: "Unable to create user. Fields might be duplicated." });
     }
 
     // Create salary entry --- MUST EXTRACT USER ID --- MUST BE AFTER CREATENEWUSER
-    const newUserId = await getNewUserId();
     const salaryData = await createSalary(newUserId, salary);
+    const newSalaryId = salaryData.salaryCreationData["id"];
     if (!salaryData.successful) {
         return res.status(500).send("Unable to create salary.");
     }
@@ -158,6 +159,35 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
         await sendPasswordChangeEmail(newUserId, newPass, email);
     } catch (error) {
         return res.status(201).json({ message: "User created successfully. Unable to send email." });
+    }
+
+    // Check date of creation
+    const currentDate = new Date();
+    const refurbishedSalary = await calculatePartialSalary(currentDate, payment_period_id, salary);
+
+    // Create individual payroll object
+    // @ts-ignore: Unreachable code errord
+    const comprehensiveIndividualPayroll = [{
+        id: newUserId,
+        salary_id: newSalaryId,
+        payment_period_id,
+        payroll_schema_id,
+
+        incomes: [],
+        outcomes: [],
+
+        payrollTotal: {
+            payrollTotal: refurbishedSalary,
+            incomesTotal: 0,
+            outcomesTotal: 0
+        }
+    }];
+
+    // Simply insert into prepayments
+    // @ts-ignore: Unreachable code errord
+    const insertPrePayrollObject = await bulkInsertIntoPrePayments(comprehensiveIndividualPayroll);
+    if (!insertPrePayrollObject.successful) {
+        return res.status(400).json({ message: insertPrePayrollObject.error });
     }
 
     return res.status(201).json({ message: "User created successfully." });

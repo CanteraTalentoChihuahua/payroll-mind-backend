@@ -1,3 +1,5 @@
+/* eslint-disable no-case-declarations */
+/* eslint-disable indent */
 const { Op } = require("sequelize");
 import { incomesObj } from "../controllers/incomes";
 import { outcomesObj } from "../controllers/outcomes";
@@ -238,12 +240,13 @@ export async function createSalary(userId: number, salary: number) {
     }
 
     // Otherwise, or consequently, create it
+    let salaryCreationObject;
     try {
-        await salaries.create({
+        salaryCreationObject = await salaries.create({
             user_id: userId,
             salary,
             date: new Date()
-        });
+        }, { returning: true, raw: true });
 
         // Update user table
         const newSalaryId = await getNewSalaryId();
@@ -255,7 +258,7 @@ export async function createSalary(userId: number, salary: number) {
         return { successful: false, error: "Either unable to create salary entry OR unable to update users table." };
     }
 
-    return { successful: true };
+    return { successful: true, salaryCreationData: salaryCreationObject.dataValues };
 }
 
 export async function getRoles(userId: number) {
@@ -584,6 +587,18 @@ export async function pushToPayrolls() {
 
 
 // INSERTS
+export async function insertIntoPrepayments(salary: number, incomes?: unknown, outcomes?: unknown) {
+    try {
+        await pre_payments.create({
+
+        });
+
+    } catch (error) {
+        return { successful: false, error: "Query error." };
+    }
+
+}
+
 export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
     // Delete everything
     try {
@@ -605,7 +620,6 @@ export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
                 salary_id,
                 payment_period_id,
                 payroll_schema_id,
-                business_unit,
                 incomes: { "incomes": incomes },
                 outcomes: { "outcomes": outcomes },
                 total_incomes: payrollTotal.incomesTotal,
@@ -615,6 +629,8 @@ export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
             });
 
         } catch (error) {
+            console.log(error);
+
             return { successful: false, error: "Error at pre_payments creation." };
         }
     }
@@ -678,6 +694,46 @@ export async function calculateGlobalPayroll() {
     }
 
     return { successful: true, globalPayrollTotal };
+}
+
+// Calculate partial payroll -- VERY BASIC
+export async function calculatePartialSalary(creationDate: object, payment_period_id: number, salary: number) {
+    // @ts-ignore: Unreachable code error
+    const currentDay = creationDate.getDay();
+
+    // If beginning or middle of month, just divide the payroll...
+    if (currentDay === 1 || currentDay === 15) {
+        salary /= 2;
+
+    } else {
+        const getDays = (year: number, month: number) => {
+            return new Date(year, month, 0).getDate();
+        };
+
+        // Get salary per day
+        // @ts-ignore: Unreachable code errord
+        const creationYear = creationDate.getFullYear();
+        // @ts-ignore: Unreachable code errord
+        const creationMonth = creationDate.getMonth() + 1;
+        const daysOfMonth = getDays(creationYear, creationMonth);
+        const salaryPerDay = salary / daysOfMonth;
+
+        // Both salaries are payed on this date...
+        if (currentDay < 15) {
+            salary = Math.round((salaryPerDay * (15 - currentDay)) * 100) / 100;
+
+        } else {
+            // For quincenal...
+            salary = Math.round((salaryPerDay * (daysOfMonth - currentDay)) * 100) / 100;
+
+            // For mensual, until the next 15th...
+            if (payment_period_id === 2) {
+                salary += Math.round((salaryPerDay * 15) * 100) / 100;
+            }
+        }
+    }
+
+    return salary;
 }
 
 // Modify prepayroll 
