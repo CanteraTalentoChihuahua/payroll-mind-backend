@@ -53,6 +53,7 @@ router.get("/calculate", async (req, res) => {
     const { outcomesData } = outcomesObject;
 
     // Calculate payroll massively
+    // @ts-ignore: Unreachable code error
     const finalMassivePayrollObject = await calculatePayrollMassively(usersData, incomesData, outcomesData, parseInt(day));
     // Loop through all checking success status
     if (!finalMassivePayrollObject.successful) {
