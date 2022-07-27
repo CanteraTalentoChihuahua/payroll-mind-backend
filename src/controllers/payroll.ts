@@ -310,7 +310,10 @@ export async function getIdsUnderBusinessUnit(businessUnits?: Array<number>): Pr
 
 /// Experimental methods
 // Should not query id: 1
-export async function getAllPrePayrolls(offset?: number, limit?: number) {
+export async function getAllPrePayrolls(specificPayroll: string, offset?: number, limit?: number) {
+    let condition;
+    specificPayroll === "mid" ? condition = null : condition = { payment_period_id: 1 };
+
     let payrollData;
     try {
         // @ts-ignore: Unreachable code error
@@ -318,6 +321,7 @@ export async function getAllPrePayrolls(offset?: number, limit?: number) {
             attributes: ["id", "user_id", "incomes", "total_incomes", "outcomes", "total_outcomes", "total_amount", "payment_period_id", "payment_date"],
             offset,
             limit,
+            where: condition,
             include: [
                 { attributes: ["salary"], model: salaries },
                 { attributes: ["name"], model: payments_periods }
@@ -402,10 +406,14 @@ export async function buildFinalPayrollObject(userArray: unknown) {
     return { successful: true, finalPayrollArray };
 }
 
-export async function getStagedPayrollsLength() {
+export async function getStagedPayrollsLength(specificPayroll: string) {
+    let condition;
+    specificPayroll === "mid" ? condition = null : condition = { payment_period_id: 1 };
+
     let userData;
     try {
         userData = await pre_payments.findAll({
+            where: condition,
             order: [
                 ["user_id", "ASC"]
             ]
@@ -587,25 +595,15 @@ export async function pushToPayrolls() {
 
 
 // INSERTS
-export async function insertIntoPrepayments(salary: number, incomes?: unknown, outcomes?: unknown) {
-    try {
-        await pre_payments.create({
-
-        });
-
-    } catch (error) {
-        return { successful: false, error: "Query error." };
-    }
-
-}
-
-export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
+export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown, destroy: boolean) {
     // Delete everything
-    try {
-        await pre_payments.destroy({ where: {} });
+    if (destroy) {
+        try {
+            await pre_payments.destroy({ where: {} });
 
-    } catch (error) {
-        return { successful: false, error: "Error at pre_payments deletion." };
+        } catch (error) {
+            return { successful: false, error: "Error at pre_payments deletion." };
+        }
     }
 
     // @ts-ignore: Unreachable code error

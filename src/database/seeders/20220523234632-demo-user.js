@@ -69,7 +69,7 @@ module.exports = {
                 privileges: {
                     privileges: []
                 },
-                payment_period_id: 1,
+                payment_period_id: 2,
                 business_unit: {
                     business_unit_ids: [1]
                 },
@@ -93,7 +93,7 @@ module.exports = {
                 privileges: {
                     privileges: []
                 },
-                payment_period_id: 1,
+                payment_period_id: 2,
                 business_unit: {
                     business_unit_ids: [1]
                 },

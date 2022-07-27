@@ -185,7 +185,7 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
 
     // Simply insert into prepayments
     // @ts-ignore: Unreachable code errord
-    const insertPrePayrollObject = await bulkInsertIntoPrePayments(comprehensiveIndividualPayroll);
+    const insertPrePayrollObject = await bulkInsertIntoPrePayments(comprehensiveIndividualPayroll, false);
     if (!insertPrePayrollObject.successful) {
         return res.status(400).json({ message: insertPrePayrollObject.error });
     }

@@ -64,7 +64,7 @@ router.get("/calculate", async (req, res) => {
     const { comprehensivePayrollObject, brutePayrollObject } = finalMassivePayrollObject;
 
     // Save into prepayments
-    const insertPrePaymentsObject = await bulkInsertIntoPrePayments(comprehensivePayrollObject);
+    const insertPrePaymentsObject = await bulkInsertIntoPrePayments(comprehensivePayrollObject, true);
     if (!insertPrePaymentsObject.successful) {
         return res.status(400).json({ message: insertPrePaymentsObject.error });
     }
@@ -93,8 +93,12 @@ router.get("/calculate/global", async (req, res) => {
 });
 
 // Query pre_payments
-// Must return a total of users in order for pagination calculation
+// MISSING PAGINATION PARAMETERS... 
+// MUST SPECIFY 15TH OR 31TH PAYROLL... ?payroll=mid or payroll=end
 router.get("/pre", async (req, res) => {
+    // Payroll request...
+    const specificPayroll = req.query.payroll;
+
     // Check for offset and limit
     let offset = 0, limit = 10;
     if (req.query.limit) {
@@ -107,9 +111,12 @@ router.get("/pre", async (req, res) => {
         offset = parseInt(req.query["offset"]);
     }
 
+    if (specificPayroll !== "mid" && specificPayroll !== "end" || !specificPayroll) {
+        return res.status(400).json({ message: "Unable to process request. Specify for 'mid' or 'end' payroll." });
+    }
+
     // Query payroll data
-    // Is this allowed? Waste of resources?
-    const payrollObject = await getAllPrePayrolls(offset, limit);
+    const payrollObject = await getAllPrePayrolls(specificPayroll, offset, limit);
     if (!payrollObject.successful) {
         return res.status(400).json({ message: payrollObject.error });
         // payrollObject = await getAllPayrolls(offset, limit);
@@ -125,7 +132,7 @@ router.get("/pre", async (req, res) => {
     }
 
     // Query total user amount
-    const payrollLengthObject = await getStagedPayrollsLength();
+    const payrollLengthObject = await getStagedPayrollsLength(specificPayroll);
     if (!payrollLengthObject.successful) {
         // Must be a TIME ELEMENT TO IT, how will they be distinguished?
         return res.status(400).json({ message: payrollLengthObject.error });
