@@ -386,6 +386,12 @@ export async function buildFinalPayrollObject(userArray: unknown) {
         const userObject = {
             id: user.id,
             user_id: user.user_id,
+            name: {
+                first_name: user.first_name,
+                second_name: user.second_name,
+                last_name: user.last_name,
+                second_last_name: user.second_last_name
+            },
             // payroll_schema: user["payroll_schema.name"],
             payment_period: user["payments_period.name"],
             salary: user["salary.salary"],
