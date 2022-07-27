@@ -1,3 +1,5 @@
+/* eslint-disable no-case-declarations */
+/* eslint-disable indent */
 const { Op } = require("sequelize");
 import { incomesObj } from "../controllers/incomes";
 import { outcomesObj } from "../controllers/outcomes";
@@ -61,7 +63,7 @@ export async function calculatePayroll(salary: number, incomes?: incomesObj[], o
     return { payrollTotal, outcomesTotal, incomesTotal };
 }
 
-export async function calculatePayrollMassively(usersList: unknown, incomesList: unknown, outcomesList: unknown) {
+export async function calculatePayrollMassively(usersList: unknown, incomesList: unknown, outcomesList: unknown, currentDay: number) {
     const brutePayrollObject = {
         // global: 0,
         business_unit: {}
@@ -72,41 +74,55 @@ export async function calculatePayrollMassively(usersList: unknown, incomesList:
     const comprehensivePayrollObject = usersList.map((user) => {
         const { id, salary_id, payment_period_id, payroll_schema_id, business_unit } = user;
         const { business_unit_ids } = business_unit;
-        const salary = parseFloat(user["salary"].dataValues["salary"]);
+        let salary = parseFloat(user["salary"].dataValues["salary"]);
 
         if (!id || !payroll_schema_id || !payment_period_id || !salary_id || !business_unit) {
             return { successful: false, error: "Missing one or more parameters: id, payroll_schema, payment_periods, salary." };
         }
 
-        // Incomes section - filters by id
-        let incomesTotal = 0;
-        // @ts-ignore: Unreachable code error
-        let incomesObject = incomesList.map((income) => {
-            const { user_id, amount, income_id } = income;
+        // Check payment period, solely pay half for quincenal - pay full if mensual
+        if (payment_period_id === 1) {
+            salary /= 2;
+        }
 
-            // Redundant user_id but whatever...
-            if (user_id === id) {
-                incomesTotal += parseFloat(amount);
-                return income_id;
-            }
-        });
+        // Check day of payroll calculation
+        const currentDate = new Date();
+        // currentDay = currentDate.getDay();
+        let incomesObject, outcomesObject;
+        let incomesTotal = 0, outcomesTotal = 0;
 
-        incomesObject = incomesObject.filter((income: unknown) => income !== undefined);
+        // If first of the month, assign incomes and outcomes for both
+        if (currentDay === 1) {
+            // Incomes section - filters by id
+            incomesTotal = 0;
+            // @ts-ignore: Unreachable code error
+            incomesObject = incomesList.map((income) => {
+                const { user_id, amount, income_id } = income;
 
-        // Outcomes section
-        let outcomesTotal = 0;
-        // @ts-ignore: Unreachable code error
-        let outcomesObject = outcomesList.map((outcome) => {
-            const { user_id, amount, outcome_id } = outcome;
+                // Redundant user_id but whatever...
+                if (user_id === id) {
+                    incomesTotal += parseFloat(amount);
+                    return income_id;
+                }
+            });
 
-            // Redundant user_id but whatever...
-            if (user_id === id) {
-                outcomesTotal += parseFloat(amount);
-                return outcome_id;
-            }
-        });
+            incomesObject = incomesObject.filter((income: unknown) => income !== undefined);
 
-        outcomesObject = outcomesObject.filter((outcome: unknown) => outcome !== undefined);
+            // Outcomes section
+            outcomesTotal = 0;
+            // @ts-ignore: Unreachable code error
+            outcomesObject = outcomesList.map((outcome) => {
+                const { user_id, amount, outcome_id } = outcome;
+
+                // Redundant user_id but whatever...
+                if (user_id === id) {
+                    outcomesTotal += parseFloat(amount);
+                    return outcome_id;
+                }
+            });
+
+            outcomesObject = outcomesObject.filter((outcome: unknown) => outcome !== undefined);
+        }
 
         // Calculate payroll total
         const payrollTotal = salary + incomesTotal - outcomesTotal;
@@ -224,12 +240,13 @@ export async function createSalary(userId: number, salary: number) {
     }
 
     // Otherwise, or consequently, create it
+    let salaryCreationObject;
     try {
-        await salaries.create({
+        salaryCreationObject = await salaries.create({
             user_id: userId,
             salary,
             date: new Date()
-        });
+        }, { returning: true, raw: true });
 
         // Update user table
         const newSalaryId = await getNewSalaryId();
@@ -241,7 +258,7 @@ export async function createSalary(userId: number, salary: number) {
         return { successful: false, error: "Either unable to create salary entry OR unable to update users table." };
     }
 
-    return { successful: true };
+    return { successful: true, salaryCreationData: salaryCreationObject.dataValues };
 }
 
 export async function getRoles(userId: number) {
@@ -293,7 +310,10 @@ export async function getIdsUnderBusinessUnit(businessUnits?: Array<number>): Pr
 
 /// Experimental methods
 // Should not query id: 1
-export async function getAllPrePayrolls(offset?: number, limit?: number) {
+export async function getAllPrePayrolls(specificPayroll: string, offset?: number, limit?: number) {
+    let condition;
+    specificPayroll === "mid" ? condition = null : condition = { payment_period_id: 1 };
+
     let payrollData;
     try {
         // @ts-ignore: Unreachable code error
@@ -301,6 +321,7 @@ export async function getAllPrePayrolls(offset?: number, limit?: number) {
             attributes: ["id", "user_id", "incomes", "total_incomes", "outcomes", "total_outcomes", "total_amount", "payment_period_id", "payment_date"],
             offset,
             limit,
+            where: condition,
             include: [
                 { attributes: ["salary"], model: salaries },
                 { attributes: ["name"], model: payments_periods }
@@ -362,9 +383,22 @@ export async function buildFinalPayrollObject(userArray: unknown) {
             return { successful: false, error: "Query error at outcomes." };
         }
 
+        // QUICK FIX - Terrible practice! DO NOT CYCLE QUERIES!
+        const userData = await users.findOne({
+            attributes: ["first_name", "second_name", "last_name", "second_last_name"],
+            where: { id: user.user_id },
+            raw: true
+        });
+
         const userObject = {
             id: user.id,
             user_id: user.user_id,
+            nameObject: {
+                first_name: userData.first_name,
+                second_name: userData.second_name,
+                last_name: userData.last_name,
+                second_last_name: userData.second_last_name
+            },
             // payroll_schema: user["payroll_schema.name"],
             payment_period: user["payments_period.name"],
             salary: user["salary.salary"],
@@ -385,10 +419,14 @@ export async function buildFinalPayrollObject(userArray: unknown) {
     return { successful: true, finalPayrollArray };
 }
 
-export async function getStagedPayrollsLength() {
+export async function getStagedPayrollsLength(specificPayroll: string) {
+    let condition;
+    specificPayroll === "mid" ? condition = null : condition = { payment_period_id: 1 };
+
     let userData;
     try {
         userData = await pre_payments.findAll({
+            where: condition,
             order: [
                 ["user_id", "ASC"]
             ]
@@ -535,7 +573,6 @@ export async function pushToPayrolls() {
     let pre_paymentsData;
     try {
         pre_paymentsData = await pre_payrolls.findAll({
-            attributes: ["user_id", "salary_id", "incomes", "total_incomes", "outcomes", "total_outcomes", "total_amount", "payment_period_id", "payment_date"],
             order: [["id", "ASC"]],
             raw: true
         });
@@ -571,13 +608,15 @@ export async function pushToPayrolls() {
 
 
 // INSERTS
-export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
+export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown, destroy: boolean) {
     // Delete everything
-    try {
-        await pre_payments.destroy({ where: {} });
+    if (destroy) {
+        try {
+            await pre_payments.destroy({ where: {} });
 
-    } catch (error) {
-        return { successful: false, error: "Error at pre_payments deletion." };
+        } catch (error) {
+            return { successful: false, error: "Error at pre_payments deletion." };
+        }
     }
 
     // @ts-ignore: Unreachable code error
@@ -592,7 +631,6 @@ export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
                 salary_id,
                 payment_period_id,
                 payroll_schema_id,
-                business_unit,
                 incomes: { "incomes": incomes },
                 outcomes: { "outcomes": outcomes },
                 total_incomes: payrollTotal.incomesTotal,
@@ -602,6 +640,8 @@ export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown) {
             });
 
         } catch (error) {
+            console.log(error);
+
             return { successful: false, error: "Error at pre_payments creation." };
         }
     }
@@ -667,6 +707,46 @@ export async function calculateGlobalPayroll() {
     return { successful: true, globalPayrollTotal };
 }
 
+// Calculate partial payroll -- VERY BASIC
+export async function calculatePartialSalary(creationDate: object, payment_period_id: number, salary: number) {
+    // @ts-ignore: Unreachable code error
+    const currentDay = creationDate.getDay();
+
+    // If beginning or middle of month, just divide the payroll...
+    if (currentDay === 1 || currentDay === 15) {
+        salary /= 2;
+
+    } else {
+        const getDays = (year: number, month: number) => {
+            return new Date(year, month, 0).getDate();
+        };
+
+        // Get salary per day
+        // @ts-ignore: Unreachable code errord
+        const creationYear = creationDate.getFullYear();
+        // @ts-ignore: Unreachable code errord
+        const creationMonth = creationDate.getMonth() + 1;
+        const daysOfMonth = getDays(creationYear, creationMonth);
+        const salaryPerDay = salary / daysOfMonth;
+
+        // Both salaries are payed on this date...
+        if (currentDay < 15) {
+            salary = Math.round((salaryPerDay * (15 - currentDay)) * 100) / 100;
+
+        } else {
+            // For quincenal...
+            salary = Math.round((salaryPerDay * (daysOfMonth - currentDay)) * 100) / 100;
+
+            // For mensual, until the next 15th...
+            if (payment_period_id === 2) {
+                salary += Math.round((salaryPerDay * 15) * 100) / 100;
+            }
+        }
+    }
+
+    return salary;
+}
+
 // Modify prepayroll 
 export async function editPrePayments(user_id: number, prepaymentsObject: newPrepaymentsData | { salary_id: number } | { payment_period_id: number } | newTotalsData) {
     try {
@@ -708,9 +788,9 @@ export async function updatePaymentPeriod(payment_period_id: number, user_id: nu
     return { successful: true };
 }
 
-export async function updateTotals(user_id: number, totalObject: {total_incomes: number, total_outcomes: number, total_amount: number}) {
+export async function updateTotals(user_id: number, totalObject: { total_incomes: number, total_outcomes: number, total_amount: number }) {
     try {
-        await pre_payments.update({...totalObject}, {where: { user_id }});
+        await pre_payments.update({ ...totalObject }, { where: { user_id } });
 
     } catch (error) {
         return { successful: true, error: "Unable to update prepayments." };
