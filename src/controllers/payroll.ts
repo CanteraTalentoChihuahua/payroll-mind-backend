@@ -352,22 +352,11 @@ export async function buildFinalPayrollObject(userArray: unknown) {
         // @ts-ignore: Unreachable code error
         const user = userArray[userIndex];
 
-        // Extract incomes / outcomes data
-        const { incomes } = user;
-        const { outcomes } = user;
-
-        const filteredIncomes = incomes["incomes"];
-        const filteredOutcomes = outcomes["outcomes"];
-
-        // Create id conditions
-        const incomesIdCondition = createIdCondition(filteredIncomes);
-        const outcomesIdCondition = createIdCondition(filteredOutcomes);
-
         // Query incomes
         let incomesData;
         try {
             // @ts-ignore: Unreachable code error
-            incomesData = await getAllUsersIncomes(incomesIdCondition);
+            incomesData = await getAllUsersIncomes(user.user_id);
 
         } catch (error) {
             return { successful: false, error: "Query error at incomes." };
@@ -377,7 +366,7 @@ export async function buildFinalPayrollObject(userArray: unknown) {
         let outcomesData;
         try {
             // @ts-ignore: Unreachable code error
-            outcomesData = await getAllUsersOutcomes(outcomesIdCondition);
+            outcomesData = await getAllUsersOutcomes(user.user_id);
 
         } catch (error) {
             return { successful: false, error: "Query error at outcomes." };
@@ -464,15 +453,14 @@ export async function getPushedPayrollsLength() {
 }
 
 // Must be moved to incomes... Kept here to avoid breaking stuff
-export async function getAllUsersIncomes(idCondition: number[]) {
+export async function getAllUsersIncomes(user_id: number[]) {
     let incomesData;
 
     try {
         incomesData = await incomes_users.findAll({
             attributes: ["user_id", "income_id", "counter", "amount"],
             where: {
-                [Op.or]: idCondition,
-                deletedAt: null
+                user_id
             },
             include: {
                 attributes: ["name", "automatic"],
@@ -497,15 +485,14 @@ export async function getAllUsersIncomes(idCondition: number[]) {
 }
 
 // Must be moved to outcomes... Kept here to avoid breaking stuff
-export async function getAllUsersOutcomes(idCondition: number[]) {
+export async function getAllUsersOutcomes(user_id: number[]) {
     let outcomesData;
 
     try {
         outcomesData = await outcomes_users.findAll({
             attributes: ["user_id", "outcome_id", "counter", "amount"],
             where: {
-                [Op.or]: idCondition,
-                deletedAt: null
+                user_id
             },
             include: {
                 attributes: ["name", "automatic"],
