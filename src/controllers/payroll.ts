@@ -383,14 +383,21 @@ export async function buildFinalPayrollObject(userArray: unknown) {
             return { successful: false, error: "Query error at outcomes." };
         }
 
+        // QUICK FIX - Terrible practice! DO NOT CYCLE QUERIES!
+        const userData = await users.findOne({
+            attributes: ["first_name", "second_name", "last_name", "second_last_name"],
+            where: { id: user.user_id },
+            raw: true
+        });
+
         const userObject = {
             id: user.id,
             user_id: user.user_id,
-            name: {
-                first_name: user.first_name,
-                second_name: user.second_name,
-                last_name: user.last_name,
-                second_last_name: user.second_last_name
+            nameObject: {
+                first_name: userData.first_name,
+                second_name: userData.second_name,
+                last_name: userData.last_name,
+                second_last_name: userData.second_last_name
             },
             // payroll_schema: user["payroll_schema.name"],
             payment_period: user["payments_period.name"],

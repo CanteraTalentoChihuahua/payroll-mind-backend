@@ -166,7 +166,7 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
     const refurbishedSalary = await calculatePartialSalary(currentDate, payment_period_id, salary);
 
     // Create individual payroll object
-    // @ts-ignore: Unreachable code errord
+    // @ts-ignore: Unreachable code error
     const comprehensiveIndividualPayroll = [{
         id: newUserId,
         salary_id: newSalaryId,
