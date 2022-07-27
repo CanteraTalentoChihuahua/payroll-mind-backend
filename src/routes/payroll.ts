@@ -231,7 +231,7 @@ router.put("/pre/:user_id", async (req, res) => {
 // Does not edit AUTOMATIC column in outcomes when UPDATING
 // SENDING ID MEANS IMPLIES IT EXISTS, SENDING NAME IMPLIES IT DOES NOT
 // privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS)
-router.post("/pre/incomes/:user_id", async (req, res) => {
+router.put("/pre/incomes/:user_id", async (req, res) => {
     // outcome_id is optional...
     let { income_id } = req.body;
     const { counter, amount, name, automatic } = req.body;
@@ -390,7 +390,7 @@ router.put("/pre/total/:user_id", async (req, res) => {
         return res.status(400).send({ message: totalUpdateObject.error });
     }
 
-    return res.status(200).send("Successfully updated totals.");
+    return res.status(200).json({ message: "Successfully updated totals." });
 });
 
 // Moves data from pre_payments to payments
