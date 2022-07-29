@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = {
-    async up (queryInterface, Sequelize) {
+    async up(queryInterface, Sequelize) {
         await queryInterface.bulkInsert("payrolls", [{
             payment_date: "2022-06-01",
             payment_period_id: 1,
@@ -10,7 +10,7 @@ module.exports = {
         },]);
     },
 
-    async down (queryInterface, Sequelize) {
+    async down(queryInterface, Sequelize) {
         await queryInterface.bulkDelete("payrolls", null, {});
     }
 };

@@ -6,7 +6,7 @@ import { createIncome, createUserIncome, getNewIncomeId, getAllUsersIncomes, upd
 import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes, updateOutcomesArray, getOutcomes } from "../controllers/outcomes";
 import {
     getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments, calculatePayroll,
-    bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId, updatePaymentPeriod, updateTotals
+    bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId, updatePaymentPeriod, getPayments
 } from "../controllers/payroll";
 
 import { getAllUsersDataRaw, getUserData } from "../controllers/users";
@@ -152,7 +152,7 @@ router.get("/pre", async (req, res) => {
     return res.status(200).send(comprehensivePayroll);
 });
 
-// Get individual prepayroll
+// Get individual prepayroll BY CURRENT
 router.get("/pre/:user_id", async (req, res) => {
     const { user_id } = req.params;
 
@@ -196,8 +196,37 @@ router.get("/pre/:user_id", async (req, res) => {
     return res.status(200).send(finalPayrollObject);
 });
 
+// Get individual payroll BY DATE 
+router.get("/pre/reports/:user_id", async (req, res) => {
+    let { initial_date, final_date } = req.body;
+    const { user_id } = req.params;
+
+    // Check for offset and limit -- pagination
+    let offset = 0, limit = 10;
+    if (req.query.limit) {
+        // @ts-ignore: Unreachable code error
+        limit = parseInt(req.query["limit"]);
+    }
+
+    if (req.query.offset) {
+        // @ts-ignore: Unreachable code error
+        offset = parseInt(req.query["offset"]);
+    }
+
+    // Parse dates
+    initial_date = Date.parse(initial_date), final_date = Date.parse(final_date);
+
+    // Query payments table
+    const paymentsObject = await getPayments(parseInt(user_id), { initial_date, final_date }, limit, offset);
+    if (!paymentsObject.successful) {
+        return res.status(400).json({ message: paymentsObject.error });
+    }
+
+    return res.status(200).send(paymentsObject);
+});
+
 // Edit prepayment values
-router.put("/pre/:user_id", async (req, res) => {
+router.put("/pre/total/:user_id", async (req, res) => {
     // Receive data
     const { user_id } = req.params;
 
@@ -377,21 +406,21 @@ router.put("/pre/payment_period/:user_id", async (req, res) => {
     return res.status(200).json({ message: "Payment period has been changed successfully." });
 });
 
-router.put("/pre/total/:user_id", async (req, res) => {
-    const { total_incomes, total_outcomes, total_amount } = req.body;
-    const { user_id } = req.params;
+// router.put("/pre/total/:user_id", async (req, res) => {
+//     const { total_incomes, total_outcomes, total_amount } = req.body;
+//     const { user_id } = req.params;
 
-    if (!total_incomes || !total_amount || !total_outcomes) {
-        return res.status(400).json({ message: "Missing any of the following parameters: total_incomes, total_outcomes, total_amount." })
-    }
+//     if (!total_incomes || !total_amount || !total_outcomes) {
+//         return res.status(400).json({ message: "Missing any of the following parameters: total_incomes, total_outcomes, total_amount." })
+//     }
 
-    const totalUpdateObject = await updateTotals(parseInt(user_id), { total_incomes, total_outcomes, total_amount });
-    if (!totalUpdateObject.successful) {
-        return res.status(400).send({ message: totalUpdateObject.error });
-    }
+//     const totalUpdateObject = await updateTotals(parseInt(user_id), { total_incomes, total_outcomes, total_amount });
+//     if (!totalUpdateObject.successful) {
+//         return res.status(400).send({ message: totalUpdateObject.error });
+//     }
 
-    return res.status(200).json({ message: "Successfully updated totals." });
-});
+//     return res.status(200).json({ message: "Successfully updated totals." });
+// });
 
 // Moves data from pre_payments to payments
 // Ask front to double confirm before calling this endpoint...
