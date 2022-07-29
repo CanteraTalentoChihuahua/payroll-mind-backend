@@ -6,11 +6,13 @@ import { createIncome, createUserIncome, getNewIncomeId, getAllUsersIncomes, upd
 import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes, updateOutcomesArray, getOutcomes } from "../controllers/outcomes";
 import {
     getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments, calculatePayroll,
-    bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId, updatePaymentPeriod, getPayments
+    bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId, updatePaymentPeriod,
+    getPayments, trialDates
 } from "../controllers/payroll";
 
 import { getAllUsersDataRaw, getUserData } from "../controllers/users";
 import { inRange, showing } from "../controllers/general";
+import { json } from "sequelize/types";
 
 const router = express.Router();
 
@@ -214,15 +216,17 @@ router.get("/pre/reports/:user_id", async (req, res) => {
     }
 
     // Parse dates
-    initial_date = Date.parse(initial_date), final_date = Date.parse(final_date);
+    initial_date = new Date(initial_date), final_date = new Date(final_date);
 
     // Query payments table
     const paymentsObject = await getPayments(parseInt(user_id), { initial_date, final_date }, limit, offset);
+    const { userPayments } = paymentsObject;
     if (!paymentsObject.successful) {
+        // @ts-ignore: Unreachable code error
         return res.status(400).json({ message: paymentsObject.error });
     }
 
-    return res.status(200).send(paymentsObject);
+    return res.status(200).json(userPayments);
 });
 
 // Edit prepayment values
@@ -425,6 +429,7 @@ router.put("/pre/payment_period/:user_id", async (req, res) => {
 // Moves data from pre_payments to payments
 // Ask front to double confirm before calling this endpoint...
 // NOTE - IF A CERTAIN TIME PASSES WITH NO CONFIRMATION, CRONJOB SHOULD CALL THIS
+
 router.post("/pre/push", async (req, res) => {
     const pushObject = await pushToPayments();
     if (!pushObject.successful) {

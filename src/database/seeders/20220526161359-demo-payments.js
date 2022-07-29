@@ -1,5 +1,4 @@
 
-
 module.exports = {
     async up(queryInterface, Sequelize) {
         await queryInterface.bulkInsert("payments", [{
@@ -33,7 +32,7 @@ module.exports = {
             total_outcomes: 3000,
             total_amount: 44000,
             payment_period_id: 1,
-            payment_date: new Date(2001, 3, 15),
+            payment_date: new Date(2022, 3, 15),
         },
         {
             user_id: 2,
@@ -44,9 +43,8 @@ module.exports = {
             total_outcomes: 3000,
             total_amount: 43500,
             payment_period_id: 1,
-            payment_date: new Date(2001, 4, 15),
-        }
-        ], {}, {
+            payment_date: new Date(2022, 4, 15),
+        }], {}, {
             incomes: { type: new Sequelize.JSON() },
             outcomes: { type: new Sequelize.JSON() }
         });

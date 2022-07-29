@@ -787,8 +787,18 @@ export async function updateTotals(user_id: number, totalObject: { total_incomes
 }
 
 
+export async function trialDates(user_id: number) {
+    return await payments.findAll({
+        attributes: ["payment_date"],
+        where: {
+            user_id
+        },
+        raw: true
+    });
+}
+
 // Get payments by date
-export async function getPayments(user_id: number, dateObject?: { initial_date: number, final_date: number }, offset?: number, limit?: number) {
+export async function getPayments(user_id: number, dateObject?: { initial_date: object, final_date: object }, offset?: number, limit?: number) {
     let userPayments;
     try {
         let betweenCondition = null;
@@ -796,13 +806,19 @@ export async function getPayments(user_id: number, dateObject?: { initial_date: 
             betweenCondition = [dateObject.initial_date, dateObject.final_date];
         }
 
+        console.log(dateObject);
+        
+
         userPayments = await payments.findAll({
             offset,
             limit,
             where: {
                 user_id,
-                [Op.between]: betweenCondition
-            }
+                payment_date: {
+                    [Op.between]: betweenCondition
+                }                
+            },
+            raw: true
         });
 
         if (userPayments.length === 0) {
