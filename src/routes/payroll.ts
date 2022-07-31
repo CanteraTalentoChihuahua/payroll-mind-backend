@@ -82,16 +82,6 @@ router.get("/calculate", async (req, res) => {
     });
 });
 
-// Calculate global
-router.get("/calculate/global", async (req, res) => {
-    const globalPayrollObject = await calculateGlobalPayroll();
-    if (!globalPayrollObject.successful) {
-        return res.status(400).json({ message: globalPayrollObject.error });
-    }
-
-    return res.status(200).send({ globalPayrollTotal: globalPayrollObject.globalPayrollTotal });
-});
-
 // Query pre_payments
 // MISSING PAGINATION PARAMETERS... 
 // MUST SPECIFY 15TH OR 31TH PAYROLL... ?payroll=mid or payroll=end
