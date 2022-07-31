@@ -3,7 +3,7 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('metrics', {
+    await queryInterface.createTable('indicators', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -11,20 +11,25 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       new_users: {
-        type: Sequelize.JSONB
+        type: Sequelize.JSONB,
+        allowNull: true
       },
       inactive_users: {
-        type: Sequelize.JSONB
+        type: Sequelize.JSONB,
+        allowNull: true
       },
       month: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       year: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        allowNull: false
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        defaultValue: new Date()
       },
       updatedAt: {
         allowNull: true,
@@ -37,6 +42,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('metrics');
+    await queryInterface.dropTable('indicators');
   }
 };

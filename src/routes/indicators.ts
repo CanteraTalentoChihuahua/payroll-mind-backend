@@ -1,30 +1,25 @@
 import express from "express";
 import { calculateGlobalPayroll } from "../controllers/payroll";
+// import { getNewUsers } from "../controllers/indicators ";
 
 const router = express.Router();
 
 // New users
 router.get("/new_collabs", async (req, res) => {
     // @ts-ignore: Unreachable code errors
-    const { initial_date, final_date } = req.params;
+    const { month, year } = req.query;
 
-    if (!initial_date && !final_date) {
-        return res.status(400).json({ message: "Missing any of the following parameters: initial_date, final_date." });
+    if (!month && !year) {
+        return res.status(400).json({ message: "Missing any of the following parameters: month, year." });
     }
-
-    // Parse dates 
-    const dateObject = {
-        initial_date: new Date(initial_date),
-        final_date: new Date(final_date)
-    };
 
     // Query users
-    const newUsersObject = getNewUsers(dateObject);
-    if (!newUsersObject.successful) {
-        return res.status(200).json({ message: newUsersObject.error });
-    }
+    // const newUsersObject = getNewUsers(month, year);
+    // if (!newUsersObject.successful) {
+    //     return res.status(200).json({ message: newUsersObject.error });
+    // }
 
-    return res.status(200).send(newUsersObject.newUsers);
+    // return res.status(200).send(newUsersObject.newUsers);
 });
 
 // Fired users

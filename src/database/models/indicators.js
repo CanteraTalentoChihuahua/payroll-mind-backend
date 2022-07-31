@@ -14,7 +14,11 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   indicators.init({
-    name: DataTypes.STRING
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    new_users: DataTypes.JSONB,
+    inactive_users: DataTypes.JSONB,
+    month: DataTypes.STRING,
+    year: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'indicators',
