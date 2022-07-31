@@ -786,17 +786,6 @@ export async function updateTotals(user_id: number, totalObject: { total_incomes
     return { successful: true };
 }
 
-
-export async function trialDates(user_id: number) {
-    return await payments.findAll({
-        attributes: ["payment_date"],
-        where: {
-            user_id
-        },
-        raw: true
-    });
-}
-
 // Get payments by date
 export async function getPayments(user_id: number, dateObject?: { initial_date: object, final_date: object }, offset?: number, limit?: number) {
     let userPayments;
@@ -806,9 +795,6 @@ export async function getPayments(user_id: number, dateObject?: { initial_date: 
             betweenCondition = [dateObject.initial_date, dateObject.final_date];
         }
 
-        console.log(dateObject);
-        
-
         userPayments = await payments.findAll({
             offset,
             limit,
@@ -816,18 +802,22 @@ export async function getPayments(user_id: number, dateObject?: { initial_date: 
                 user_id,
                 payment_date: {
                     [Op.between]: betweenCondition
-                }                
+                }
             },
+            order: [["payment_date", "ASC"]],
+            include: [
+                { attributes: ["salary"], model: salaries },
+                { attributes: ["name"], model: payments_periods }
+            ],
             raw: true
         });
+
 
         if (userPayments.length === 0) {
             return { successful: false, error: "No payrolls found." };
         }
 
     } catch (error) {
-        console.log(error);
-
         return { successful: false, error: "Query error." };
     }
 

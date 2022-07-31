@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { newOutcomeData } from "../util/objects";
-import { createUserIdCondition } from "../controllers/payroll";
+import { createIdCondition } from "../controllers/payroll";
 const { outcomes, outcomes_users, pre_payments } = require("../database/models/index");
 
 interface entryObj {
@@ -127,7 +127,7 @@ export async function getNewOutcomeId() {
     return parseInt(max);
 }
 
-export async function getOutcomes(userId: number) {
+export async function getCurrentOutcomesUsers(userId: number) {
     let outcomesData;
 
     try {
@@ -224,4 +224,24 @@ export async function assignOutcome(user_id: number, outcome_id: number, counter
         amount,
         automatic
     });
+}
+
+export async function getOutcomes(idArray: number[]) {
+    const idCondition = createIdCondition(idArray);
+
+    let outcomesArray;
+    try {
+        outcomesArray = await outcomes.findAll({
+            attributes: ["name", "automatic"],
+            where: {
+                [Op.or]: idCondition
+            },
+            raw: true
+        });
+
+    } catch (error) {
+        return { successful: false, error: "Query error at outcomes." };
+    }
+
+    return { successful: true, outcomesArray };
 }

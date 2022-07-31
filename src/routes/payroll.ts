@@ -2,17 +2,17 @@ import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
 import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
-import { createIncome, createUserIncome, getNewIncomeId, getAllUsersIncomes, updateIncomesArray, getIncomes } from "../controllers/incomes";
-import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes, updateOutcomesArray, getOutcomes } from "../controllers/outcomes";
+import { createIncome, createUserIncome, getNewIncomeId, getAllUsersIncomes, updateIncomesArray, getCurrentIncomesUsers } from "../controllers/incomes";
+import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes, updateOutcomesArray, getCurrentOutcomesUsers } from "../controllers/outcomes";
 import {
     getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments, calculatePayroll,
     bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId, updatePaymentPeriod,
-    getPayments, trialDates
+    getPayments
 } from "../controllers/payroll";
+import { buildReportObject } from "../controllers/reports";
 
 import { getAllUsersDataRaw, getUserData } from "../controllers/users";
 import { inRange, showing } from "../controllers/general";
-import { json } from "sequelize/types";
 
 const router = express.Router();
 
@@ -94,6 +94,60 @@ router.get("/calculate/global", async (req, res) => {
     return res.status(200).send({ globalPayrollTotal: globalPayrollObject.globalPayrollTotal });
 });
 
+// Get individual payroll BY DATE 
+router.get("/reports/:user_id", async (req, res) => {
+    let { initial_date, final_date } = req.body;
+    const { user_id } = req.params;
+
+    // Check for offset and limit -- pagination
+    let offset = 0, limit = 10;
+    if (req.query.limit) {
+        // @ts-ignore: Unreachable code error
+        limit = parseInt(req.query["limit"]);
+    }
+
+    if (req.query.offset) {
+        // @ts-ignore: Unreachable code error
+        offset = parseInt(req.query["offset"]);
+    }
+
+    // Parse dates
+    initial_date = new Date(initial_date), final_date = new Date(final_date);
+
+    // Query payments table
+    const paymentsObject = await getPayments(parseInt(user_id), { initial_date, final_date }, offset, limit);
+    const { userPayments } = paymentsObject;
+    if (!paymentsObject.successful) {
+        // @ts-ignore: Unreachable code error
+        return res.status(400).json({ message: paymentsObject.error });
+    }
+
+    // Get user data
+    const userDataObject = await getUserData(parseInt(user_id));
+    if (!userDataObject.successful) {
+        return res.status(400).json({ message: userDataObject.error });
+    }
+
+    // Extract data 
+    const { userData } = userDataObject;
+    const payroll_schema = userData["payroll_schema.name"], payments_periods = userData["payments_period.name"];
+
+    // Get comprehensive report object
+    const reportObject = await buildReportObject({ payroll_schema, payments_periods }, userPayments);
+    if (!paymentsObject.successful) {
+        // @ts-ignore: Unreachable code error
+        return res.status(400).json({ message: paymentsObject.error });
+    }
+
+    const { reportArray } = reportObject;
+    return res.status(200).json(reportArray);
+});
+
+// MISSING - Send to email
+router.get("/reports/:user_id/send", async (req, res) => {
+    return res.status(200).json({ message: "ERRTINSMISSIN" });
+});
+
 // Query pre_payments
 // MISSING PAGINATION PARAMETERS... 
 // MUST SPECIFY 15TH OR 31TH PAYROLL... ?payroll=mid or payroll=end
@@ -165,13 +219,13 @@ router.get("/pre/:user_id", async (req, res) => {
     }
 
     // Query income
-    const incomesObject = await getIncomes(parseInt(user_id));
+    const incomesObject = await getCurrentIncomesUsers(parseInt(user_id));
     if (!incomesObject.successful) {
         return res.status(400).send({ message: incomesObject.error });
     }
 
     // Query outcome
-    const outcomesObject = await getOutcomes(parseInt(user_id));
+    const outcomesObject = await getCurrentOutcomesUsers(parseInt(user_id));
     if (!outcomesObject.successful) {
         return res.status(400).send({ message: outcomesObject.error });
     }
@@ -196,37 +250,6 @@ router.get("/pre/:user_id", async (req, res) => {
     };
 
     return res.status(200).send(finalPayrollObject);
-});
-
-// Get individual payroll BY DATE 
-router.get("/pre/reports/:user_id", async (req, res) => {
-    let { initial_date, final_date } = req.body;
-    const { user_id } = req.params;
-
-    // Check for offset and limit -- pagination
-    let offset = 0, limit = 10;
-    if (req.query.limit) {
-        // @ts-ignore: Unreachable code error
-        limit = parseInt(req.query["limit"]);
-    }
-
-    if (req.query.offset) {
-        // @ts-ignore: Unreachable code error
-        offset = parseInt(req.query["offset"]);
-    }
-
-    // Parse dates
-    initial_date = new Date(initial_date), final_date = new Date(final_date);
-
-    // Query payments table
-    const paymentsObject = await getPayments(parseInt(user_id), { initial_date, final_date }, limit, offset);
-    const { userPayments } = paymentsObject;
-    if (!paymentsObject.successful) {
-        // @ts-ignore: Unreachable code error
-        return res.status(400).json({ message: paymentsObject.error });
-    }
-
-    return res.status(200).json(userPayments);
 });
 
 // Edit prepayment values
