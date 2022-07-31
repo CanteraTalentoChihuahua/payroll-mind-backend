@@ -10,6 +10,7 @@ import {
 } from "../controllers/payroll";
 
 import { getAllUsersDataRaw, getUserData } from "../controllers/users";
+import { createIndicator } from "../controllers/indicators";
 import { inRange, showing } from "../controllers/general";
 
 const router = express.Router();
@@ -27,6 +28,16 @@ const router = express.Router();
 router.get("/calculate", async (req, res) => {
     // @ts-ignore: Unreachable code error
     const { day } = req.query;
+
+    // New indicators instance is created
+    // @ts-ignore: Unreachable code error
+    if (parseInt(day) === 1) {
+        const currentDate = new Date();
+        const indicatorsObject = await createIndicator(currentDate.getMonth() + 1, currentDate.getFullYear());
+        if (!indicatorsObject.successful) {
+            console.log(indicatorsObject.error);
+        }
+    }
 
     // Query users and check activity
     // @ts-ignore: Unreachable code error
