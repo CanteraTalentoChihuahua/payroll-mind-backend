@@ -19,7 +19,7 @@ module.exports = {
         allowNull: true
       },
       month: {
-        type: Sequelize.STRING,
+        type: Sequelize.INTEGER,
         allowNull: false
       },
       year: {
