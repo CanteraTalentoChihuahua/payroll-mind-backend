@@ -1,12 +1,13 @@
 import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
+
 import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
 import { createIncome, createUserIncome, getNewIncomeId, getAllUsersIncomes, updateIncomesArray, getIncomes } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes, updateOutcomesArray, getOutcomes } from "../controllers/outcomes";
 import {
     getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments, calculatePayroll,
-    bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId, updatePaymentPeriod, updateTotals
+    bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, getNewSalaryId, updatePaymentPeriod, updateTotals
 } from "../controllers/payroll";
 
 import { getAllUsersDataRaw, getUserData } from "../controllers/users";
@@ -32,9 +33,10 @@ router.get("/calculate", async (req, res) => {
     // New indicators instance is created
     // @ts-ignore: Unreachable code error
     if (parseInt(day) === 1) {
-        const currentDate = new Date();
-        const indicatorsObject = await createIndicator(currentDate.getMonth() + 1, currentDate.getFullYear());
+        const indicatorsObject = await createIndicator();
         if (!indicatorsObject.successful) {
+            console.log("Getting in?");
+
             console.log(indicatorsObject.error);
         }
     }

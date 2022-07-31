@@ -1,10 +1,12 @@
 import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName, getNewUserId } from "../controllers/users";
-import { createSalary, calculatePayrollMassively, getNewSalaryId, bulkInsertIntoPrePayments, calculatePartialSalary } from "../controllers/payroll";
+import { createSalary, bulkInsertIntoPrePayments, calculatePartialSalary } from "../controllers/payroll";
 import { sendPasswordChangeEmail } from "../controllers/auth";
+import { updateNewUsers } from "../controllers/indicators";
 import { generatePassword } from "../controllers/auth";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 import { Router } from "express";
+
 
 // Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
 const router = Router();
@@ -190,6 +192,12 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
         return res.status(400).json({ message: insertPrePayrollObject.error });
     }
 
+    // Update metrics 
+    const updateNewUsersObject = await updateNewUsers(newUserId);
+    if (updateNewUsersObject.successful) {
+        console.log(updateNewUsersObject.error);
+    }
+
     return res.status(201).json({ message: "User created successfully." });
 });
 
@@ -344,17 +352,6 @@ router.delete("/user/:id", privileges(Privileges.DELETE_COLLABORATORS, Privilege
     }
 
     return res.status(200).json({ message: "Successfully deleted user" });
-});
-
-router.post("/trial", async (req, res) => {
-    const { user_id, salary } = req.body;
-
-    const salaryData = await createSalary(user_id, salary);
-    if (!salaryData.successful) {
-        return res.status(500).send("Something went wrong. Unable to create salary.");
-    }
-
-    return res.status(200).send("Works");
 });
 
 export default router;

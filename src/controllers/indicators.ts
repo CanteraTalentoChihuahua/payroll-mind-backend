@@ -1,24 +1,15 @@
 const { users, indicators } = require("../database/models/index");
 const { Op } = require("sequelize");
 
-interface indicatorObject {
-    new_users: undefined
-    inactive_users: undefined | { inactive_users: Array<number> }
-    month: undefined | number,
-    year: undefined | number
-}
+export async function createIndicator() {
+    const currentDate = new Date();
 
-export async function createIndicator(month: number, year: number) {
     let indicatorStatus;
     try {
         indicatorStatus = await indicators.create({
-            month,
-            year
+            month: currentDate.getMonth() + 1,
+            year: currentDate.getFullYear()
         });
-
-        if (indicatorStatus === 0) {
-            return { successful: false, error: "Unable to create indcator row. May already exist." };
-        }
 
     } catch (error) {
         return { successful: false, error: "Creation error at indicators." };
@@ -27,9 +18,42 @@ export async function createIndicator(month: number, year: number) {
     return { successful: true };
 }
 
-export async function updateIndicators(indicatorObject: indicatorObject) {
+export async function updateNewUsers(user_id: number) {
+    console.log("GETTIN IN");
+
+
+    const currentDate = new Date();
+    const month = currentDate.getMonth() + 1, year = currentDate.getFullYear();
+
+    let newUsersObject, newUsersArray;
+    // Create newUsersArray
     try {
-        await indicators.update({ ...indicatorObject });
+        newUsersObject = await indicators.findOne({
+            where: { month, year },
+            raw: true
+        });
+
+        if (newUsersObject) {
+            const { new_users } = newUsersObject;
+
+            if (new_users) {
+                newUsersArray = new_users["new_users"];
+                newUsersArray.push(user_id);
+
+            } else {
+                newUsersArray = [user_id];
+            }
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+
+    // Update indicators
+    try {
+        await indicators.update({ new_users: { new_users: newUsersArray } }, {
+            where: { month, year }
+        }, { returning: true });
 
     } catch (error) {
         return { successful: false, error: "Unable to update indicators table." };
@@ -38,27 +62,23 @@ export async function updateIndicators(indicatorObject: indicatorObject) {
     return { successful: true };
 }
 
-// export async function getNewUsers(month: number, year: number) {
-//     let newUsers;
+export async function getNewUsers(month: number, year: number) {
+    let newUsers;
 
-//     try {
-//         newUsers = await users.findAll({
-//             offset,
-//             limit,
-//             where: {
-//                 user_id,
-//                 payment_date: {
-//                     // @ts-ignore: Unreachable code error
-//                     [Op.between]: [dateObject.initial_date, dateObject.final_date]
-//                 },
-//                 order: [["payment_date", "ASC"]]
-//             },
-//             raw: true
-//         });
+    try {
+        newUsers = await indicators.findAll({
+            attributes: ["new_users"],
+            where: {
+                month,
+                year
+            },
+            raw: true
+        });
 
-//     } catch (error) {
-//         return { successful: true, error: "Query error at users." };
-//     }
+    } catch (error) {
+        console.log(error);
+        return { successful: false, error: "Query error at users." };
+    }
 
-//     return { successful: true, newUsers };
-// }
+    return { successful: true, newUsers: newUsers[0] };
+}

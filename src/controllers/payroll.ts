@@ -214,17 +214,14 @@ export async function getNewSalaryId() {
     return parseInt(max);
 }
 
-export async function createSalary(userId: number, salary: number) {
+export async function createSalary(user_id: number, salary: number) {
     // Check if salary exists... 
     let salaryQueryResult;
 
     try {
         salaryQueryResult = await salaries.findOne({
             attributes: ["id"],
-            where: {
-                user_id: userId,
-                deletedAt: null
-            }
+            where: { user_id }
         });
 
     } catch (error) {
@@ -243,15 +240,15 @@ export async function createSalary(userId: number, salary: number) {
     let salaryCreationObject;
     try {
         salaryCreationObject = await salaries.create({
-            user_id: userId,
+            user_id,
             salary,
             date: new Date()
         }, { returning: true, raw: true });
 
         // Update user table
-        const newSalaryId = await getNewSalaryId();
-        await users.update({ salary_id: newSalaryId }, {
-            where: { id: userId }
+        const salaryData = salaryCreationObject.dataValues;
+        await users.update({ salary_id: salaryData["id"] }, {
+            where: { id: user_id }
         });
 
     } catch (error) {

@@ -1,25 +1,42 @@
 import express from "express";
 import { calculateGlobalPayroll } from "../controllers/payroll";
-// import { getNewUsers } from "../controllers/indicators ";
+import { getNewUsers, updateNewUsers } from "../controllers/indicators";
 
 const router = express.Router();
+
+router.get("/trial/:aaa", async (req, res) => {
+    const { aaa } = req.params;
+    await updateNewUsers(parseInt(aaa));
+
+    return res.status(200).json({ message: "aaa" });
+});
 
 // New users
 router.get("/new_collabs", async (req, res) => {
     // @ts-ignore: Unreachable code errors
-    const { month, year } = req.query;
+    const { month, year, counter } = req.query;
 
     if (!month && !year) {
         return res.status(400).json({ message: "Missing any of the following parameters: month, year." });
     }
 
     // Query users
-    // const newUsersObject = getNewUsers(month, year);
-    // if (!newUsersObject.successful) {
-    //     return res.status(200).json({ message: newUsersObject.error });
-    // }
+    // @ts-ignore: Unreachable code errors
+    const newUsersObject = await getNewUsers(month, year);
+    if (!newUsersObject.successful) {
+        return res.status(200).json({ message: newUsersObject.error });
+    }
 
-    // return res.status(200).send(newUsersObject.newUsers);
+    const { newUsers } = newUsersObject;
+    if (counter) {
+        // @ts-ignore: Unreachable code errors
+        const { new_users } = newUsers;
+        return res.status(200).json({
+            new_users_length: new_users["new_users"].length
+        });
+    }
+
+    return res.status(200).send(newUsersObject.newUsers);
 });
 
 // Fired users
@@ -37,3 +54,6 @@ router.get("/calculate/global", async (req, res) => {
 
     return res.status(200).send({ globalPayrollTotal: globalPayrollObject.globalPayrollTotal });
 });
+
+
+export default router;
