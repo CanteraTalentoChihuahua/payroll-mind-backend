@@ -1,12 +1,11 @@
 import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName, getNewUserId } from "../controllers/users";
 import { createSalary, bulkInsertIntoPrePayments, calculatePartialSalary } from "../controllers/payroll";
+import { updateNewUsers, updateInactiveUsers } from "../controllers/indicators";
 import { sendPasswordChangeEmail } from "../controllers/auth";
-import { updateNewUsers } from "../controllers/indicators";
 import { generatePassword } from "../controllers/auth";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 import { Router } from "express";
-
 
 // Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
 const router = Router();
@@ -280,8 +279,18 @@ router.put("/user/:id", privileges(Privileges.EDIT_ADMINS, Privileges.EDIT_COLLA
 
     // MUST BE TEXT
     if (active !== undefined) {
+        console.log(typeof active);
+
         if (![false, true].includes(active)) {
             return res.status(400).json("Invalid data sent on active. Must be true or false.");
+        }
+
+        // Register inactive user
+        if (active === false) {
+            const inactiveUsersObject = await updateInactiveUsers(parseInt(editUserId));
+            if (!inactiveUsersObject.successful) {
+                console.log(inactiveUsersObject.error);
+            }
         }
     }
 

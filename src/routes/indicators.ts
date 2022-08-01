@@ -1,6 +1,6 @@
 import express from "express";
 import { calculateGlobalPayroll } from "../controllers/payroll";
-import { getNewUsers, updateNewUsers } from "../controllers/indicators";
+import { getUserIndicators, updateNewUsers } from "../controllers/indicators";
 
 const router = express.Router();
 
@@ -11,7 +11,7 @@ router.get("/trial/:aaa", async (req, res) => {
     return res.status(200).json({ message: "aaa" });
 });
 
-// New users
+// New users and fired users
 router.get("/new_collabs", async (req, res) => {
     // @ts-ignore: Unreachable code errors
     const { month, year, counter } = req.query;
@@ -20,11 +20,17 @@ router.get("/new_collabs", async (req, res) => {
         return res.status(400).json({ message: "Missing any of the following parameters: month, year." });
     }
 
-    // Query users
+    // Query new users
     // @ts-ignore: Unreachable code errors
     const newUsersObject = await getNewUsers(month, year);
     if (!newUsersObject.successful) {
-        return res.status(200).json({ message: newUsersObject.error });
+        return res.status(400).json({ message: newUsersObject.error });
+    }
+
+    // Query inactive users
+    const inactiveUsersObject = await getInactiveUsers()
+    if (!inactiveUsersObject.successful)  {
+        return res.status(400).json({ message: inactiveUsersObject.error });
     }
 
     const { newUsers } = newUsersObject;
@@ -37,11 +43,6 @@ router.get("/new_collabs", async (req, res) => {
     }
 
     return res.status(200).send(newUsersObject.newUsers);
-});
-
-// Fired users
-router.get("/inactive_collabs", async (req, res) => {
-
 });
 
 // Payroll total per 15 or 30

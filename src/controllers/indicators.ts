@@ -19,9 +19,6 @@ export async function createIndicator() {
 }
 
 export async function updateNewUsers(user_id: number) {
-    console.log("GETTIN IN");
-
-
     const currentDate = new Date();
     const month = currentDate.getMonth() + 1, year = currentDate.getFullYear();
 
@@ -62,12 +59,53 @@ export async function updateNewUsers(user_id: number) {
     return { successful: true };
 }
 
-export async function getNewUsers(month: number, year: number) {
+export async function updateInactiveUsers(user_id: number) {
+    const currentDate = new Date();
+    const month = currentDate.getMonth() + 1, year = currentDate.getFullYear();
+
+    let inactiveUsersObject, inactiveUsersArray;
+    // Create newUsersArray
+    try {
+        inactiveUsersObject = await indicators.findOne({
+            where: { month, year },
+            raw: true
+        });
+
+        if (inactiveUsersObject) {
+            const { inactive_users } = inactiveUsersObject;
+            
+            if (inactive_users) {
+                inactiveUsersArray = inactive_users["inactive_users"];
+                inactiveUsersArray.push(user_id);
+
+            } else {
+                inactiveUsersArray = [user_id];
+            }
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+
+    // Update indicators
+    try {
+        await indicators.update({ inactive_users: { inactive_users: inactiveUsersArray } }, {
+            where: { month, year }
+        }, { returning: true });
+
+    } catch (error) {
+        return { successful: false, error: "Unable to update indicators table." };
+    }
+
+    return { successful: true };
+}
+
+export async function getUserIndicators(month: number, year: number) {
     let newUsers;
 
     try {
         newUsers = await indicators.findAll({
-            attributes: ["new_users"],
+            attributes: ["new_users", "inactive_users"],
             where: {
                 month,
                 year
@@ -75,6 +113,8 @@ export async function getNewUsers(month: number, year: number) {
             raw: true
         });
 
+        console.log(newUsers);
+        
     } catch (error) {
         console.log(error);
         return { successful: false, error: "Query error at users." };
