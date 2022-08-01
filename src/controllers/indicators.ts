@@ -73,7 +73,7 @@ export async function updateInactiveUsers(user_id: number) {
 
         if (inactiveUsersObject) {
             const { inactive_users } = inactiveUsersObject;
-            
+
             if (inactive_users) {
                 inactiveUsersArray = inactive_users["inactive_users"];
                 inactiveUsersArray.push(user_id);
@@ -101,10 +101,10 @@ export async function updateInactiveUsers(user_id: number) {
 }
 
 export async function getUserIndicators(month: number, year: number) {
-    let newUsers;
+    let usersIndicators;
 
     try {
-        newUsers = await indicators.findAll({
+        usersIndicators = await indicators.findAll({
             attributes: ["new_users", "inactive_users"],
             where: {
                 month,
@@ -113,12 +113,14 @@ export async function getUserIndicators(month: number, year: number) {
             raw: true
         });
 
-        console.log(newUsers);
-        
+        if (usersIndicators.length === 0) {
+            return { successful: true, usersIndicators: [] };
+        }
+
     } catch (error) {
         console.log(error);
         return { successful: false, error: "Query error at users." };
     }
 
-    return { successful: true, newUsers: newUsers[0] };
+    return { successful: true, usersIndicators: usersIndicators[0] };
 }

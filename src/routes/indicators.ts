@@ -12,7 +12,7 @@ router.get("/trial/:aaa", async (req, res) => {
 });
 
 // New users and fired users
-router.get("/new_collabs", async (req, res) => {
+router.get("/users_indicator", async (req, res) => {
     // @ts-ignore: Unreachable code errors
     const { month, year, counter } = req.query;
 
@@ -22,27 +22,35 @@ router.get("/new_collabs", async (req, res) => {
 
     // Query new users
     // @ts-ignore: Unreachable code errors
-    const newUsersObject = await getNewUsers(month, year);
-    if (!newUsersObject.successful) {
-        return res.status(400).json({ message: newUsersObject.error });
+    const usersIndicatorObject = await getUserIndicators(month, year);
+    if (!usersIndicatorObject.successful) {
+        return res.status(400).json({ message: usersIndicatorObject.error });
     }
 
-    // Query inactive users
-    const inactiveUsersObject = await getInactiveUsers()
-    if (!inactiveUsersObject.successful)  {
-        return res.status(400).json({ message: inactiveUsersObject.error });
-    }
+    const { usersIndicators } = usersIndicatorObject;
+    const indicatorObject = {
+        new_users: 0,
+        inactive_users: 0
+    };
 
-    const { newUsers } = newUsersObject;
-    if (counter) {
+    if (counter && usersIndicators.length !== []) {
         // @ts-ignore: Unreachable code errors
-        const { new_users } = newUsers;
-        return res.status(200).json({
-            new_users_length: new_users["new_users"].length
-        });
+        const { new_users, inactive_users } = usersIndicators;
+
+        try {
+            indicatorObject["new_users"] = new_users["new_users"].length;
+        } catch (error) {
+            console.log("No new users.");
+        }
+
+        try {
+            indicatorObject["inactive_users"] = inactive_users["inactive_users"].length;
+        } catch (error) {
+            console.log("No new inactive users.");
+        }
     }
 
-    return res.status(200).send(newUsersObject.newUsers);
+    return res.status(200).send(indicatorObject);
 });
 
 // Payroll total per 15 or 30
