@@ -12,7 +12,7 @@ router.get("/trial/:aaa", async (req, res) => {
 });
 
 // New users and fired users
-router.get("/users_indicator", async (req, res) => {
+router.get("/users", async (req, res) => {
     // @ts-ignore: Unreachable code errors
     const { month, year, counter } = req.query;
 
