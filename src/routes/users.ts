@@ -1,4 +1,4 @@
-import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName, getNewUserId } from "../controllers/users";
+import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName } from "../controllers/users";
 import { createSalary, bulkInsertIntoPrePayments, calculatePartialSalary } from "../controllers/payroll";
 import { updateNewUsers, updateInactiveUsers } from "../controllers/indicators";
 import { sendPasswordChangeEmail } from "../controllers/auth";
