@@ -1,10 +1,13 @@
-import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName, getNewUserId } from "../controllers/users";
-import { createSalary, calculatePayrollMassively, getNewSalaryId, bulkInsertIntoPrePayments, calculatePartialSalary } from "../controllers/payroll";
+import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName } from "../controllers/users";
+import { createSalary, bulkInsertIntoPrePayments, calculatePartialSalary } from "../controllers/payroll";
 import { sendPasswordChangeEmail } from "../controllers/auth";
 import { generatePassword } from "../controllers/auth";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 import { Router } from "express";
+import fs from "fs";
+
+
 
 // Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
 const router = Router();
@@ -347,7 +350,41 @@ router.delete("/user/:id", privileges(Privileges.DELETE_COLLABORATORS, Privilege
 });
 
 router.post("/massive/users", async (req, res) => {
+    // @ts-ignore: Unreachable code errors
+    const { file } = req.params;
+    console.log(file);
 
+
+    // const file = req.file;
+
+    // // @ts-ignore: Unreachable code error
+    // const data = fs.readFileSync(file.path);
+    // // @ts-ignore: Unreachable code error
+    // parse(data, (err, records) => {
+    //     if (err) {
+    //         console.error(err);
+    //         return res.status(400).json({ success: false, message: "An error occurred." });
+    //     }
+
+    //     return res.json({ data: records });
+    // });
+
+    // @ts-ignore: Unreachable code error
+    // const csvData = [];
+    // // @ts-ignore: Unreachable code error
+    // fs.createReadStream(req.file.path)
+    //     .pipe(parse({ delimiter: ":" }))
+    //     // @ts-ignore: Unreachable code error
+    //     .on("data", function (csvrow) {
+    //         console.log(csvrow);
+    //         //do something with csvrow
+    //         csvData.push(csvrow);
+    //     })
+    //     .on("end", function () {
+    //         //do something with csvData
+    //         // @ts-ignore: Unreachable code error
+    //         console.log(csvData);
+    //     });
 });
 
 export default router;
