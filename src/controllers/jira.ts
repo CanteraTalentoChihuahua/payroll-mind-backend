@@ -22,6 +22,13 @@ export async function onInstalledCallback(url: string, clientKey: string, shared
     });
 }
 
+function createJiraToken(method: string, basePath: string, queryParams: string): string {
+    return `JWT ${sign({ qsh: createHash("sha256").update(`${method}&${basePath}&${queryParams}`).digest("hex") }, env["JIRA_SECRET"]!, {
+        issuer: "tech.mindfinances.payrolljira",
+        expiresIn: "30m"
+    })}`;
+}
+
 export async function fetchStoryPointsOfPeriod(startDate: Date, endDate: Date) {
     const method = "GET";
     const basePath = "/rest/api/2/search";
