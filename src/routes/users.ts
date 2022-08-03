@@ -5,11 +5,12 @@ import { generatePassword } from "../controllers/auth";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 import { Router } from "express";
+import multer from "multer";
 import fs from "fs";
+import os from "os";
 
-
-
-// Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
+const parse = require("csv-parse").parse;
+const upload = multer({ dest: os.tmpdir() });
 const router = Router();
 
 router.get("/users", privileges(Privileges.READ_USERS, Privileges.READ_COLLABORATORS), async (req, res) => {
@@ -347,6 +348,23 @@ router.delete("/user/:id", privileges(Privileges.DELETE_COLLABORATORS, Privilege
     }
 
     return res.status(200).json({ message: "Successfully deleted user" });
+});
+
+
+router.post("/user/read", upload.single("file"), (req, res) => {
+    const file = req.file;
+
+    // @ts-ignore: Unreachable code error
+    const data = fs.readFileSync(file.path);
+    // @ts-ignore: Unreachable code error
+    parse(data, (err, records) => {
+        if (err) {
+            console.error(err);
+            return res.status(400).json({ success: false, message: "An error occurred" });
+        }
+
+        return res.json({ data: records });
+    });
 });
 
 router.post("/massive/users", async (req, res) => {
