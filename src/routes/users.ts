@@ -1,5 +1,6 @@
 import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName } from "../controllers/users";
 import { createSalary, bulkInsertIntoPrePayments, calculatePartialSalary } from "../controllers/payroll";
+import { updateNewUsers, updateInactiveUsers } from "../controllers/indicators";
 import { sendPasswordChangeEmail } from "../controllers/auth";
 import { generatePassword } from "../controllers/auth";
 import privileges from "../middleware/privileges";
@@ -194,6 +195,12 @@ router.post("/user", privileges(Privileges.CREATE_ADMINS, Privileges.CREATE_COLL
         return res.status(400).json({ message: insertPrePayrollObject.error });
     }
 
+    // Update metrics 
+    const updateNewUsersObject = await updateNewUsers(newUserId);
+    if (updateNewUsersObject.successful) {
+        console.log(updateNewUsersObject.error);
+    }
+
     return res.status(201).json({ message: "User created successfully." });
 });
 
@@ -276,8 +283,18 @@ router.put("/user/:id", privileges(Privileges.EDIT_ADMINS, Privileges.EDIT_COLLA
 
     // MUST BE TEXT
     if (active !== undefined) {
+        console.log(typeof active);
+
         if (![false, true].includes(active)) {
             return res.status(400).json("Invalid data sent on active. Must be true or false.");
+        }
+
+        // Register inactive user
+        if (active === false) {
+            const inactiveUsersObject = await updateInactiveUsers(parseInt(editUserId));
+            if (!inactiveUsersObject.successful) {
+                console.log(inactiveUsersObject.error);
+            }
         }
     }
 

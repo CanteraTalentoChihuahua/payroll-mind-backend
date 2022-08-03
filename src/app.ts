@@ -1,4 +1,5 @@
 import businessUnitsRouter from "./routes/businessUnits";
+import indicatorsRouter from "./routes/indicators";
 import payrollRouter from "./routes/payroll";
 import outcomeRouter from "./routes/outcomes";
 import incomeRouter from "./routes/incomes";
@@ -45,6 +46,7 @@ app.get("/", (_req, res) => {
 
 // Should we add /users to users? Got to eliminate the from the route
 app.use("/api/businessunits", businessUnitsRouter);
+app.use("/api/indicators", indicatorsRouter);
 app.use("/api/payroll", payrollRouter);
 app.use("/api/info", infoRouter);
 app.use("/api", outcomeRouter);

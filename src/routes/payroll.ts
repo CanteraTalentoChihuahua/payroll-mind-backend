@@ -1,15 +1,17 @@
 import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
+
 import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
 import { createIncome, createUserIncome, getNewIncomeId, getAllUsersIncomes, updateIncomesArray, getIncomes } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes, updateOutcomesArray, getOutcomes } from "../controllers/outcomes";
 import {
     getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments, calculatePayroll,
-    bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId, updatePaymentPeriod, updateTotals
+    bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, getNewSalaryId, updatePaymentPeriod, updateTotals
 } from "../controllers/payroll";
 
 import { getAllUsersDataRaw, getUserData } from "../controllers/users";
+import { createIndicator } from "../controllers/indicators";
 import { inRange, showing } from "../controllers/general";
 
 const router = express.Router();
@@ -27,6 +29,17 @@ const router = express.Router();
 router.get("/calculate", async (req, res) => {
     // @ts-ignore: Unreachable code error
     const { day } = req.query;
+
+    // New indicators instance is created
+    // @ts-ignore: Unreachable code error
+    if (parseInt(day) === 1) {
+        const indicatorsObject = await createIndicator();
+        if (!indicatorsObject.successful) {
+            console.log("Getting in?");
+
+            console.log(indicatorsObject.error);
+        }
+    }
 
     // Query users and check activity
     // @ts-ignore: Unreachable code error
@@ -80,16 +93,6 @@ router.get("/calculate", async (req, res) => {
         comprehensivePayrollObject,
         brutePayrollObject
     });
-});
-
-// Calculate global
-router.get("/calculate/global", async (req, res) => {
-    const globalPayrollObject = await calculateGlobalPayroll();
-    if (!globalPayrollObject.successful) {
-        return res.status(400).json({ message: globalPayrollObject.error });
-    }
-
-    return res.status(200).send({ globalPayrollTotal: globalPayrollObject.globalPayrollTotal });
 });
 
 // Query pre_payments
