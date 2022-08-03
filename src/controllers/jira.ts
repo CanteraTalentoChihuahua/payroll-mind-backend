@@ -2,7 +2,7 @@ import { env } from "process";
 import { sign } from "jsonwebtoken";
 import { createHash } from "crypto";
 import axios from "axios";
-const { JiraConnection } = require("../database/models/index");
+const { JiraConnection, users } = require("../database/models/index");
 const baseURL = `https://${env["JIRA_INSTANCE"]}`;
 
 interface Issue {
@@ -12,6 +12,10 @@ interface Issue {
         } | null,
         customfield_10016: number | null
     }
+}
+
+interface AccountData {
+    accountId: string
 }
 
 export async function onInstalledCallback(url: string, clientKey: string, sharedSecret: string) {
@@ -36,10 +40,7 @@ export async function fetchStoryPointsOfPeriod(startDate: Date, endDate: Date) {
 
     const issuesList = (await axios.get(`${basePath}?${queryParams}`, {
         headers: {
-            Authorization: `JWT ${sign({ qsh: createHash("sha256").update(`${method}&${basePath}&${queryParams}`).digest("hex") }, env["JIRA_SECRET"]!, {
-                issuer: "tech.mindfinances.payrolljira",
-                expiresIn: "30m"
-            })}`
+            Authorization: createJiraToken(method, basePath, queryParams)
         },
         baseURL
     })).data.issues;
@@ -51,4 +52,34 @@ export async function fetchStoryPointsOfPeriod(startDate: Date, endDate: Date) {
         }
     });
     return userPoints;
+}
+
+export async function linkJiraAccountByUserId(userId: number) {
+    const method = "GET";
+    const basePath = "/rest/api/3/user/search";
+
+    const userData = await users.findByPk(userId);
+
+    if (userData === null) {
+        throw "Not found in payroll";
+    }
+
+    const queryParams = `query=${userData.email}`;
+
+    const jiraAccountsData: AccountData[] = (await axios.get(`${basePath}?${queryParams}`, {
+        headers: {
+            Authorization: createJiraToken(method, basePath, queryParams)
+        },
+        baseURL
+    })).data;
+
+    if (jiraAccountsData.length === 0) {
+        throw "Not found in Jira";
+    }
+
+    if (jiraAccountsData.length > 1) {
+        throw "Multiple users with same email";
+    }
+
+    await users.update({atlassianId: jiraAccountsData[0].accountId}, {where: {id: userId}});
 }
