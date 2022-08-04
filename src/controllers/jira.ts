@@ -64,7 +64,7 @@ export async function linkJiraAccountByUserId(userId: number) {
         throw "Not found in payroll";
     }
 
-    const queryParams = `query=${userData.email}`;
+    const queryParams = `query=${(userData.email as string).replace("@", "%40")}`;
 
     const jiraAccountsData: AccountData[] = (await axios.get(`${basePath}?${queryParams}`, {
         headers: {
