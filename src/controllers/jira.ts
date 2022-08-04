@@ -51,7 +51,16 @@ export async function fetchStoryPointsOfPeriod(startDate: Date, endDate: Date) {
             userPoints[issue.fields.assignee.accountId] = (userPoints[issue.fields.assignee.accountId] ?? 0) + (issue.fields.customfield_10016 ?? 0);
         }
     });
-    return userPoints;
+
+    const payrollUserPoints: {[key: number]: number} = {};
+    for (const entry of Object.entries(userPoints)) {
+        const payrollUser = await users.findOne({where:{atlassianId: entry[0]}});
+
+        if (payrollUser) {
+            payrollUserPoints[payrollUser.id] = entry[1];
+        }
+    }
+    return payrollUserPoints;
 }
 
 export async function linkJiraAccountByUserId(userId: number) {
