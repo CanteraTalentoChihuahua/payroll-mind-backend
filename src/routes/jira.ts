@@ -15,4 +15,20 @@ router.post("/installed", async (req, res) => {
     res.sendStatus(204);
 });
 
+router.post("/link", async (req, res) => {
+    const {userId} = req.body;
+
+    if (!userId || Number.isNaN(parseInt(userId))) {
+        return res.sendStatus(400);
+    }
+
+    try {
+        await c.linkJiraAccountByUserId(parseInt(userId));
+    } catch {
+        return res.sendStatus(500);
+    }
+
+    res.sendStatus(204);
+});
+
 export default router;
