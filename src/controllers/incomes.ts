@@ -272,7 +272,7 @@ export async function assignIncome(user_id: number, income_id: number, counter: 
         counter,
         amount,
         automatic
-    });
+    }, {returning: false});
 }
 
 export async function assignBonusByStoryPoints() {
