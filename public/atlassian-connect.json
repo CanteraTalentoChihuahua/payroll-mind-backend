@@ -12,11 +12,5 @@
   "scopes": [
     "read"
   ],
-  "webhooks": [
-    {
-      "event": "jira:issue_updated",
-      "url": "/issue/updated"
-    }
-  ],
   "apiVersion": 1
 }
