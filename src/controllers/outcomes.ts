@@ -1,7 +1,7 @@
 import { Op } from "sequelize";
 import { newOutcomeData } from "../util/objects";
 import { createUserIdCondition } from "../controllers/payroll";
-const { outcomes, outcomes_users } = require("../database/models/index");
+const { outcomes, outcomes_users, pre_payments } = require("../database/models/index");
 
 interface entryObj {
     name: string, automatic: boolean, active: boolean
@@ -23,16 +23,16 @@ export async function createOutcome(outcomeData: entryObj) {
         });
 
     } catch (error) {
-        return { successful: false };
+        return { successful: false, error: "Unable to create outcome. Might be repeated." };
     }
 
     return { successful: true };
 }
 
-export async function createUserOutcome(userId: number, outcomeUserData: newOutcomeData) {
+export async function createUserOutcome(user_id: number, outcomeUserData: { outcome_id: number, amount: number | undefined, automatic: boolean | undefined, counter: number | undefined }) {
     let outcomesData;
 
-    // Check if outcome exists
+    // Check if income exists, income_id might be wrong...
     try {
         outcomesData = await outcomes.findOne({
             attributes: ["name", "automatic"],
@@ -44,35 +44,82 @@ export async function createUserOutcome(userId: number, outcomeUserData: newOutc
         });
 
         if (!outcomesData) {
-            return { successful: false, found: false };
+            return { successful: false, error: `No income under outcome_id: ${outcomeUserData.outcome_id}.` };
         }
 
     } catch (error) {
-        return { successful: false };
+        return { successful: false, error: "Query error." };
     }
 
-    // Outcome entry exist, check if outcomeUsers exist
-    const updateObj = { counter: outcomeUserData.counter, amount: outcomeUserData.amount };
-    const entryResult = await outcomes_users.update(updateObj, {
-        where: {
-            outcome_id: outcomeUserData.outcome_id,
-            user_id: userId
-        }
-    });
-
-    // Does not exists, create outcomeUsers entry
-    if (entryResult[0] === 0) {
-        await outcomes_users.create({
-            user_id: userId,
-            ...outcomeUserData,
-            createdAt: new Date(),
-            updatedAt: null
+    // Income entry exist, check if incomeUsers exist
+    let entryResult;
+    try {
+        entryResult = await outcomes_users.update({ ...outcomeUserData }, {
+            where: {
+                outcome_id: outcomeUserData.outcome_id,
+                user_id
+            }
         });
+
+    } catch (error) {
+        return { successful: false, error: "Query error." };
+    }
+
+    // Does not exist, create incomeUsers entry
+    if (entryResult[0] === 0) {
+        try {
+            await outcomes_users.create({
+                user_id,
+                ...outcomeUserData,
+                createdAt: new Date()
+            }, { returning: false });
+
+        } catch (error) {
+            return { successful: false, error: "Unable to create outcomes_users entry." };
+        }
 
         return { successful: true };
     }
 
     return { successful: true, updated: true };
+}
+
+// For prepayments
+export async function updateOutcomesArray(user_id: number) {
+    let outcomesData;
+    try {
+        outcomesData = await outcomes_users.findAll({
+            attributes: ["outcome_id"],
+            where: {
+                user_id
+            },
+            raw: true
+        });
+
+        if (!outcomesData) {
+            return { successful: false, error: "No outcomes found." };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Query error." };
+    }
+
+    // @ts-ignore: Unreachable code error
+    const outcomesIdArray = outcomesData.map((outcome) => {
+        const { outcome_id } = outcome;
+        return outcome_id;
+    });
+
+    try {
+        await pre_payments.update({ outcomes: { outcomes: outcomesIdArray } }, {
+            where: { user_id }
+        });
+
+    } catch (error) {
+        return { successful: false, error: "Could not update outcomes array." };
+    }
+
+    return { successful: true, outcomesData };
 }
 
 export async function getNewOutcomeId() {
@@ -112,15 +159,12 @@ export async function getOutcomes(userId: number) {
     return { successful: true, outcomesData };
 }
 
-export async function getAllUsersOutcomes(idRange: number[]) {
+export async function getAllUsersOutcomes() {
     let outcomesData;
-    const finalIdList = createUserIdCondition(idRange);
-
     try {
         outcomesData = await outcomes_users.findAll({
             attributes: ["user_id", "outcome_id", "counter", "amount"],
             where: {
-                [Op.or]: finalIdList,
                 deletedAt: null
             },
             include: {

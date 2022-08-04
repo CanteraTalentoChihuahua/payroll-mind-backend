@@ -81,9 +81,11 @@ router.delete("/incomes", async (req, res) => {
     res.sendStatus(204);
 });
 
-router.post("/incomes/assign", async (req, res) => {
-    const { user_id, income_id, counter, amount, automatic } = req.body;
+router.post("/incomes/assign/:user_id", async (req, res) => {
+    const { income_id, counter, amount, automatic } = req.body;
+    const { user_id } = req.query;
 
+    // @ts-ignore: Unreachable code error
     if (!user_id || Number.isNaN(parseInt(user_id))) {
         return res.status(400).json({ message: "Missing or invalid user id" });
     }
@@ -105,13 +107,14 @@ router.post("/incomes/assign", async (req, res) => {
     }
 
     try {
+        // @ts-ignore: Unreachable code error
         await c.assignIncome(user_id, income_id, counter, amount, automatic);
     } catch (e) {
         console.dir(e);
         return res.status(500).send(e);
     }
 
-    res.sendStatus(204);
+    return res.status(200).json({ message: `Successfully assigned income to user: ${user_id}` });
 });
 
 export default router;
