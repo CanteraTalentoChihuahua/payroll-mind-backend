@@ -214,6 +214,18 @@ export async function getNewSalaryId() {
     return parseInt(max);
 }
 
+export async function simpleCreateSalary(user_id: number, salary: number) {
+    const creationData = await salaries.create({
+        user_id,
+        salary
+    }, { returning: true });
+
+    await users.update({ salary_id: creationData.id }, {
+        where: { id: user_id }
+    });
+}
+
+
 export async function createSalary(user_id: number, salary: number) {
     // Check if salary exists... 
     let salaryQueryResult;

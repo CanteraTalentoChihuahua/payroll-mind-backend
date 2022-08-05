@@ -80,10 +80,6 @@ module.exports = {
                 allowNull: false,
                 unique: true
             },
-            token: {
-                type: Sequelize.STRING,
-                allowNull: true
-            },
             payroll_schema_id: {
                 type: Sequelize.INTEGER,
                 allowNull: false

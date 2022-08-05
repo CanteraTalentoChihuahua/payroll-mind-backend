@@ -1,4 +1,6 @@
+import { generatePassword } from "../controllers/auth";
 import { NewUserData } from "../util/objects";
+import { simpleCreateSalary, } from "./payroll";
 import { hash } from "bcrypt";
 
 const { Op } = require("sequelize");
@@ -6,7 +8,7 @@ const sqlz = require("sequelize").Sequelize;
 const { users: user,
     roles,
     business_units: businessUnits,
-    pre_payments, salaries, payments_periods, payroll_schemas } = require("../database/models/index");
+    salaries, payments_periods, payroll_schemas } = require("../database/models/index");
 
 const attributesList = [
     "id",
@@ -295,4 +297,56 @@ export async function getRoleName(id: number) {
 export async function getNewUserId() {
     const max = await user.max("id");
     return parseInt(max);
+}
+
+
+// 
+export async function bulkInsertIntoUsers(userArray: unknown) {
+    // @ts-ignore: Unreachable code error
+    for (element in userArray) {
+        // @ts-ignore: Unreachable code error
+        const currentUser = userArray[element];
+
+        // Check optional values - second_name, second_last_name, privileges
+        currentUser[0] === "x" ? currentUser[0] = null : null;
+        currentUser[1] === "x" ? currentUser[1] = null : null;
+        currentUser[9] === "x" ? currentUser[9] = null : null;
+
+        // Parse birthday
+        const birthSplit = currentUser[5].split("/");
+        const birthday = new Date(birthSplit[0], birthSplit[1], birthSplit[2]);
+
+        // Generate randomly and encrypt password
+        const password = await generatePassword(30);
+
+        // Parse business_unit
+        const business_unit = { "business_unit_ids": [currentUser[11]] }
+
+        // Parse salary
+        const salary = parseFloat(currentUser[13]);
+
+        // Insert into users...
+        const newUserData = await user.create({
+            first_name: currentUser[0],
+            second_name: currentUser[1],
+            last_name: currentUser[2],
+            second_last_name: currentUser[3],
+            birthday,
+            email: currentUser[5],
+            password,
+            phone_number: currentUser[7],
+            role_id: currentUser[8],
+            privileges: { "privileges": [currentUser[9]] },
+            payments_period_id: currentUser[10],
+            business_unit,
+            on_leave: currentUser[12],
+            active: currentUser[13],
+            bank: currentUser[15],
+            CLABE: currentUser[16],
+            payroll_schema_id: currentUser[17]
+        }, { returning: true });
+
+        // Create salary
+        await simpleCreateSalary(newUserData.id, salary);
+    }
 }
