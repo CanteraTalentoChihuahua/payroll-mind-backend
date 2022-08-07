@@ -367,28 +367,24 @@ router.delete("/user/:id", privileges(Privileges.DELETE_COLLABORATORS, Privilege
 });
 
 
-router.post("/user/read", upload.single("file"), async (req, res) => {
+router.post("/users/upload", upload.single("file"), async (req, res) => {
     const file = req.file;
-    let dataToInsert;
 
     // @ts-ignore: Unreachable code error
     const data = fs.readFileSync(file.path);
-    // @ts-ignore: Unreachable code error
-    parse(data, (err, records) => {
-        if (err) {
-            console.error(err);
-            return res.status(400).json({ success: false, message: "An error occurred." });
-        }
 
-        dataToInsert = records;
+    // @ts-ignore: Unreachable code error
+    await parse(data, async (err, records) => {
+        // Insert into users
+        try {
+            await bulkInsertIntoUsers(records);
+
+        } catch (error) {
+            console.log(error);
+            return res.status(400).json({ message: "An error occurred." });
+        }
     });
 
-    // Remove first element
-    // @ts-ignore: Unreachable code error
-    dataToInsert.shift();
-
-    // Call bulk insert
-    await bulkInsertIntoUsers(dataToInsert);
     return res.status(200).json({ message: "Successfully created users." });
 });
 

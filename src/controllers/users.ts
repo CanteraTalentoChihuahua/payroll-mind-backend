@@ -302,28 +302,26 @@ export async function getNewUserId() {
 
 // 
 export async function bulkInsertIntoUsers(userArray: unknown) {
+    // Remove first element
     // @ts-ignore: Unreachable code error
-    for (element in userArray) {
+    userArray.shift();
+
+    // @ts-ignore: Unreachable code error
+    for (const element in userArray) {
         // @ts-ignore: Unreachable code error
         const currentUser = userArray[element];
 
         // Check optional values - second_name, second_last_name, privileges
-        currentUser[0] === "x" ? currentUser[0] = null : null;
         currentUser[1] === "x" ? currentUser[1] = null : null;
+        currentUser[3] === "x" ? currentUser[3] = null : null;
         currentUser[9] === "x" ? currentUser[9] = null : null;
 
-        // Parse birthday
-        const birthSplit = currentUser[5].split("/");
-        const birthday = new Date(birthSplit[0], birthSplit[1], birthSplit[2]);
+        // Format boolean values
+        currentUser[12] === "FALSE" ? currentUser[12] = false : currentUser[12] = true;
+        currentUser[13] === "FALSE" ? currentUser[13] = false : currentUser[13] = true;
 
         // Generate randomly and encrypt password
         const password = await generatePassword(30);
-
-        // Parse business_unit
-        const business_unit = { "business_unit_ids": [currentUser[11]] }
-
-        // Parse salary
-        const salary = parseFloat(currentUser[13]);
 
         // Insert into users...
         const newUserData = await user.create({
@@ -331,14 +329,14 @@ export async function bulkInsertIntoUsers(userArray: unknown) {
             second_name: currentUser[1],
             last_name: currentUser[2],
             second_last_name: currentUser[3],
-            birthday,
+            birthday: String(new Date(currentUser[4])),
             email: currentUser[5],
-            password,
+            password: await hash(password, 10),
             phone_number: currentUser[7],
             role_id: currentUser[8],
             privileges: { "privileges": [currentUser[9]] },
-            payments_period_id: currentUser[10],
-            business_unit,
+            payment_period_id: currentUser[10],
+            business_unit: { "business_unit_ids": [currentUser[11]] },
             on_leave: currentUser[12],
             active: currentUser[13],
             bank: currentUser[15],
@@ -347,6 +345,6 @@ export async function bulkInsertIntoUsers(userArray: unknown) {
         }, { returning: true });
 
         // Create salary
-        await simpleCreateSalary(newUserData.id, salary);
+        await simpleCreateSalary(newUserData.id, parseFloat(currentUser[14]));
     }
 }

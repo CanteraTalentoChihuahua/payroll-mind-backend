@@ -217,7 +217,8 @@ export async function getNewSalaryId() {
 export async function simpleCreateSalary(user_id: number, salary: number) {
     const creationData = await salaries.create({
         user_id,
-        salary
+        salary,
+        date: String(new Date())
     }, { returning: true });
 
     await users.update({ salary_id: creationData.id }, {
