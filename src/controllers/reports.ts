@@ -1,4 +1,4 @@
-import { getIncomes } from "./incomes";
+import { getIncomes, getUsersIncomes } from "./incomes";
 import { getOutcomes } from "./outcomes";
 
 export async function buildReportObject(additionalData: unknown, paymentsArray: unknown) {
@@ -13,7 +13,7 @@ export async function buildReportObject(additionalData: unknown, paymentsArray: 
         const { incomes } = currentPayment["incomes"];
 
         // Query incomes
-        const incomesObject = await getIncomes(incomes);
+        const incomesObject = await getUsersIncomes(incomes);
         if (!incomesObject.successful) {
             if (!incomesObject.error) {
                 return { successful: false, error: incomesObject.error };

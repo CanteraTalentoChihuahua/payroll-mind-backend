@@ -120,6 +120,36 @@ export async function getAllUsersIncomes() {
     return { successful: true, incomesData };
 }
 
+export async function getUsersIncomes(incomesArray: Array<number>) {
+    const idCondition = createIdCondition(incomesArray);
+
+    try {
+        incomesArray = await incomes_users.findAll({
+            attributes: ["income_id", "counter", "amount"],
+            where: {
+                [Op.or]: idCondition
+            },
+            include: {
+                attributes: ["name", "automatic"],
+                model: incomes,
+                where: {
+                    active: true
+                }
+            },
+            raw: true
+        });
+
+        if (!incomesArray) {
+            return { successful: false, error: "No incomes_user found." };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Invalid query." };
+    }
+
+    return { successful: true, incomesArray };
+}
+
 export async function getAllIncomes(): Promise<unknown[]> {
     return await incomes.findAll({
         attributes: [

@@ -818,6 +818,8 @@ export async function getPayments(user_id: number, dateObject?: { initial_date: 
         }
 
     } catch (error) {
+        console.log(error);
+
         return { successful: false, error: "Query error." };
     }
 
