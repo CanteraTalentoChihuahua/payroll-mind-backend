@@ -1,6 +1,7 @@
 import { Op } from "sequelize";
 import { newIncomeData } from "../util/objects";
 import { createUserIdCondition } from "../controllers/payroll";
+import * as c from "./jira";
 const { incomes, incomes_users, pre_payments } = require("../database/models/index");
 
 // What if an outcome / income is inactive? How to activate it?
@@ -271,5 +272,19 @@ export async function assignIncome(user_id: number, income_id: number, counter: 
         counter,
         amount,
         automatic
-    });
+    }, {returning: false});
+}
+
+export async function assignBonusByStoryPoints() {
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+    // What in the name of all that is sacred did I do to end up creating stuff like the code below?
+    const bestThree = Object.entries(await c.fetchStoryPointsOfPeriod(lastMonth, new Date()))
+        .sort(([,a],[,b]) => a-b)
+        .slice(0, 2);
+    
+    for (const entry of bestThree) {
+        await assignIncome(parseInt(entry[0]), 5, 1, 3000, false);
+    }
 }

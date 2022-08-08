@@ -37,6 +37,11 @@ module.exports = (sequelize, DataTypes) => {
         privileges: DataTypes.JSONB,
         on_leave: DataTypes.BOOLEAN,
         active: DataTypes.BOOLEAN,
+        atlassianId: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            defaultValue: null
+        }
     }, {
         sequelize,
         modelName: "users",
