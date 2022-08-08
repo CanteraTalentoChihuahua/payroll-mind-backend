@@ -36,7 +36,7 @@ function createJiraToken(method: string, basePath: string, queryParams: string):
 export async function fetchStoryPointsOfPeriod(startDate: Date, endDate: Date) {
     const method = "GET";
     const basePath = "/rest/api/3/search";
-    const queryParams = `fields=assignee%2Ccustomfield_10016&jql=created%3E%3D%22${startDate.getFullYear()}-${startDate.getMonth() + 1}-${startDate.getDate()}%22%20AND%20created%3C%3D%22${endDate.getFullYear()}-${endDate.getMonth() + 1}-${endDate.getDate()}%22%20AND%20status%3DDone`;
+    const queryParams = `fields=assignee%2Ccustomfield_10016&jql=created%3E%3D%22${startDate.getFullYear()}-${startDate.getMonth() + 1}-${startDate.getDate()}%22%20AND%20created%3C%3D%22${endDate.getFullYear()}-${endDate.getMonth() + 1}-${endDate.getDate()}%22%20AND%20status%3DDone&maxResults=1000`;
 
     const issuesList = (await axios.get(`${basePath}?${queryParams}`, {
         headers: {
