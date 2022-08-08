@@ -1,6 +1,8 @@
+/* eslint-disable indent */
+import { updateNewUsers } from "../controllers/indicators";
 import { generatePassword } from "../controllers/auth";
 import { NewUserData } from "../util/objects";
-import { simpleCreateSalary, } from "./payroll";
+import { simpleCreateSalary, bulkInsertIntoPrePayments } from "./payroll";
 import { hash } from "bcrypt";
 
 const { Op } = require("sequelize");
@@ -345,6 +347,27 @@ export async function bulkInsertIntoUsers(userArray: unknown) {
         }, { returning: true });
 
         // Create salary
-        await simpleCreateSalary(newUserData.id, parseFloat(currentUser[14]));
+        const { creationData } = await simpleCreateSalary(newUserData.id, parseFloat(currentUser[14]));
+
+        // Update indicators
+        await updateNewUsers(newUserData.id);
+
+        // Simply insert into prepayments
+        const userData = {
+            id: newUserData.id,
+            salary_id: creationData.id,
+            payment_period_id: currentUser[10],
+            payroll_schema_id: currentUser[17],
+            incomes: [],
+            outcomes: [],
+            payrollTotal: {
+                incomesTotal: 0,
+                outcomesTotal: 0,
+                payrollTotal: creationData.salary
+            }
+        };
+
+        // @ts-ignore: Unreachable code error
+        await bulkInsertIntoPrePayments([userData], false);
     }
 }
