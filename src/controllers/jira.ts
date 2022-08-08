@@ -19,6 +19,7 @@ interface AccountData {
 }
 
 export async function onInstalledCallback(url: string, clientKey: string, sharedSecret: string) {
+    console.dir(sharedSecret);
     await JiraConnection.create({
         url,
         clientKey,
