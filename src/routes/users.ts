@@ -1,13 +1,16 @@
-import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName, getNewUserId } from "../controllers/users";
+import { createNewUser, editUser, getUserDetails, getUsersList, pseudoDeleteUser, getRoleName, bulkInsertIntoUsers } from "../controllers/users";
 import { createSalary, bulkInsertIntoPrePayments, calculatePartialSalary } from "../controllers/payroll";
+import { sendPasswordChangeEmail, generatePassword } from "../controllers/auth";
 import { updateNewUsers, updateInactiveUsers } from "../controllers/indicators";
-import { sendPasswordChangeEmail } from "../controllers/auth";
-import { generatePassword } from "../controllers/auth";
 import privileges from "../middleware/privileges";
 import { Privileges } from "../util/objects";
 import { Router } from "express";
+import multer from "multer";
+import fs from "fs";
+import os from "os";
 
-// Note: ADMIN SHOULD ALWAYS BE 1 AND ASSIGNED TO ALL BUSINESS UNITS
+const parse = require("csv-parse").parse;
+const upload = multer({ dest: os.tmpdir() });
 const router = Router();
 
 router.get("/users", privileges(Privileges.READ_USERS, Privileges.READ_COLLABORATORS), async (req, res) => {
@@ -361,6 +364,28 @@ router.delete("/user/:id", privileges(Privileges.DELETE_COLLABORATORS, Privilege
     }
 
     return res.status(200).json({ message: "Successfully deleted user" });
+});
+
+
+router.post("/users/upload", upload.single("file"), async (req, res) => {
+    const file = req.file;
+
+    // @ts-ignore: Unreachable code error
+    const data = fs.readFileSync(file.path);
+
+    // @ts-ignore: Unreachable code error
+    await parse(data, async (err, records) => {
+        // Insert into users
+        try {
+            await bulkInsertIntoUsers(records);
+
+        } catch (error) {
+            console.log(error);
+            return res.status(400).json({ message: "An error occurred." });
+        }
+    });
+
+    return res.status(200).json({ message: "Successfully created users." });
 });
 
 export default router;
