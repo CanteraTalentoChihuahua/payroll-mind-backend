@@ -245,3 +245,30 @@ export async function getOutcomes(idArray: number[]) {
 
     return { successful: true, outcomesArray };
 }
+
+export async function getUsersOutcomes(outcomesArray: Array<number>) {
+    const idCondition = createIdCondition(outcomesArray);
+
+    try {
+        outcomesArray = await outcomes_users.findAll({
+            attributes: ["outcome_id", "counter", "amount"],
+            where: {
+                [Op.or]: idCondition
+            },
+            include: {
+                attributes: ["name", "automatic"],
+                model: outcomes
+            },
+            raw: true
+        });
+
+        if (!outcomesArray) {
+            return { successful: false, error: "No incomes_user found." };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Invalid query." };
+    }
+
+    return { successful: true, outcomesArray };
+}

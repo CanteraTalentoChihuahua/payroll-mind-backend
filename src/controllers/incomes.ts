@@ -131,10 +131,7 @@ export async function getUsersIncomes(incomesArray: Array<number>) {
             },
             include: {
                 attributes: ["name", "automatic"],
-                model: incomes,
-                where: {
-                    active: true
-                }
+                model: incomes
             },
             raw: true
         });

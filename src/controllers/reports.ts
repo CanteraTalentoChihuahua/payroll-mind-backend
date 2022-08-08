@@ -1,5 +1,5 @@
-import { getIncomes, getUsersIncomes } from "./incomes";
-import { getOutcomes } from "./outcomes";
+import { getUsersIncomes } from "./incomes";
+import { getUsersOutcomes } from "./outcomes";
 
 export async function buildReportObject(additionalData: unknown, paymentsArray: unknown) {
     const reportArray: unknown[] = [];
@@ -21,7 +21,9 @@ export async function buildReportObject(additionalData: unknown, paymentsArray: 
         }
 
         // Query outcomes
-        const outcomesObject = await getOutcomes(outcomes);
+        const outcomesObject = await getUsersOutcomes(outcomes);
+        console.log(outcomes);
+
         if (!outcomesObject.successful) {
             if (!outcomesObject.error) {
                 return { successful: false, error: outcomesObject.error };
