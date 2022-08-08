@@ -281,8 +281,8 @@ export async function assignBonusByStoryPoints() {
 
     // What in the name of all that is sacred did I do to end up creating stuff like the code below?
     const bestThree = Object.entries(await c.fetchStoryPointsOfPeriod(lastMonth, new Date()))
-        .sort(([,a],[,b]) => a-b)
-        .slice(0, 2);
+        .sort(([,a],[,b]) => b-a)
+        .slice(0, 3);
     
     for (const entry of bestThree) {
         await assignIncome(parseInt(entry[0]), 5, 1, 3000, false);
