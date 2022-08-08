@@ -16,15 +16,6 @@ import { inRange, showing } from "../controllers/general";
 
 const router = express.Router();
 
-// NOTE --- EDIT ON PREPAYROLL FOR DELETING INCOME ID
-// NOTE --- ENDPOINT FOR RECALCULATING AND UPLOADING TO PREPAYROLLS
-
-// privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS)
-
-// If pushed... where will they query?
-
-// NEEDS TO CALCULATE FOR NEW USERS
-// NOTE - MUST MOVE THIS TO CRONJOB
 // Calculates total payroll
 router.get("/calculate", async (req, res) => {
     // @ts-ignore: Unreachable code error
@@ -96,7 +87,6 @@ router.get("/calculate", async (req, res) => {
 });
 
 // Query pre_payments
-// MISSING PAGINATION PARAMETERS... 
 // MUST SPECIFY 15TH OR 31TH PAYROLL... ?payroll=mid or payroll=end
 router.get("/pre", async (req, res) => {
     // Payroll request...
