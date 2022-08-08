@@ -224,6 +224,8 @@ export async function simpleCreateSalary(user_id: number, salary: number) {
     await users.update({ salary_id: creationData.id }, {
         where: { id: user_id }
     });
+
+    return { successful: false, creationData };
 }
 
 
@@ -621,6 +623,21 @@ export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown, d
         // @ts-ignore: Unreachable code error
         const currentPayroll = comprehensivePayroll[payrollIndex];
         const { id, salary_id, payment_period_id, payroll_schema_id, business_unit, incomes, outcomes, payrollTotal } = currentPayroll;
+
+        console.log(payrollTotal);
+
+        console.log({
+            user_id: id,
+            salary_id,
+            payment_period_id,
+            payroll_schema_id,
+            incomes: { "incomes": incomes },
+            outcomes: { "outcomes": outcomes },
+            // total_incomes: payrollTotal.incomesTotal,
+            // total_outcomes: payrollTotal.outcomesTotal,
+            // total_amount: payrollTotal.payrollTotal,
+            payment_date: new Date()
+        });
 
         try {
             await pre_payments.create({
