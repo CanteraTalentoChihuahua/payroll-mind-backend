@@ -2,8 +2,8 @@ import express from "express";
 import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
 import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
-import { createIncome, createUserIncome, getNewIncomeId, getAllUsersIncomes, updateIncomesArray, getCurrentIncomesUsers } from "../controllers/incomes";
-import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes, updateOutcomesArray, getCurrentOutcomesUsers } from "../controllers/outcomes";
+import { createIncome, createUserIncome, getNewIncomeId, getAllUsersIncomes, updateIncomesArray, getCurrentIncomesUsers, deleteAllUsersIncomes } from "../controllers/incomes";
+import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes, updateOutcomesArray, getCurrentOutcomesUsers, deleteAllUsersOutcomes } from "../controllers/outcomes";
 import {
     getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments, calculatePayroll,
     bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId, updatePaymentPeriod,
@@ -171,8 +171,6 @@ router.get("/pre", async (req, res) => {
     const payrollObject = await getAllPrePayrolls(specificPayroll, offset, limit);
     if (!payrollObject.successful) {
         return res.status(400).json({ message: payrollObject.error });
-        // payrollObject = await getAllPayrolls(offset, limit);
-        // if (!payrollObject.successful) {
     }
 
     // Build payroll object
@@ -230,15 +228,15 @@ router.get("/pre/:user_id", async (req, res) => {
     const { userData } = userObject;
     const { incomesData } = incomesObject;
     const { outcomesData } = outcomesObject;
-    const { salary } = userData["salary"];
+    const salary = userData["salary.salary"];
 
     // Calculate payroll
     const payroll = await calculatePayroll(parseFloat(salary), incomesData, outcomesData);
 
     // Build final JSON object
     const finalPayrollObject = {
-        payroll_schema: userData["payroll_schema"].name,
-        payment_period: userData["payments_period"].name,
+        payroll_schema: userData["payroll_schema.name"],
+        payment_period: userData["payments_period.name"],
         salary: salary,
         incomes: incomesData,
         outcomes: outcomesData,
@@ -429,22 +427,6 @@ router.put("/pre/payment_period/:user_id", async (req, res) => {
     return res.status(200).json({ message: "Payment period has been changed successfully." });
 });
 
-// router.put("/pre/total/:user_id", async (req, res) => {
-//     const { total_incomes, total_outcomes, total_amount } = req.body;
-//     const { user_id } = req.params;
-
-//     if (!total_incomes || !total_amount || !total_outcomes) {
-//         return res.status(400).json({ message: "Missing any of the following parameters: total_incomes, total_outcomes, total_amount." })
-//     }
-
-//     const totalUpdateObject = await updateTotals(parseInt(user_id), { total_incomes, total_outcomes, total_amount });
-//     if (!totalUpdateObject.successful) {
-//         return res.status(400).send({ message: totalUpdateObject.error });
-//     }
-
-//     return res.status(200).json({ message: "Successfully updated totals." });
-// });
-
 // Moves data from pre_payments to payments
 // Ask front to double confirm before calling this endpoint...
 // NOTE - IF A CERTAIN TIME PASSES WITH NO CONFIRMATION, CRONJOB SHOULD CALL THIS
@@ -459,6 +441,10 @@ router.post("/pre/push", async (req, res) => {
     if (!nextPushObject.successful) {
         return res.status(400).json({ message: nextPushObject.error });
     }
+
+    // Delete every income / outcome
+    await deleteAllUsersIncomes();
+    await deleteAllUsersOutcomes();
 
     return res.status(200).json({ message: "Successfully registered payments." });
 });
