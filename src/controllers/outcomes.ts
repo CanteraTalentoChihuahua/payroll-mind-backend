@@ -272,3 +272,21 @@ export async function getUsersOutcomes(outcomesArray: Array<number>) {
 
     return { successful: true, outcomesArray };
 }
+
+export async function deleteUsersIncomes(outcomesArray: unknown) {
+    // @ts-ignore: Unreachable code 
+    const idCondition = createIdCondition(outcomesArray);
+
+    try {
+        await outcomes_users.destroy({
+            where: { [Op.or]: idCondition }
+        });
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export async function deleteAllUsersOutcomes() {
+    await outcomes_users.destroy({ where: {} });
+}
