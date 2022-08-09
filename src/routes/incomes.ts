@@ -117,11 +117,12 @@ router.post("/incomes/assign/:user_id", async (req, res) => {
     return res.status(200).json({ message: `Successfully assigned income to user: ${user_id}` });
 });
 
-router.delete("/incomes_users/:user_id", async (req, res) => {
-    const { user_id, incomes_users_array } = req.body;
+router.delete("/incomes/users", async (req, res) => {
+    const { incomes_users_array } = req.body;
 
-    const a = await // @ts-ignore: Unreachable code error
-
+    // @ts-ignore: Unreachable code error
+    await c.deleteUsersIncomes(incomes_users_array);
+    return res.status(200).json({ message: "Successfully deleted incomes users." });
 });
 
 export default router;

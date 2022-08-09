@@ -286,9 +286,14 @@ export async function deleteUsersIncomes(incomesArray: unknown) {
     // @ts-ignore: Unreachable code 
     const idCondition = createIdCondition(incomesArray);
 
-    await incomes_users.destroy({
-        where: { [Op.or]: idCondition }
-    });
+    try {
+        await incomes_users.destroy({
+            where: { [Op.or]: idCondition }
+        });
+
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 export async function assignIncome(user_id: number, income_id: number, counter: number, amount: number, automatic: boolean): Promise<void> {
@@ -299,4 +304,8 @@ export async function assignIncome(user_id: number, income_id: number, counter: 
         amount,
         automatic
     });
+}
+
+export async function deleteAllUsersIncomes() {
+    await incomes_users.destroy({ where: {} });
 }
