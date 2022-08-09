@@ -346,15 +346,4 @@ router.delete("/user/:id", privileges(Privileges.DELETE_COLLABORATORS, Privilege
     return res.status(200).json({ message: "Successfully deleted user" });
 });
 
-router.post("/trial", async (req, res) => {
-    const { user_id, salary } = req.body;
-
-    const salaryData = await createSalary(user_id, salary);
-    if (!salaryData.successful) {
-        return res.status(500).send("Something went wrong. Unable to create salary.");
-    }
-
-    return res.status(200).send("Works");
-});
-
 export default router;
