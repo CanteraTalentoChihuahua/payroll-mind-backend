@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { newOutcomeData } from "../util/objects";
-import { createUserIdCondition } from "../controllers/payroll";
+import { createIdCondition } from "../controllers/payroll";
 const { outcomes, outcomes_users, pre_payments } = require("../database/models/index");
 
 interface entryObj {
@@ -127,7 +127,7 @@ export async function getNewOutcomeId() {
     return parseInt(max);
 }
 
-export async function getOutcomes(userId: number) {
+export async function getCurrentOutcomesUsers(userId: number) {
     let outcomesData;
 
     try {
@@ -224,4 +224,69 @@ export async function assignOutcome(user_id: number, outcome_id: number, counter
         amount,
         automatic
     });
+}
+
+export async function getOutcomes(idArray: number[]) {
+    const idCondition = createIdCondition(idArray);
+
+    let outcomesArray;
+    try {
+        outcomesArray = await outcomes.findAll({
+            attributes: ["name", "automatic"],
+            where: {
+                [Op.or]: idCondition
+            },
+            raw: true
+        });
+
+    } catch (error) {
+        return { successful: false, error: "Query error at outcomes." };
+    }
+
+    return { successful: true, outcomesArray };
+}
+
+export async function getUsersOutcomes(outcomesArray: Array<number>) {
+    const idCondition = createIdCondition(outcomesArray);
+
+    try {
+        outcomesArray = await outcomes_users.findAll({
+            attributes: ["outcome_id", "counter", "amount"],
+            where: {
+                [Op.or]: idCondition
+            },
+            include: {
+                attributes: ["name", "automatic"],
+                model: outcomes
+            },
+            raw: true
+        });
+
+        if (!outcomesArray) {
+            return { successful: false, error: "No incomes_user found." };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Invalid query." };
+    }
+
+    return { successful: true, outcomesArray };
+}
+
+export async function deleteUsersIncomes(outcomesArray: unknown) {
+    // @ts-ignore: Unreachable code 
+    const idCondition = createIdCondition(outcomesArray);
+
+    try {
+        await outcomes_users.destroy({
+            where: { [Op.or]: idCondition }
+        });
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export async function deleteAllUsersOutcomes() {
+    await outcomes_users.destroy({ where: {} });
 }

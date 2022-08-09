@@ -1,6 +1,5 @@
 import { Op } from "sequelize";
-import { newIncomeData } from "../util/objects";
-import { createUserIdCondition } from "../controllers/payroll";
+import { createIdCondition } from "../controllers/payroll";
 const { incomes, incomes_users, pre_payments } = require("../database/models/index");
 
 // What if an outcome / income is inactive? How to activate it?
@@ -32,32 +31,6 @@ export async function createIncome(incomeData: { name: string, automatic: boolea
 
     return { successful: true };
 }
-
-// export async function createUserIncome(userId: number, incomeUserData: { income_id: number, amount: number }) {
-//     // Income entry exist, check if incomeUsers exist
-//     const updateObj = { counter: 1, amount: incomeUserData.amount };
-//     const entryResult = await incomes_users.update(updateObj, {
-//         where: {
-//             income_id: incomeUserData.income_id,
-//             user_id: userId
-//         }
-//     });
-
-//     // Does not exists, create incomeUsers entry
-//     if (entryResult[0] === 0) {
-//         await incomes_users.create({
-//             user_id: userId,
-//             ...incomeUserData,
-//             createdAt: new Date(),
-//             updatedAt: null
-//         });
-
-//         return { successful: true };
-//     }
-
-//     return { successful: true, updated: true };
-// }
-
 
 // NOTE -- MISSING COUNTER INCREMENT
 export async function createUserIncome(user_id: number, incomeUserData: { income_id: number, amount: number | undefined, automatic: boolean | undefined, counter: number | undefined }) {
@@ -117,7 +90,6 @@ export async function createUserIncome(user_id: number, incomeUserData: { income
     return { successful: true, updated: true };
 }
 
-
 export async function getAllUsersIncomes() {
     let incomesData;
     try {
@@ -146,6 +118,33 @@ export async function getAllUsersIncomes() {
     }
 
     return { successful: true, incomesData };
+}
+
+export async function getUsersIncomes(incomesArray: Array<number>) {
+    const idCondition = createIdCondition(incomesArray);
+
+    try {
+        incomesArray = await incomes_users.findAll({
+            attributes: ["income_id", "counter", "amount"],
+            where: {
+                [Op.or]: idCondition
+            },
+            include: {
+                attributes: ["name", "automatic"],
+                model: incomes
+            },
+            raw: true
+        });
+
+        if (!incomesArray) {
+            return { successful: false, error: "No incomes_user found." };
+        }
+
+    } catch (error) {
+        return { successful: false, error: "Invalid query." };
+    }
+
+    return { successful: true, incomesArray };
 }
 
 export async function getAllIncomes(): Promise<unknown[]> {
@@ -197,15 +196,14 @@ export async function updateIncomesArray(user_id: number) {
     return { successful: true, incomesData };
 }
 
-export async function getIncomes(userId: number) {
+export async function getCurrentIncomesUsers(user_id: number) {
     let incomesData;
 
     try {
         incomesData = await incomes_users.findAll({
             attributes: ["income_id", "counter", "amount"],
             where: {
-                user_id: userId,
-                deletedAt: null
+                user_id,
             },
             include: {
                 attributes: ["name", "automatic"],
@@ -227,6 +225,26 @@ export async function getIncomes(userId: number) {
     }
 
     return { successful: true, incomesData };
+}
+
+export async function getIncomes(idArray: number[]) {
+    const idCondition = createIdCondition(idArray);
+
+    let incomesArray;
+    try {
+        incomesArray = await incomes.findAll({
+            attributes: ["name", "automatic"],
+            where: {
+                [Op.or]: idCondition
+            },
+            raw: true
+        });
+
+    } catch (error) {
+        return { successful: false, error: "Query error at incomes." };
+    }
+
+    return { successful: true, incomesArray };
 }
 
 export function createRange(highEnd: number, lowEnd?: number) {
@@ -264,6 +282,20 @@ export async function deleteIncome(id: number): Promise<void> {
     });
 }
 
+export async function deleteUsersIncomes(incomesArray: unknown) {
+    // @ts-ignore: Unreachable code 
+    const idCondition = createIdCondition(incomesArray);
+
+    try {
+        await incomes_users.destroy({
+            where: { [Op.or]: idCondition }
+        });
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 export async function assignIncome(user_id: number, income_id: number, counter: number, amount: number, automatic: boolean): Promise<void> {
     await incomes_users.create({
         user_id,
@@ -272,4 +304,8 @@ export async function assignIncome(user_id: number, income_id: number, counter: 
         amount,
         automatic
     });
+}
+
+export async function deleteAllUsersIncomes() {
+    await incomes_users.destroy({ where: {} });
 }

@@ -3,12 +3,14 @@ import { Privileges } from "../util/objects";
 import privileges from "../middleware/privileges";
 
 import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
-import { createIncome, createUserIncome, getNewIncomeId, getAllUsersIncomes, updateIncomesArray, getIncomes } from "../controllers/incomes";
-import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes, updateOutcomesArray, getOutcomes } from "../controllers/outcomes";
+import { createIncome, createUserIncome, getNewIncomeId, getAllUsersIncomes, updateIncomesArray, getCurrentIncomesUsers, deleteAllUsersIncomes } from "../controllers/incomes";
+import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes, updateOutcomesArray, getCurrentOutcomesUsers, deleteAllUsersOutcomes } from "../controllers/outcomes";
 import {
     getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments, calculatePayroll,
-    bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, getNewSalaryId, updatePaymentPeriod, updateTotals
+    bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId, updatePaymentPeriod,
+    getPayments
 } from "../controllers/payroll";
+import { buildReportObject } from "../controllers/reports";
 
 import { getAllUsersDataRaw, getUserData } from "../controllers/users";
 import { createIndicator } from "../controllers/indicators";
@@ -95,6 +97,66 @@ router.get("/calculate", async (req, res) => {
     });
 });
 
+// Calculate global
+router.get("/calculate/global", async (req, res) => {
+    const globalPayrollObject = await calculateGlobalPayroll();
+    if (!globalPayrollObject.successful) {
+        return res.status(400).json({ message: globalPayrollObject.error });
+    }
+
+    return res.status(200).send({ globalPayrollTotal: globalPayrollObject.globalPayrollTotal });
+});
+
+// Get individual payroll BY DATE 
+router.get("/reports/:user_id", async (req, res) => {
+    let { initial_date, final_date } = req.body;
+    const { user_id } = req.params;
+
+    // Check for offset and limit -- pagination
+    let offset = 0, limit = 10;
+    if (req.query.limit) {
+        // @ts-ignore: Unreachable code error
+        limit = parseInt(req.query["limit"]);
+    }
+
+    if (req.query.offset) {
+        // @ts-ignore: Unreachable code error
+        offset = parseInt(req.query["offset"]);
+    }
+
+    // Parse dates
+    initial_date = new Date(initial_date), final_date = new Date(final_date);
+
+    // Query payments table
+    const paymentsObject = await getPayments(parseInt(user_id), { initial_date, final_date }, offset, limit);
+    const { userPayments } = paymentsObject;
+    if (!paymentsObject.successful) {
+        // @ts-ignore: Unreachable code error
+        return res.status(400).json({ message: paymentsObject.error });
+    }
+
+    // Get user data
+    const userDataObject = await getUserData(parseInt(user_id));
+    if (!userDataObject.successful) {
+        return res.status(400).json({ message: userDataObject.error });
+    }
+
+    // Extract data 
+    const { userData } = userDataObject;
+    const payroll_schema = userData["payroll_schema.name"], payments_periods = userData["payments_period.name"];
+
+    // Get comprehensive report object
+    const reportObject = await buildReportObject({ payroll_schema, payments_periods }, userPayments);
+    if (!paymentsObject.successful) {
+        // @ts-ignore: Unreachable code error
+        return res.status(400).json({ message: paymentsObject.error });
+    }
+
+    const { reportArray } = reportObject;
+    return res.status(200).json(reportArray);
+});
+
+
 // Query pre_payments
 // MISSING PAGINATION PARAMETERS... 
 // MUST SPECIFY 15TH OR 31TH PAYROLL... ?payroll=mid or payroll=end
@@ -122,8 +184,6 @@ router.get("/pre", async (req, res) => {
     const payrollObject = await getAllPrePayrolls(specificPayroll, offset, limit);
     if (!payrollObject.successful) {
         return res.status(400).json({ message: payrollObject.error });
-        // payrollObject = await getAllPayrolls(offset, limit);
-        // if (!payrollObject.successful) {
     }
 
     // Build payroll object
@@ -155,7 +215,7 @@ router.get("/pre", async (req, res) => {
     return res.status(200).send(comprehensivePayroll);
 });
 
-// Get individual prepayroll
+// Get individual prepayroll BY CURRENT
 router.get("/pre/:user_id", async (req, res) => {
     const { user_id } = req.params;
 
@@ -166,13 +226,13 @@ router.get("/pre/:user_id", async (req, res) => {
     }
 
     // Query income
-    const incomesObject = await getIncomes(parseInt(user_id));
+    const incomesObject = await getCurrentIncomesUsers(parseInt(user_id));
     if (!incomesObject.successful) {
         return res.status(400).send({ message: incomesObject.error });
     }
 
     // Query outcome
-    const outcomesObject = await getOutcomes(parseInt(user_id));
+    const outcomesObject = await getCurrentOutcomesUsers(parseInt(user_id));
     if (!outcomesObject.successful) {
         return res.status(400).send({ message: outcomesObject.error });
     }
@@ -181,15 +241,15 @@ router.get("/pre/:user_id", async (req, res) => {
     const { userData } = userObject;
     const { incomesData } = incomesObject;
     const { outcomesData } = outcomesObject;
-    const { salary } = userData["salary"];
+    const salary = userData["salary.salary"];
 
     // Calculate payroll
     const payroll = await calculatePayroll(parseFloat(salary), incomesData, outcomesData);
 
     // Build final JSON object
     const finalPayrollObject = {
-        payroll_schema: userData["payroll_schema"].name,
-        payment_period: userData["payments_period"].name,
+        payroll_schema: userData["payroll_schema.name"],
+        payment_period: userData["payments_period.name"],
         salary: salary,
         incomes: incomesData,
         outcomes: outcomesData,
@@ -200,7 +260,7 @@ router.get("/pre/:user_id", async (req, res) => {
 });
 
 // Edit prepayment values
-router.put("/pre/:user_id", async (req, res) => {
+router.put("/pre/total/:user_id", async (req, res) => {
     // Receive data
     const { user_id } = req.params;
 
@@ -399,6 +459,7 @@ router.put("/pre/total/:user_id", async (req, res) => {
 // Moves data from pre_payments to payments
 // Ask front to double confirm before calling this endpoint...
 // NOTE - IF A CERTAIN TIME PASSES WITH NO CONFIRMATION, CRONJOB SHOULD CALL THIS
+
 router.post("/pre/push", async (req, res) => {
     const pushObject = await pushToPayments();
     if (!pushObject.successful) {
@@ -409,6 +470,10 @@ router.post("/pre/push", async (req, res) => {
     if (!nextPushObject.successful) {
         return res.status(400).json({ message: nextPushObject.error });
     }
+
+    // Delete every income / outcome
+    await deleteAllUsersIncomes();
+    await deleteAllUsersOutcomes();
 
     return res.status(200).json({ message: "Successfully registered payments." });
 });
