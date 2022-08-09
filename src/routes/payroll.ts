@@ -143,10 +143,6 @@ router.get("/reports/:user_id", async (req, res) => {
     return res.status(200).json(reportArray);
 });
 
-// MISSING - Send to email
-router.get("/reports/:user_id/send", async (req, res) => {
-    return res.status(200).json({ message: "ERRTINSMISSIN" });
-});
 
 // Query pre_payments
 // MISSING PAGINATION PARAMETERS... 

@@ -282,6 +282,15 @@ export async function deleteIncome(id: number): Promise<void> {
     });
 }
 
+export async function deleteUsersIncomes(incomesArray: unknown) {
+    // @ts-ignore: Unreachable code 
+    const idCondition = createIdCondition(incomesArray);
+
+    await incomes_users.destroy({
+        where: { [Op.or]: idCondition }
+    });
+}
+
 export async function assignIncome(user_id: number, income_id: number, counter: number, amount: number, automatic: boolean): Promise<void> {
     await incomes_users.create({
         user_id,
