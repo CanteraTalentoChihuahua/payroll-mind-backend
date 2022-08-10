@@ -180,7 +180,8 @@ export async function getUserData(id: number) {
                 { attributes: ["id", "salary"], model: salaries },
                 { attributes: ["id", "name"], model: payroll_schemas },
                 { attributes: ["id", "name"], model: payments_periods }
-            ]
+            ],
+            raw: true
         });
 
         if (!userData) {

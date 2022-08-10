@@ -282,8 +282,6 @@ router.put("/user/:id", privileges(Privileges.EDIT_ADMINS, Privileges.EDIT_COLLA
 
     // MUST BE TEXT
     if (active !== undefined) {
-        console.log(typeof active);
-
         if (![false, true].includes(active)) {
             return res.status(400).json("Invalid data sent on active. Must be true or false.");
         }
@@ -355,6 +353,9 @@ router.delete("/user/:id", privileges(Privileges.DELETE_COLLABORATORS, Privilege
         userData = await pseudoDeleteUser(parseInt(id));
     }
 
+    // Update indicators
+    await updateInactiveUsers(parseInt(id));
+
     if (!userData.successful) {
         return res.sendStatus(500);
     }
@@ -380,7 +381,6 @@ router.post("/users/upload", upload.single("file"), async (req, res) => {
             await bulkInsertIntoUsers(records);
 
         } catch (error) {
-            console.log(error);
             return res.status(400).json({ message: "An error occurred." });
         }
     });

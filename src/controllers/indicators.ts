@@ -22,7 +22,7 @@ export async function updateNewUsers(user_id: number) {
     const currentDate = new Date();
     const month = currentDate.getMonth() + 1, year = currentDate.getFullYear();
 
-    let newUsersObject, newUsersArray;
+    let newUsersObject, newUsersArray = [];
     // Create newUsersArray
     try {
         newUsersObject = await indicators.findOne({
@@ -52,7 +52,9 @@ export async function updateNewUsers(user_id: number) {
             where: { month, year }
         }, { returning: true });
 
+
     } catch (error) {
+        console.log(error);
         return { successful: false, error: "Unable to update indicators table." };
     }
 
@@ -112,6 +114,9 @@ export async function getUserIndicators(month: number, year: number) {
             },
             raw: true
         });
+
+        console.log(usersIndicators);
+
 
         if (usersIndicators.length === 0) {
             return { successful: true, usersIndicators: [] };

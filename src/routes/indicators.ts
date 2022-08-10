@@ -4,12 +4,12 @@ import { getUserIndicators, updateNewUsers } from "../controllers/indicators";
 
 const router = express.Router();
 
-router.get("/trial/:aaa", async (req, res) => {
-    const { aaa } = req.params;
-    await updateNewUsers(parseInt(aaa));
+// router.get("/trial/:aaa", async (req, res) => {
+//     const { aaa } = req.params;
+//     await updateNewUsers(parseInt(aaa));
 
-    return res.status(200).json({ message: "aaa" });
-});
+//     return res.status(200).json({ message: "aaa" });
+// });
 
 // New users and fired users
 router.get("/users", async (req, res) => {
