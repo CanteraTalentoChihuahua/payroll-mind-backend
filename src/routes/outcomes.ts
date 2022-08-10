@@ -114,4 +114,12 @@ router.post("/outcomes/assign", async (req, res) => {
     res.sendStatus(204);
 });
 
+router.delete("/outcomes/users", async (req, res) => {
+    const { outcomes_users_array } = req.body;
+
+    // @ts-ignore: Unreachable code error
+    await c.deleteUsersIncomes(outcomes_users_array);
+    return res.status(200).json({ message: "Successfully deleted outcomes users." });
+});
+
 export default router;

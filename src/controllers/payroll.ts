@@ -624,21 +624,6 @@ export async function bulkInsertIntoPrePayments(comprehensivePayroll: unknown, d
         const currentPayroll = comprehensivePayroll[payrollIndex];
         const { id, salary_id, payment_period_id, payroll_schema_id, business_unit, incomes, outcomes, payrollTotal } = currentPayroll;
 
-        console.log(payrollTotal);
-
-        console.log({
-            user_id: id,
-            salary_id,
-            payment_period_id,
-            payroll_schema_id,
-            incomes: { "incomes": incomes },
-            outcomes: { "outcomes": outcomes },
-            // total_incomes: payrollTotal.incomesTotal,
-            // total_outcomes: payrollTotal.outcomesTotal,
-            // total_amount: payrollTotal.payrollTotal,
-            payment_date: new Date()
-        });
-
         try {
             await pre_payments.create({
                 user_id: id,
@@ -811,4 +796,44 @@ export async function updateTotals(user_id: number, totalObject: { total_incomes
     }
 
     return { successful: true };
+}
+
+// Get payments by date
+export async function getPayments(user_id: number, dateObject?: { initial_date: object, final_date: object }, offset?: number, limit?: number) {
+    let userPayments;
+    try {
+        let betweenCondition = null;
+        if (dateObject) {
+            betweenCondition = [dateObject.initial_date, dateObject.final_date];
+        }
+
+        userPayments = await payments.findAll({
+            offset,
+            limit,
+            where: {
+                user_id,
+                payment_date: {
+                    [Op.between]: betweenCondition
+                }
+            },
+            order: [["payment_date", "ASC"]],
+            include: [
+                { attributes: ["salary"], model: salaries },
+                { attributes: ["name"], model: payments_periods }
+            ],
+            raw: true
+        });
+
+
+        if (userPayments.length === 0) {
+            return { successful: false, error: "No payrolls found." };
+        }
+
+    } catch (error) {
+        console.log(error);
+
+        return { successful: false, error: "Query error." };
+    }
+
+    return { successful: true, userPayments };
 }
