@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /* eslint-disable no-case-declarations */
 /* eslint-disable indent */
 const { Op } = require("sequelize");
