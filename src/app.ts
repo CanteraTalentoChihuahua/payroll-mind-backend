@@ -25,13 +25,6 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 app.use("/jira/connect.json", express.static(resolve(__dirname, "..", "public", "atlassian-connect.json")));
-// Add headers before the routes are defined
-app.use(function (req, res, next) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    next();
-});
 
 // Routes
 app.get("/", (_req, res) => {
