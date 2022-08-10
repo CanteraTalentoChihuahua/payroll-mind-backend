@@ -8,7 +8,7 @@ import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes,
 import {
     getAllPrePayrolls, getStagedPayrollsLength, pushToPayrolls, pushToPayments, editPrePayments, calculatePayroll,
     bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId, updatePaymentPeriod,
-    getPayments
+    getPayments, updateTotals
 } from "../controllers/payroll";
 import { buildReportObject } from "../controllers/reports";
 
