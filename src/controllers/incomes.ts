@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { newIncomeData } from "../util/objects";
-import { createUserIdCondition } from "../controllers/payroll";
+import { createIdCondition } from "../controllers/payroll";
 import * as c from "./jira";
 const { incomes, incomes_users, pre_payments } = require("../database/models/index");
 
