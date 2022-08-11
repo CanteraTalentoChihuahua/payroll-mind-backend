@@ -1,4 +1,4 @@
-eimport express from "express";
+import express from "express";
 import { checkIfEmailExists } from "../controllers/users";
 import { sendPasswordChangeEmail } from "../controllers/auth";
 import { logIn, sendPasswordRestoreEmail, restorePassword } from "../controllers/auth";
