@@ -256,7 +256,16 @@ router.get("/pre/:user_id", async (req, res) => {
         payrollTotal: payroll
     };
 
-    return res.status(200).send(finalPayrollObject);
+    // Build name object
+    return res.status(200).send({
+        nameObject: {
+            first_name: userData["first_name"],
+            second_name: userData["second_name"],
+            last_name: userData["last_name"],
+            second_last_name: userData["second_last_name"]
+        },
+        finalPayrollObject
+    });
 });
 
 // Edit prepayment values
