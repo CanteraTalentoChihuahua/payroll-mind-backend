@@ -25,8 +25,9 @@ router.post("/login", async (req, res) => {
     }
 
     const privilegesObject = tokenData.privileges;
-
-    res.json({
+    
+    return res.status(200).json({
+        id: tokenData.id,
         token: tokenData.token,
         first_name: tokenData.first_name,
         role: tokenData.role,

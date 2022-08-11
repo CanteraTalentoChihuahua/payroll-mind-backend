@@ -169,7 +169,7 @@ export async function getUserData(id: number) {
     // What if double salary?
     try {
         userData = await user.findOne({
-            attributes: ["id"],
+            attributes: ["id", "first_name", "second_name", "last_name", "second_last_name"],
             where: {
                 id,
                 active: true,
