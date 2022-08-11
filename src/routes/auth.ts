@@ -1,4 +1,4 @@
-import express from "express";
+eimport express from "express";
 import { checkIfEmailExists } from "../controllers/users";
 import { sendPasswordChangeEmail } from "../controllers/auth";
 import { logIn, sendPasswordRestoreEmail, restorePassword } from "../controllers/auth";
@@ -30,7 +30,7 @@ router.post("/login", async (req, res) => {
         id: tokenData.id,
         token: tokenData.token,
         first_name: tokenData.first_name,
-        role_id: tokenData.role_id,
+        role_id: tokenData.role,
         privileges: privilegesObject.privileges
     });
 });
