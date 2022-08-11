@@ -9,6 +9,8 @@ import authRouter from "./routes/auth";
 import docsRouter from "./routes/docs";
 import express from "express";
 import cors from "cors";
+import {resolve} from "path";
+import jiraRouter from "./routes/jira";
 
 import multer from "multer";
 import fs from "fs";
@@ -19,6 +21,7 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors());
+app.use("/jira/connect.json", express.static(resolve(__dirname, "..", "public", "atlassian-connect.json")));
 
 // Routes
 app.get("/", (_req, res) => {
@@ -35,5 +38,6 @@ app.use("/api", incomeRouter);
 app.use("/api", usersRouter);
 app.use("/api", authRouter);
 app.use("/", docsRouter);
+app.use("/jira", jiraRouter);
 
 export default app;

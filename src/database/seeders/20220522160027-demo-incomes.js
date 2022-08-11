@@ -22,6 +22,11 @@ module.exports = {
         name: "Bonificación Sample 2",
         automatic: true,
         active: true
+      },
+      {
+        name: "Bono Jira",
+        automatic: false,
+        active: true
       }
     ]);
   },
