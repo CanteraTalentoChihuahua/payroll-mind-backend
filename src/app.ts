@@ -16,9 +16,6 @@ import multer from "multer";
 import fs from "fs";
 import os from "os";
 
-// const parse = require("csv-parse").parse;
-// const upload = multer({ dest: os.tmpdir() });
-
 const app = express();
 
 // Middleware
@@ -30,22 +27,6 @@ app.use("/jira/connect.json", express.static(resolve(__dirname, "..", "public", 
 app.get("/", (_req, res) => {
     res.send("Works... For now.");
 });
-
-// app.post("/read", upload.single("file"), (req, res) => {
-//     const file = req.file;
-
-//     // @ts-ignore: Unreachable code error
-//     const data = fs.readFileSync(file.path);
-//     // @ts-ignore: Unreachable code error
-//     parse(data, (err, records) => {
-//         if (err) {
-//             console.error(err);
-//             return res.status(400).json({ success: false, message: "An error occurred" });
-//         }
-
-//         return res.json({ data: records });
-//     });
-// });
 
 // Should we add /users to users? Got to eliminate the from the route
 app.use("/api/businessunits", businessUnitsRouter);
