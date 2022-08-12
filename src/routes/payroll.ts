@@ -1,7 +1,4 @@
 import express from "express";
-import { Privileges } from "../util/objects";
-import privileges from "../middleware/privileges";
-
 import { buildFinalPayrollObject, calculatePayrollMassively, createSalary } from "../controllers/payroll";
 import { createIncome, createUserIncome, getNewIncomeId, getAllUsersIncomes, updateIncomesArray, getCurrentIncomesUsers, deleteAllUsersIncomes } from "../controllers/incomes";
 import { createOutcome, createUserOutcome, getNewOutcomeId, getAllUsersOutcomes, updateOutcomesArray, getCurrentOutcomesUsers, deleteAllUsersOutcomes } from "../controllers/outcomes";
@@ -10,23 +7,14 @@ import {
     bulkInsertIntoPrePayments, bulkInsertIntoPrePayrolls, calculateGlobalPayroll, getNewSalaryId, updatePaymentPeriod,
     getPayments, updateTotals
 } from "../controllers/payroll";
-import { buildReportObject } from "../controllers/reports";
 
 import { getAllUsersDataRaw, getUserData } from "../controllers/users";
 import { createIndicator } from "../controllers/indicators";
+import { buildReportObject } from "../controllers/reports";
 import { inRange, showing } from "../controllers/general";
 
 const router = express.Router();
 
-// NOTE --- EDIT ON PREPAYROLL FOR DELETING INCOME ID
-// NOTE --- ENDPOINT FOR RECALCULATING AND UPLOADING TO PREPAYROLLS
-
-// privileges(Privileges.CREATE_REPORTS, Privileges.READ_REPORTS)
-
-// If pushed... where will they query?
-
-// NEEDS TO CALCULATE FOR NEW USERS
-// NOTE - MUST MOVE THIS TO CRONJOB
 // Calculates total payroll
 router.get("/calculate", async (req, res) => {
     // @ts-ignore: Unreachable code error
@@ -156,9 +144,6 @@ router.get("/reports/:user_id", async (req, res) => {
     return res.status(200).json(reportArray);
 });
 
-
-// Query pre_payments
-// MISSING PAGINATION PARAMETERS... 
 // MUST SPECIFY 15TH OR 31TH PAYROLL... ?payroll=mid or payroll=end
 router.get("/pre", async (req, res) => {
     // Payroll request...
@@ -299,10 +284,6 @@ router.put("/pre/total/:user_id", async (req, res) => {
     return res.status(200).json({ message: `Successfully edited prepayroll for user_id: ${user_id}.` });
 });
 
-
-// Does not edit AUTOMATIC column in outcomes when UPDATING
-// SENDING ID MEANS IMPLIES IT EXISTS, SENDING NAME IMPLIES IT DOES NOT
-// privileges(Privileges.CREATE_BONUSES, Privileges.READ_BONUSES, Privileges.ASSIGN_BONUSES, Privileges.CREATE_REPORTS)
 router.put("/pre/incomes/:user_id", async (req, res) => {
     // outcome_id is optional...
     let { income_id } = req.body;
@@ -464,10 +445,6 @@ router.put("/pre/total/:user_id", async (req, res) => {
 
     return res.status(200).json({ message: "Successfully updated totals." });
 });
-
-// Moves data from pre_payments to payments
-// Ask front to double confirm before calling this endpoint...
-// NOTE - IF A CERTAIN TIME PASSES WITH NO CONFIRMATION, CRONJOB SHOULD CALL THIS
 
 router.post("/pre/push", async (req, res) => {
     const pushObject = await pushToPayments();

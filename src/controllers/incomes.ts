@@ -1,6 +1,6 @@
+import * as c from "./jira";
 import { Op } from "sequelize";
 import { createIdCondition } from "../controllers/payroll";
-import * as c from "./jira";
 const { incomes, incomes_users, pre_payments } = require("../database/models/index");
 
 // What if an outcome / income is inactive? How to activate it?
